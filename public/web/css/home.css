@@ -1,0 +1,336 @@
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* 페이지 바탕: 밝은 베이지 (RGB 234 231 224) */
+html,
+body {
+  background: #eae7e0;
+  color: #13233a;
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ===== 상단 헤더 (로고 + 검색창) ===== */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 32px;
+  background: rgba(234, 231, 224, 0.8);
+  backdrop-filter: blur(6px);
+}
+
+.header__logo {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+/* ===== 검색창 (헤더 오른쪽) ===== */
+.search {
+  display: flex;
+  width: min(100%, 340px);
+  border: 1px solid rgba(19, 35, 58, 0.35);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  overflow: hidden;
+}
+
+.search:focus-within {
+  border-color: #13233a;
+}
+
+.search__input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 16px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #13233a;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.search__input::placeholder {
+  color: rgba(19, 35, 58, 0.45);
+}
+
+.search__btn {
+  padding: 0 18px;
+  border: 0;
+  background: #13233a;
+  color: #fff;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.search__btn:hover {
+  opacity: 0.85;
+}
+
+/* ===== 메인 비주얼 ===== */
+.hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 96px 16px 64px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 오른쪽 아래 채팅 책 (첫 화면 오른쪽 아래 모서리 근처)
+   평소엔 닫힌 책(chatbook.png), 커서를 올리거나 채팅이 열려 있으면 펼친 책(chatbook1.png).
+   클릭하면 채팅창이 열린다 (js/book.js).
+   --book-right: 책 그림 오른쪽 끝이 화면 오른쪽에서 떨어진 거리 */
+.hero__book {
+  --book-right: 13.5vw;
+  position: absolute;
+  right: var(--book-right);
+  bottom: 7.5vh;
+  z-index: 0;
+}
+
+/* 버튼 크기 = 닫힌 책 크기. 펼친 책은 그 위에 겹쳐 띄운다 */
+.chatbook {
+  position: relative;
+  display: block;
+  width: clamp(72px, 6.6vw, 114px); /* 닫힌 책 크기 (이전의 80%) */
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.chatbook img {
+  display: block;
+  user-select: none;
+  pointer-events: none;
+}
+
+.chatbook__closed {
+  width: 100%;
+  height: auto;
+  transition: opacity 0.25s, transform 0.3s;
+}
+
+/* 펼친 책: 닫힌 책의 오른쪽 · 아래 끝(그림자 제외)에 맞춰, 거기서부터 커지며 나타남.
+   크기는 닫힌 책과 따로 정한다 */
+.chatbook__open {
+  position: absolute;
+  right: 0;
+  bottom: 20%; /* 닫힌 책 그림 아래쪽 20%는 그림자 · 투명 여백 */
+  width: clamp(180px, 16.5vw, 284px);
+  max-width: none;
+  height: auto;
+  opacity: 0;
+  transform: scale(0.6);
+  transform-origin: 85% 100%;
+  filter: drop-shadow(0 10px 16px rgba(19, 35, 58, 0.22));
+  transition: opacity 0.25s, transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+}
+
+/* 책갈피: 닫힌 책 그림과 같은 좌표로 겹쳐 그림 (위로 튀어나오는 부분은 그림 밖까지) */
+.chatbook__ribbon {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 2px rgba(19, 35, 58, 0.18));
+  transition: opacity 0.25s, transform 0.3s; /* 닫힌 책과 함께 사라짐 */
+}
+
+.chatbook:hover .chatbook__closed,
+.chatbook:focus-visible .chatbook__closed,
+.hero__book.is-launched .chatbook__closed,
+.chatbook:hover .chatbook__ribbon,
+.chatbook:focus-visible .chatbook__ribbon,
+.hero__book.is-launched .chatbook__ribbon {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.chatbook:hover .chatbook__open,
+.chatbook:focus-visible .chatbook__open,
+.hero__book.is-launched .chatbook__open {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto; /* 펼친 책 위에 커서가 있어도 계속 펼쳐진 채로 */
+}
+
+.chatbook:focus-visible {
+  outline: 2px solid #3a7ca5;
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chatbook__closed,
+  .chatbook__ribbon,
+  .chatbook__open {
+    transition: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero__book {
+    right: 16px;
+    bottom: 24px;
+  }
+}
+
+.hero > :not(.hero__book):not(.chat) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== 목차 (책 목차 느낌: 번호 · 제목 · 점선 · 소제목) ===== */
+.toc__heading {
+  width: min(100%, 720px);
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(19, 35, 58, 0.35);
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-align: left;
+}
+
+.toc {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 720px);
+}
+
+.toc__item {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  padding: 16px 4px;
+  border-bottom: 1px solid rgba(19, 35, 58, 0.1);
+  text-align: left;
+  transition: padding 0.25s;
+}
+
+.toc__num {
+  flex-shrink: 0;
+  width: 2ch;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #3a7ca5;
+  font-variant-numeric: tabular-nums;
+}
+
+.toc__title {
+  flex-shrink: 0;
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  font-weight: 700;
+  transition: color 0.25s;
+}
+
+/* 소제목 앞 점선(리더)이 남은 공간을 채움 */
+.toc__desc {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: rgba(19, 35, 58, 0.6);
+  white-space: nowrap;
+}
+
+.toc__desc::before {
+  content: "";
+  flex: 1;
+  border-bottom: 2px dotted rgba(19, 35, 58, 0.25);
+  transform: translateY(-4px);
+}
+
+/* 커서를 올리면 살짝 들여쓰기 + 제목·점선 강조 */
+.toc__item:hover,
+.toc__item:focus-visible {
+  padding-left: 12px;
+  outline: 0;
+}
+
+.toc__item:hover .toc__title,
+.toc__item:focus-visible .toc__title {
+  color: #2f6f98;
+}
+
+.toc__item:hover .toc__desc,
+.toc__item:focus-visible .toc__desc {
+  color: rgba(19, 35, 58, 0.85);
+}
+
+.toc__item:hover .toc__desc::before,
+.toc__item:focus-visible .toc__desc::before {
+  border-color: rgba(47, 111, 152, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toc__item,
+  .toc__title {
+    transition: none;
+  }
+}
+
+/* ===== 푸터 ===== */
+.footer {
+  padding: 40px 32px;
+  font-size: 0.85rem;
+  opacity: 0.6;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .header {
+    padding: 12px 16px;
+  }
+
+  .header__logo {
+    flex-shrink: 0;
+    font-size: 1rem;
+  }
+
+  /* 좁은 화면: 점선을 빼고 소제목을 제목 아래로 */
+  .toc__item {
+    flex-wrap: wrap;
+    gap: 4px 14px;
+  }
+
+  .toc__desc {
+    flex-basis: 100%;
+    padding-left: calc(2ch * 1.1 + 14px);
+    white-space: normal;
+  }
+
+  .toc__desc::before {
+    display: none;
+  }
+}

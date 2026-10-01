@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>젠지 표류기</title>
+  <link rel="stylesheet" href="css/home.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/chat.css" />
+</head>
+<body>
+
+  <!-- ===== 상단 헤더 (로고 + 검색창) ===== -->
+  <header class="header">
+    <a class="header__logo" href="home.html">젠지 표류기</a>
+    <form class="search" role="search">
+      <input class="search__input" type="search" name="q"
+             placeholder="검색어를 입력하세요" aria-label="검색어" />
+      <button class="search__btn" type="submit">검색</button>
+    </form>
+  </header>
+
+  <main class="home">
+
+    <!-- ===== 메인 비주얼 ===== -->
+    <section class="hero" id="hero">
+      <!-- 오른쪽 아래 채팅 책: 커서를 올리면 펼친 책으로 바뀌고, 클릭하면 채팅창이 열림 (js/book.js) -->
+      <div class="hero__book">
+        <button class="chatbook" type="button" aria-label="표류 상담소 채팅 열기" aria-expanded="false">
+          <img class="chatbook__closed" src="assets/picture/chatbook.png" alt="" />
+          <!-- 책갈피: 닫힌 책 위쪽 가운데보다 약간 오른쪽, 부채꼴로 펼쳐진 페이지 속에 똑바로 꽂힌 청록색 리본.
+               아래 끝은 페이지 사이(y≈190, 살짝 비스듬한 선)에서 잘려 앞쪽 페이지 뒤로 들어간 것처럼 보이고,
+               그 근처는 옅은 그늘이 진다. 위 끝은 V자로 파임.
+               chatbook2.png를 참고해 색을 뽑았고, 좌표는 닫힌 책 그림(1068×1472) 기준. -->
+          <svg class="chatbook__ribbon" viewBox="0 0 1068 1472" aria-hidden="true">
+            <defs>
+              <!-- 직물 결: 잔 노이즈를 리본 모양 안에만 살짝 얹는다 -->
+              <filter id="ribbon-weave" x="-10%" y="-10%" width="120%" height="120%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="2" seed="4" result="noise" />
+                <feColorMatrix in="noise" type="matrix"
+                  values="0 0 0 0 0.1  0 0 0 0 0.25  0 0 0 0 0.3  0 0 0 0.45 -0.12" result="grain" />
+                <feComposite in="grain" in2="SourceGraphic" operator="in" result="grainIn" />
+                <feMerge><feMergeNode in="SourceGraphic" /><feMergeNode in="grainIn" /></feMerge>
+              </filter>
+              <!-- 페이지 속 선 아래는 가림 (리본이 앞쪽 페이지 뒤로 들어간 것처럼) -->
+              <mask id="ribbon-cut" maskUnits="userSpaceOnUse" x="-600" y="-600" width="2000" height="2200">
+                <rect x="-600" y="-600" width="2000" height="2200" fill="#fff" />
+                <polygon points="400,174 800,206 800,600 400,600" fill="#000" />
+              </mask>
+              <!-- 리본 모양: 폭 113, 위 끝 V자 홈. 아래는 가림선보다 길게 -->
+              <clipPath id="ribbon-shape">
+                <polygon points="570,-131 626,-72 683,-131 683,260 570,260" />
+              </clipPath>
+              <!-- 페이지 사이로 들어가는 아래쪽 그늘 -->
+              <linearGradient id="ribbon-tuck" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#0c2a33" stop-opacity="0" />
+                <stop offset="1" stop-color="#0c2a33" stop-opacity="0.5" />
+              </linearGradient>
+            </defs>
+            <g filter="url(#ribbon-weave)" mask="url(#ribbon-cut)">
+              <g clip-path="url(#ribbon-shape)">
+                <rect x="570" y="-131" width="113" height="391" fill="#3f8a98" />
+                <rect x="576" y="-131" width="101" height="391" fill="#43919f" />
+                <!-- 오른쪽 가장자리 빛 · 왼쪽 가장자리 그늘 -->
+                <rect x="665" y="-131" width="8" height="391" fill="#4997a6" opacity="0.8" />
+                <rect x="579" y="-131" width="8" height="391" fill="#397a86" opacity="0.6" />
+                <!-- 페이지 사이로 들어가는 곳: 아래로 갈수록 어둡게 -->
+                <rect x="570" y="110" width="113" height="100" fill="url(#ribbon-tuck)" />
+              </g>
+            </g>
+          </svg>
+          <img class="chatbook__open" src="assets/picture/chatbook1.png" alt="" />
+        </button>
+      </div>
+
+      <!-- 목차 (책 목차처럼 번호 · 제목 · 점선 · 소제목, 누르면 해당 섹션으로 이동) -->
+      <h1 class="toc__heading">목차</h1>
+      <nav class="toc" aria-label="목차">
+        <a class="toc__item" href="#ch1">
+          <span class="toc__num">01</span>
+          <strong class="toc__title">첫인상 &amp; 대면</strong>
+          <span class="toc__desc">첫 인사 · 호칭</span>
+        </a>
+        <a class="toc__item" href="#ch2">
+          <span class="toc__num">02</span>
+          <strong class="toc__title">업무 커뮤니케이션</strong>
+          <span class="toc__desc">메일 · 질문 · 말투</span>
+        </a>
+        <a class="toc__item" href="#ch3">
+          <span class="toc__num">03</span>
+          <strong class="toc__title">회의 &amp; 응대</strong>
+          <span class="toc__desc">회의 발언 · 전화</span>
+        </a>
+        <a class="toc__item" href="#ch4">
+          <span class="toc__num">04</span>
+          <strong class="toc__title">오피스 룰</strong>
+          <span class="toc__desc">공용 공간 · 관계</span>
+        </a>
+        <a class="toc__item" href="#ch5">
+          <span class="toc__num">05</span>
+          <strong class="toc__title">근태 &amp; 이직·퇴사</strong>
+          <span class="toc__desc">지각 · 휴가 · 인수인계</span>
+        </a>
+        <a class="toc__item" href="#ch6">
+          <span class="toc__num">06</span>
+          <strong class="toc__title">경조사</strong>
+          <span class="toc__desc">축하 · 조문</span>
+        </a>
+        <a class="toc__item" href="#ch7">
+          <span class="toc__num">07</span>
+          <strong class="toc__title">업무 보고 &amp; 실수 대처</strong>
+          <span class="toc__desc">진행 공유 · 수습</span>
+        </a>
+      </nav>
+    </section>
+
+    <!-- ===== 챕터 화면 =====
+         목차를 누르면 js/chapter.js가 여기에 챕터 제목 + 탭(카드뉴스 · 숏폼 · 퀴즈 · 체크리스트 · 보이는 라디오)을 그린다.
+         내용은 js/data/chapters.js, 각 컴포넌트는 js/components/ 에 있다. -->
+    <section class="chapter" id="chapter" hidden></section>
+
+  </main>
+
+  <footer class="footer">
+    <p>© 젠지 표류기</p>
+  </footer>
+
+  <script src="js/components/util.js"></script>
+  <script src="js/components/cardnews.js"></script>
+  <script src="js/components/shorts.js"></script>
+  <script src="js/components/quiz.js"></script>
+  <script src="js/components/checklist.js"></script>
+  <script src="js/components/radio.js"></script>
+  <script src="js/data/articles.js"></script>
+  <script src="js/data/chapters.js"></script>
+  <script src="js/chapter.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/book.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>
