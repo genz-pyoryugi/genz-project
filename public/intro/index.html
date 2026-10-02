@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>젠지 표류기</title>
+<!-- 폰트: Google Fonts (자체 호스팅 방법은 README 참고) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="css/intro.css">
+</head>
+<body>
+<!-- =====================================================
+     INTRO — 스크롤 스토리 (바다 → 로프 → 육지 → 책 펼침 → 목차 화면)
+     #intro 높이만큼 스크롤하는 동안 .stage 가 화면에 고정됩니다.
+     ===================================================== -->
+<div id="intro">
+  <div class="stage" id="stage">
+    <canvas id="sea" aria-hidden="true"></canvas>
+    <div id="world">
+      <div class="book" id="book">
+        <div class="thick"></div>
+        <div class="pages" id="pages">
+          <div class="page-r">
+            <div class="col">
+              <p class="lead">처음이라 모르는 게 당연해요.</p>
+              <p>젠지표류기는 사회초년생이 회사에서 마주치는 낯선 순간들을 상황별로 정리한 생존 가이드예요.</p>
+              <p class="lead">막막한 순간마다,<br>필요한 답을 함께 찾아드릴게요.</p>
+            </div>
+          </div>
+          <div class="strip"><b>SOS</b></div>
+          <div class="folio">p. 1</div>
+        </div>
+        <!-- paper + bookmark continuing below the page, only shown once the book is open (fills tall phone screens) -->
+        <div class="tail" id="tail"><i></i></div>
+        <div class="cover" id="cover">
+          <div class="face front" id="front">
+            <div class="eyebrow">GEN Z OFFICE GUIDE</div>
+            <div>
+              <h1>젠지<br>표류기</h1>
+            </div>
+            <div class="sub">사회라는 바다에 처음 떨어진<br>당신을 위한 생존 가이드</div>
+            <div class="vol">VOL. 01 · 사회초년생 편</div>
+          </div>
+          <div class="face back">
+            <div class="label">CONTENTS</div>
+            <ul class="toc">
+              <li><span>01</span>첫 출근 체크리스트</li>
+              <li><span>02</span>회사 말 사전</li>
+              <li><span>03</span>메일과 메신저 예절</li>
+              <li><span>04</span>보고와 피드백</li>
+              <li><span>05</span>직장생활 SOS</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="go" id="go"><span>SCROLL</span><span aria-hidden="true">↓</span><span>가이드 펼치기</span></div>
+    <div class="opener" id="opener">
+      <div class="k">GEN Z OFFICE GUIDE</div>
+      <div class="t">젠지 표류기</div>
+    </div>
+    <div class="caps" id="caps">
+      <p class="cap">첫 출근 날, 눈을 떠 보니 사회라는 바다 한가운데였다.</p>
+      <p class="cap">방향도 규칙도 모른 채 일단 헤엄쳤다.</p>
+      <p class="cap">그때 위에서 무언가 내려왔다.</p>
+      <p class="cap">붙잡았다. 이끄는 대로, 앞으로.</p>
+      <p class="cap">육지다. 그런데 이 로프는 어디서 온 걸까.</p>
+      <p class="cap">내가 붙잡은 로프는, 사실 거대한 책의 책갈피였다.</p>
+    </div>
+    <div class="hint" id="hint">SCROLL<i></i></div>
+  </div>
+</div>
+
+<!-- =====================================================
+     SITE — 인트로가 끝난 뒤 이어지는 실제 웹 화면 자리
+     인트로의 마지막 장면(목차 화면)이 화면을 꽉 채운 상태에서 끝나므로,
+     여기에는 목차 "다음"에 올 내용을 넣으면 자연스럽게 이어집니다.
+     비어 있으면 숨겨집니다.
+     ===================================================== -->
+<main id="site"></main>
+
+<script src="js/intro.js" defer></script>
+<!-- 젠지표류기 본 웹 -->
+<section id="main-web">
+  <iframe
+    id="mainWebFrame"
+    src="/web/home.html"
+    title="젠지표류기 본 웹"
+  ></iframe>
+</section>
+
+<!-- 인트로 → 본 웹 연결: 펼친 페이지의 책갈피가 본 웹 첫 화면 채팅 책의 책갈피로 들어가는 연출 (js/intro.js) -->
+<div class="rib2wrap" aria-hidden="true"><div class="rib2" id="rib2"></div></div>
+
+<script>
+  const mainWebFrame = document.getElementById("mainWebFrame");
+
+  // iframe 안의 100vh 는 iframe 전체 높이(= 본 웹 전체 길이)라서, 첫 화면(.hero)과 채팅 책 위치를
+  // 실제 브라우저 화면 높이에 맞춰 둔다. 그래야 인트로 책갈피가 첫 화면의 채팅 책으로 이어진다.
+  function fitHeroToScreen() {
+    const doc = mainWebFrame.contentDocument;
+    if (!doc || !doc.head) return;
+    let style = doc.getElementById("host-screen-height");
+    if (!style) {
+      style = doc.createElement("style");
+      style.id = "host-screen-height";
+      doc.head.appendChild(style);
+    }
+    const h = window.innerHeight;
+    style.textContent =
+      `.hero{min-height:${h}px}` +
+      `@media (min-width:601px){.hero__book{bottom:${(h * 0.075).toFixed(1)}px}}`;
+  }
+
+  // 본 웹 헤더는 position: fixed 지만 iframe 이 본 웹 전체 길이로 늘어나 있어서 iframe 맨 위에 붙어 버린다.
+  // 본 웹으로 스크롤해 들어가면 그만큼 헤더를 내려서, 로고가 항상 화면 왼쪽 위에 보이게 한다.
+  function pinHeader() {
+    const doc = mainWebFrame.contentDocument;
+    const header = doc && doc.querySelector(".header");
+    if (!header) return;
+    const offset = Math.max(0, -mainWebFrame.getBoundingClientRect().top);
+    const value = offset ? `translateY(${offset}px)` : "";
+    if (header.style.transform !== value) header.style.transform = value;
+  }
+
+  function resizeMainWeb() {
+    try {
+      const doc = mainWebFrame.contentDocument;
+      if (!doc) return;
+
+      const height = Math.max(
+        doc.body.scrollHeight,
+        doc.documentElement.scrollHeight
+      );
+
+      if (mainWebFrame.style.height !== height + "px") mainWebFrame.style.height = height + "px";
+    } catch (error) {
+      console.log("iframe 높이 조절 실패", error);
+    }
+  }
+
+  mainWebFrame.addEventListener("load", () => {
+    fitHeroToScreen();
+    resizeMainWeb();
+    pinHeader();
+
+    const observer = new MutationObserver(resizeMainWeb);
+    // 헤더를 내리는 style 변경(스크롤마다 일어남)은 높이와 상관없으니 class 변경만 본다
+    observer.observe(mainWebFrame.contentDocument.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class", "hidden", "open"]
+    });
+  });
+
+  window.addEventListener("resize", () => {
+    fitHeroToScreen();
+    resizeMainWeb();
+    pinHeader();
+  });
+  window.addEventListener("scroll", pinHeader, { passive: true });
+</script>
+</body>
+</html>

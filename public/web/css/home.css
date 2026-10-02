@@ -44,51 +44,6 @@ a {
   font-weight: 800;
 }
 
-/* ===== 검색창 (헤더 오른쪽) ===== */
-.search {
-  display: flex;
-  width: min(100%, 340px);
-  border: 1px solid rgba(19, 35, 58, 0.35);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.55);
-  overflow: hidden;
-}
-
-.search:focus-within {
-  border-color: #13233a;
-}
-
-.search__input {
-  flex: 1;
-  min-width: 0;
-  padding: 9px 16px;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: #13233a;
-  font: inherit;
-  font-size: 0.9rem;
-}
-
-.search__input::placeholder {
-  color: rgba(19, 35, 58, 0.45);
-}
-
-.search__btn {
-  padding: 0 18px;
-  border: 0;
-  background: #13233a;
-  color: #fff;
-  font: inherit;
-  font-size: 0.9rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.search__btn:hover {
-  opacity: 0.85;
-}
-
 /* ===== 메인 비주얼 ===== */
 .hero {
   display: flex;
