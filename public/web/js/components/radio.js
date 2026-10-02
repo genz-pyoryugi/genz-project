@@ -4,7 +4,62 @@
 // 음성 파일(audio)이 있으면 그 재생 시간에, 없으면 대사 길이로 계산한 가상 시간에 맞춰
 // 말풍선이 하나씩 나타나고, 말하는 사람 강조 · 이퀄라이저가 함께 움직인다.
 // 음성과 맞추려면 lines의 세 번째 값(시작 초)을 넣으면 된다.
-Components.radio = (radio) => {
+// DB radio_contents 테이블에 이 챕터의 회차가 있으면 그것을, 없으면 chapters.js의 라디오를 보여준다.
+// 소주제가 있는 챕터는 sub_category에 소주제 이름(예: 메일)이 들어간 회차만 고른다.
+const DB_RADIO_HOSTS = { senior: { name: "하루", role: "선배 DJ" }, junior: { name: "새봄", role: "신입 DJ" } };
+
+Components.radio = (localRadio, ctx) => fromTable("radio_contents", ctx, {
+  fallback: localRadio,
+  toData: (rows) => {
+    const episodes = rows
+      .filter((row) => !ctx.topic || String(row.sub_category || "").includes(ctx.topic))
+      .map(radioFromRow)
+      .filter(Boolean);
+    return episodes.length ? episodes : null;
+  },
+  render: renderRadioEpisodes,
+});
+
+// DB 한 행 → 라디오 데이터. script: [{ speaker: "senior" | "junior", line }]
+function radioFromRow(row) {
+  const script = (Array.isArray(row.script) ? row.script : [])
+    .filter((item) => item && typeof item.line === "string" && item.line.trim());
+  if (!script.length) return null;
+  const speakers = ["senior", "junior"];
+  script.forEach((item) => { if (!speakers.includes(item.speaker)) speakers.push(item.speaker); });
+  return {
+    title: row.title,
+    hosts: speakers.map((speaker) => DB_RADIO_HOSTS[speaker] || { name: String(speaker || "게스트"), role: "게스트" }),
+    lines: script.map((item) => [speakers.indexOf(item.speaker), item.line]),
+    audio: row.audio_url || undefined,
+  };
+}
+
+// 회차가 여러 개면 위에 회차 버튼을 두고 하나씩 보여준다
+function renderRadioEpisodes(data) {
+  const episodes = Array.isArray(data) ? data : [data];
+  if (episodes.length === 1) return renderRadio(episodes[0]);
+
+  let active = null;
+  const stage = h("div");
+  const tabs = episodes.map((episode, i) =>
+    h("button", { class: "chapter__tab", type: "button", onClick: () => select(i) }, `${i + 1}화 · ${episode.title}`));
+
+  function select(i) {
+    active?.destroy();
+    active = renderRadio(episodes[i]);
+    stage.replaceChildren(active.el);
+    tabs.forEach((tab, j) => tab.setAttribute("aria-pressed", String(i === j)));
+  }
+
+  select(0);
+  return {
+    el: h("div", null, h("div", { class: "radio__episodes" }, tabs), stage),
+    destroy: () => active?.destroy(),
+  };
+}
+
+function renderRadio(radio) {
   const lines = radio.lines.map(([host, text, start]) => ({ host, text, start }));
   let t = 0;
   lines.forEach((line) => {
@@ -162,4 +217,4 @@ Components.radio = (radio) => {
       if (audio) audio.src = "";
     },
   };
-};
+}

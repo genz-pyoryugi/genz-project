@@ -7,18 +7,44 @@
 //  3) cards    : 자체 카드 (제목 · 본문)
 // ctx.related(기사 id 목록)가 있으면 카드 아래에 "관련 기사" 링크를 붙인다.
 // 카드는 좌우 버튼 · 점 · 스와이프 · 방향키로 넘긴다.
-Components.cardnews = (raw, ctx) => {
+// DB contents 테이블에 이 챕터의 기사가 있으면 그 기사들을 카드로, 없으면 chapters.js의 카드뉴스를 보여준다.
+const PRESS_NAMES = { donga: "동아일보", yna: "연합뉴스", newsis: "뉴시스" };
+
+Components.cardnews = (localData, ctx) => fromTable("contents", ctx, {
+  fallback: localData,
+  toData: (rows) => {
+    const articles = rows
+      .filter((row) => row.title && row.url)
+      .map((row) => ({
+        title: row.title,
+        summary: row.summary || "",
+        year: row.published_year ? String(row.published_year) : "",
+        category: row.situation || "",
+        tags: String(row.keyword || "").split(",").map((tag) => tag.trim()).filter(Boolean),
+        url: row.url,
+        press: PRESS_NAMES[row.source] || row.source || "",
+      }));
+    return articles.length ? { articles } : null;
+  },
+  render: renderCardnews,
+});
+
+function renderCardnews(raw, ctx) {
   const data = Array.isArray(raw) ? { cards: raw } : raw;
   const { instagram, source } = data;
-  const articles = (data.articles || []).map((id) => ARTICLES[id]).filter(Boolean);
+  // 기사 id(articles.js) 또는 DB에서 받은 기사 객체
+  const articles = (data.articles || [])
+    .map((article) => (typeof article === "string" ? ARTICLES[article] : article))
+    .filter(Boolean);
 
   let body;
   let credit = null;
 
   if (articles.length) {
     body = createDeck(articles.map(articleSlide));
+    const presses = [...new Set(articles.map((article) => article.press || "동아일보"))].join(" · ");
     credit = h("p", { class: "cardnews__source" },
-      "출처: 동아일보 · 기사 제목과 요약만 소개하며, 전체 내용은 각 카드의 원문 보기에서 확인할 수 있어요.");
+      `출처: ${presses} · 기사 제목과 요약만 소개하며, 전체 내용은 각 카드의 원문 보기에서 확인할 수 있어요.`);
   } else if (instagram) {
     body = createInstagram(instagram);
     const originUrl = source?.url || instagram;
@@ -45,14 +71,14 @@ Components.cardnews = (raw, ctx) => {
 
   const el = h("div", { class: "cardnews" }, body, credit, relatedList);
   return { el, destroy() {} };
-};
+}
 
 // --- 기사 카드 한 장 ---
 function articleSlide(article) {
   return [
     h("div", { class: "cardnews__meta" },
-      h("span", { class: "cardnews__press" }, "동아일보"),
-      h("span", null, `${article.year} · ${article.category}`)),
+      h("span", { class: "cardnews__press" }, article.press || "동아일보"),
+      h("span", null, [article.year, article.category].filter(Boolean).join(" · "))),
     h("h3", { class: "cardnews__headline" }, article.title),
     h("p", { class: "cardnews__summary" }, article.summary),
     h("ul", { class: "cardnews__tags" }, article.tags.map((tag) => h("li", null, `#${tag}`))),

@@ -98,11 +98,8 @@ const BookChat = (() => {
           SUGGESTIONS.map((text) =>
             h("button", { class: "chat__chip", type: "button", onClick: () => send(text) }, text))),
         form)),
-      // 시뮬레이션 버전: 아직 내용 없음 (상황별 역할극 연습 자리)
-      (views.sim = h("div", { class: "chat__view chat__sim", role: "tabpanel", hidden: true },
-        h("p", { class: "chat__sim-badge" }, "SIMULATION"),
-        h("h3", { class: "chat__sim-title" }, "시뮬레이션 버전"),
-        h("p", { class: "chat__sim-desc" }, "실제 회사 상황 속에서 대화를 주고받으며 연습하는 공간이에요.\n곧 열릴 예정이에요."))));
+      // 시뮬레이션 버전: DB 상황으로 AI팀장과 역할극 연습 (js/simulation.js)
+      (views.sim = Simulation.create()));
 
     document.body.append(overlay);
     // 채팅창은 첫 화면(hero) 안에 두어 책과 함께 움직이게 한다

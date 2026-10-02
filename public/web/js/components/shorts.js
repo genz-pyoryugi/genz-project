@@ -6,7 +6,25 @@
 //     장면별 자막 대본. 세로 화면 안에서 장면마다 sec초씩 자막을 넘긴다 (합계가 영상 길이)
 //  { title, captions: [자막...] }  — scenes의 간단한 형태 (한 줄에 1.8초)
 // 한 번에 하나만 재생된다.
-Components.shorts = (data) => {
+// DB shortform_contents 테이블에 이 챕터의 영상이 있으면 그것을, 없으면 chapters.js의 숏폼을 보여준다.
+Components.shorts = (localData, ctx) => fromTable("shortform_contents", ctx, {
+  fallback: localData,
+  toData: (rows) => {
+    const shorts = rows
+      .map((row) => ({ title: row.title, youtube: youtubeId(row.video_url) }))
+      .filter((short) => short.youtube);
+    return shorts.length ? shorts : null;
+  },
+  render: renderShorts,
+});
+
+// 유튜브 주소(shorts/ID, watch?v=ID, youtu.be/ID)에서 영상 ID만 꺼낸다
+function youtubeId(url) {
+  const match = String(url || "").match(/(?:shorts\/|[?&]v=|youtu\.be\/|embed\/)([\w-]{11})/);
+  return match ? match[1] : null;
+}
+
+function renderShorts(data) {
   const shorts = Array.isArray(data) ? data : [data];
   const players = shorts.map((short) => (short.youtube ? createYoutube(short) : createScript(short)));
 
@@ -158,4 +176,4 @@ Components.shorts = (data) => {
 
   const el = h("div", { class: "shorts" }, players.map((p) => p.el));
   return { el, destroy: () => players.forEach((p) => p.pause()) };
-};
+}

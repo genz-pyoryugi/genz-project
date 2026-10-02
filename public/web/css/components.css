@@ -120,7 +120,8 @@
   border-color: rgba(19, 35, 58, 0.35);
 }
 
-.chapter__tab[aria-selected="true"] {
+.chapter__tab[aria-selected="true"],
+.chapter__tab[aria-pressed="true"] {
   background: var(--c-ink);
   border-color: var(--c-ink);
   color: #fff;
@@ -812,6 +813,17 @@
   list-style: none;
 }
 
+/* DB 체크리스트의 묶음 제목 */
+.checklist__group {
+  margin: 24px 0 4px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.checklist__head + .checklist__group {
+  margin-top: 0;
+}
+
 .checklist__label {
   display: flex;
   align-items: center;
@@ -889,6 +901,14 @@
 }
 
 /* ===== 보이는 라디오 ===== */
+/* DB 라디오 회차 버튼 (회차가 여러 개일 때) */
+.radio__episodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
 .radio {
   width: min(100%, 640px);
   margin: 0 auto;

@@ -100,6 +100,8 @@ function openChapter(id) {
     if (!componentState.has(stateKey)) componentState.set(stateKey, {});
 
     const ctx = {
+      category: chapter.title,               // DB 데이터를 고르는 기준 (예: 첫인상 & 대면)
+      topic: topic?.label,                   // 소주제 이름 (예: 메일)
       scope,                                 // 저장 키 등에 쓰는 이름 (예: ch2-mail)
       state: componentState.get(stateKey),   // 소주제·형식별로 유지되는 상태
       related: source.related || [],         // 관련 기사 id (카드뉴스 아래 표시)
