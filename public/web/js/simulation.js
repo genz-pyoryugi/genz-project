@@ -1,7 +1,7 @@
 // ===== AI팀장 시뮬레이션 =====
 // 채팅창의 "시뮬레이션" 탭. (chat.js가 Simulation.create()로 만든 화면을 붙인다)
 // DB ai_scenarios 테이블에서 상황을 불러와
-//  1) 카테고리 선택 → 2) 상황 선택 → 3) AI팀장의 말에 답하기 → 4) 평가 포인트로 점검
+//  1) 카테고리 선택 → 2) 상황 선택 → 3) AI팀장과 대화 → 4) 종료 평가
 // 순서로 진행한다.
 //  situation        : "제목\n 상황: 설명\n AI팀장: 첫 질문" 형식
 //  evaluation_points: "1. 포인트\n 2. 포인트 ..." 형식
@@ -14,6 +14,7 @@ const Simulation = (() => {
       category: row.category,
       difficulty: row.difficulty || "",
       title: lines[0] || "상황",
+      situation: String(row.situation || ""),
       context: "",
       prompt: "",
       points: String(row.evaluation_points || "")
@@ -33,19 +34,11 @@ const Simulation = (() => {
     return scenario;
   }
 
-  // 답변 평가. 지금은 평가 포인트를 보여주고 스스로 체크하게 한다.
-  // 나중에 AI를 붙이려면 이 함수만 바꾸면 된다. (scenario.points 기준으로 answer를 채점)
-  function evaluate(scenario) {
-    return {
-      message: "좋아요. 방금 답변을 아래 평가 포인트로 점검해 볼까요? 지킨 항목을 체크해 보세요.",
-      points: scenario.points,
-    };
-  }
-
   function create() {
     const el = h("div", { class: "chat__view sim", role: "tabpanel", hidden: true });
     let scenarios = [];
     let category = null;
+    let personality = "balanced";
 
     // --- 1) 불러오기 ---
     function load() {
@@ -101,12 +94,20 @@ const Simulation = (() => {
         h("div", { class: "sim__intro" },
           h("p", { class: "chat__sim-badge" }, "SIMULATION"),
           h("p", { class: "sim__lead" }, "AI팀장과 실제 회사 상황을 연습해 보세요.\n카테고리를 고르고 상황을 선택하세요.")),
+        h("label", { class: "sim__personality" }, "팀장 성격 ",
+          h("select", { "aria-label": "팀장 성격", onChange: e => { personality = e.target.value; } },
+            [["balanced", "차분한 팀장"], ["supportive", "격려하는 팀장"], ["direct", "직설적인 팀장"]].map(([value, label]) =>
+              h("option", { value, selected: value === personality }, label)))),
         h("div", { class: "chat__chips sim__chips", "aria-label": "카테고리" }, chips),
         h("ul", { class: "sim__list" }, items));
     }
 
     // --- 3) 역할극 ---
     function showPlay(scenario) {
+      let session = null;
+      let pending = false;
+      let ended = false;
+      let turns = 0;
       const log = h("ol", { class: "chat__log sim__log", role: "log", "aria-live": "polite" });
       const input = h("input", {
         class: "chat__input",
@@ -114,7 +115,19 @@ const Simulation = (() => {
         placeholder: "AI팀장에게 답해 보세요",
         "aria-label": "답변",
         autocomplete: "off",
+        maxlength: "2000",
       });
+      const send = h("button", { class: "chat__send", type: "submit" }, "보내기");
+      const finish = h("button", { class: "chat__link", type: "button", onClick: () => request("evaluate") }, "대화 종료 및 평가");
+      const back = h("button", { class: "sim__back", type: "button", onClick: showList }, "← 목록");
+      const notice = h("p", { class: "sim__notice", role: "status" });
+      const retry = h("button", { class: "chat__link", type: "button", hidden: true, onClick: () => request("start") }, "연결 다시 시도");
+      function controls() {
+        input.disabled = send.disabled = pending || ended || !session || turns >= 20;
+        finish.disabled = pending || ended || !turns;
+        back.disabled = retry.disabled = pending;
+        log.setAttribute("aria-busy", String(pending));
+      }
 
       function say(who, text, extra) {
         const item = h("li", { class: `chat__msg chat__msg--${who}` },
@@ -126,57 +139,72 @@ const Simulation = (() => {
         return item;
       }
 
-      function answer(raw) {
-        const text = raw.trim();
-        if (!text) return;
-        input.value = "";
-        say("user", text);
-
-        const typing = say("bot", "…");
-        typing.classList.add("is-typing");
-        setTimeout(() => {
+      async function request(action) {
+        if (pending || ended) return;
+        const message = input.value.trim();
+        if (action === "chat" && (!message || !session || turns >= 20)) return;
+        if (action === "evaluate" && (!session || !turns)) return;
+        pending = true;
+        notice.textContent = "";
+        retry.hidden = true;
+        controls();
+        const user = action === "chat" ? say("user", message) : null;
+        const typing = say("bot", action === "evaluate" ? "평가를 작성하고 있어요…" : "팀장이 응답을 준비하고 있어요…");
+        try {
+          const response = await fetch("/api/simulation", {
+            method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(60000),
+            body: JSON.stringify(action === "start" ? { action, scenarioId: scenario.id, personality }
+              : { action, session, ...(action === "chat" ? { message } : {}) }),
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || "AI 응답을 받지 못했어요.");
           typing.remove();
-          const result = evaluate(scenario, text);
-          say("bot", result.message, scoreCard(result.points));
-        }, 600);
-      }
-
-      // 평가 포인트 체크표
-      function scoreCard(points) {
-        const count = h("p", { class: "sim__count" });
-        const boxes = points.map(() => h("input", { type: "checkbox", onChange: update }));
-        function update() {
-          const n = boxes.filter((box) => box.checked).length;
-          count.textContent = n === points.length
-            ? `${n} / ${points.length} · 모두 지켰어요! 실전에서도 이렇게 말해 보세요.`
-            : `${n} / ${points.length} 지켰어요`;
+          if (action === "evaluate") {
+            ended = true;
+            const card = h("li", { class: "sim__score" }, h("h3", null, "대화 평가"));
+            [["strengths", "잘한 점"], ["improvements", "개선할 점"], ["expressions", "추천 표현"]].forEach(([key, title]) => {
+              card.append(h("h4", null, title), h("ul", null, data.feedback[key].map(text => h("li", null, text))));
+            });
+            card.append(h("button", { class: "chat__link", type: "button", onClick: () => showPlay(scenario) }, "같은 상황 다시 연습"));
+            log.append(card);
+            notice.textContent = "대화가 종료됐어요. 평가를 확인하고 다시 연습해 보세요.";
+          } else {
+            session = data.session;
+            say("bot", data.reply);
+            if (action === "chat") { input.value = ""; turns++; }
+            if (turns >= 20) notice.textContent = "20회 대화를 마쳤어요. 대화 종료 및 평가를 눌러 주세요.";
+          }
+        } catch (error) {
+          typing.remove();
+          user?.remove();
+          notice.textContent = error.name === "TimeoutError" ? "응답이 지연됐어요. 다시 시도해 주세요." : error.message;
+          retry.hidden = action !== "start";
+        } finally {
+          pending = false;
+          controls();
+          log.scrollTop = log.scrollHeight;
+          if (!input.disabled) input.focus({ preventScroll: true });
         }
-        update();
-        return h("div", { class: "sim__score" },
-          h("ul", null, points.map((point, i) =>
-            h("li", null, h("label", null, boxes[i], h("span", null, point))))),
-          count,
-          h("div", { class: "sim__actions" },
-            h("button", { class: "chat__link", type: "button", onClick: () => input.focus() }, "다시 답해 보기"),
-            h("button", { class: "chat__link sim__ghost", type: "button", onClick: showList }, "다른 상황 고르기")));
       }
 
       log.append(h("li", { class: "sim__context" },
         h("span", { class: "sim__context-label" }, "상황"),
-        h("p", null, scenario.context)));
-      say("bot", scenario.prompt);
+        h("p", null, scenario.situation)));
 
       el.replaceChildren(
         h("div", { class: "sim__bar" },
-          h("button", { class: "sim__back", type: "button", onClick: showList }, "← 목록"),
+          back,
           h("p", { class: "sim__bar-title" }, scenario.title),
           scenario.difficulty && h("span", { class: "sim__level", "data-level": scenario.difficulty }, scenario.difficulty)),
         log,
+        notice, retry,
+        h("div", { class: "sim__actions" }, finish),
         h("form", {
           class: "chat__form",
-          onSubmit: (e) => { e.preventDefault(); answer(input.value); },
-        }, input, h("button", { class: "chat__send", type: "submit" }, "보내기")));
-      input.focus({ preventScroll: true });
+          onSubmit: (e) => { e.preventDefault(); request("chat"); },
+        }, input, send));
+      controls();
+      request("start");
     }
 
     load();

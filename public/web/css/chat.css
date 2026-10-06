@@ -569,6 +569,14 @@ html.is-chat-open body {
 }
 
 /* 입력 */
+.sim__notice, .sim__personality, .sim__actions { padding: 8px 20px; }
+.sim__notice:empty { display: none; }
+.sim__context { white-space: pre-line; }
+.sim__score { padding: 16px; background: rgba(255,255,255,.08); border-radius: 12px; }
+.sim__score h4 { margin-top: 12px; }
+.sim__score ul { padding-left: 20px; line-height: 1.6; }
+.sim__personality select { padding: 6px; border-radius: 6px; color: #061521; background: #fff; }
+.sim button:disabled, .sim input:disabled { opacity: .5; cursor: wait; }
 .chat__form {
   display: flex;
   gap: 8px;
