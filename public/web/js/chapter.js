@@ -9,6 +9,8 @@
 //  2단 콘텐츠 형식: 카드뉴스 · 숏폼 · 퀴즈 · 체크리스트 · 보이는 라디오
 //  소주제가 없는 챕터는 챕터 데이터에 5가지 형식이 바로 들어 있다.
 const FORMATS = [
+  { key: "guide", label: "핵심 가이드", component: "guide" },
+  { key: "adventure", label: "상황 선택 게임", component: "adventure" },
   { key: "cardnews", label: "카드뉴스", component: "cardnews" },
   { key: "shortform", label: "숏폼", component: "shorts" },
   { key: "quiz", label: "퀴즈", component: "quiz" },
@@ -44,6 +46,9 @@ function openChapter(id) {
   const index = CHAPTERS.findIndex((c) => c.id === id);
   const chapter = CHAPTERS[index];
   if (!chapter) return;
+  const formats = chapter.formats
+    ? chapter.formats.map(key => FORMATS.find(format => format.key === key)).filter(Boolean)
+    : FORMATS.filter(format => !["guide", "adventure"].includes(format.key));
 
   const topics = chapter.topics || null;
   let topicIndex = 0;
@@ -65,7 +70,7 @@ function openChapter(id) {
     : [];
 
   // --- 2단: 콘텐츠 형식 탭 ---
-  const formatTabs = FORMATS.map((format, i) =>
+  const formatTabs = formats.map((format, i) =>
     h("button", {
       class: "chapter__tab",
       type: "button",
@@ -92,7 +97,7 @@ function openChapter(id) {
   function renderPanel() {
     activeComponent?.destroy();
 
-    const format = FORMATS[formatIndex];
+    const format = formats[formatIndex];
     const topic = topics?.[topicIndex];
     const source = topic ? chapter.content[topic.key] : chapter;
     const scope = topic ? `${chapter.id}-${topic.key}` : chapter.id;
@@ -105,6 +110,8 @@ function openChapter(id) {
       scope,                                 // 저장 키 등에 쓰는 이름 (예: ch2-mail)
       state: componentState.get(stateKey),   // 소주제·형식별로 유지되는 상태
       related: source.related || [],         // 관련 기사 id (카드뉴스 아래 표시)
+      localOnly: chapter.localOnly === true,
+      source: chapter.source,
     };
 
     activeComponent = Components[format.component](source[format.key], ctx);
@@ -146,7 +153,13 @@ function openChapter(id) {
     h("a", { class: "chapter__pager-link chapter__pager-link--toc", href: "#hero" }, "목차"),
     next ? h("a", { class: "chapter__pager-link", href: `#${next.id}` }, `${next.num} ${next.title} →`) : h("span"));
 
-  chapterSection.replaceChildren(head, formatList, panel, pager);
+  const sourceNotice = chapter.source && h("aside", { class: "manual-source" },
+    h("p", null, `출처: ${chapter.source.title}`),
+    h("p", null, chapter.uploadedManual ? "AI가 만든 학습 자료입니다. 내용과 근거 페이지를 원문과 확인해 주세요. 대화와 상황 결과는 학습용 예시입니다." : "첨부 PDF를 재구성한 학습 샘플입니다. 상황 예시는 연습용이며 회사의 추가 규정이 아닙니다."),
+    h("p", null, chapter.formats?.includes("guide") ? "핵심 가이드 → 상황 선택 게임 → 퀴즈 → 실천 체크리스트" : "카드뉴스로 이해하고 → 퀴즈로 확인하고 → 체크리스트로 실천해 보세요."),
+    h("div", { class: "manual-source__links" }, Array.from({ length: chapter.source.pages }, (_, i) =>
+      h("a", { href: `${chapter.source.url}#page=${i + 1}`, target: "_blank", rel: "noopener" }, `원문 ${i + 1}쪽 ↗`))));
+  chapterSection.replaceChildren(...[head, sourceNotice, formatList, panel, pager].filter(Boolean));
 
   if (topics) markSelected(topicTabs, topicIndex);
   markSelected(formatTabs, formatIndex);

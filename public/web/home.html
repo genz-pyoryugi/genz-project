@@ -13,6 +13,7 @@
   <!-- ===== 상단 헤더 (로고) ===== -->
   <header class="header">
     <a class="header__logo" href="home.html">젠지 표류기</a>
+    <a class="manual-nav" href="#manual-upload">내 매뉴얼로 배우기</a>
   </header>
 
   <main class="home">
@@ -109,6 +110,28 @@
       </nav>
     </section>
 
+    <section class="manual-upload" id="manual-upload" aria-labelledby="manual-upload-title">
+      <p class="manual-upload__badge">나만의 업무 학습 공간</p>
+      <h2 id="manual-upload-title">두꺼운 매뉴얼을, 나의 학습 챕터로</h2>
+      <p class="manual-upload__intro">회사 매뉴얼을 핵심 가이드로 이해하고, 상황 게임과 퀴즈로 연습하고, 체크리스트로 실천해 보세요.</p>
+      <ol class="manual-upload__steps" aria-label="학습 콘텐츠 생성 순서">
+        <li>01 · PDF 선택</li><li>02 · 내용 분석</li><li>03 · 학습 챕터 생성</li>
+      </ol>
+      <div class="manual-upload__picker">
+        <label for="manual-file">매뉴얼 PDF 선택</label>
+        <input id="manual-file" type="file" accept=".pdf,application/pdf" aria-describedby="manual-file-help manual-file-status" />
+        <p id="manual-file-help">PDF 1개 · 최대 10MB · 최대 30쪽 · 암호로 보호되지 않은 문서</p>
+        <p id="manual-file-status" role="status">아직 선택한 파일이 없어요.</p>
+        <button id="manual-file-clear" type="button" hidden>선택 취소</button>
+      </div>
+      <div class="manual-upload__actions">
+        <button id="manual-convert" type="button" disabled>학습 챕터 만들기</button>
+        <a href="#ch8">넷플릭스 PDF 학습 샘플 보기 →</a>
+        <a href="assets/manuals/netflix-culture-ko.pdf" target="_blank" rel="noopener">샘플 원본 PDF 보기 ↗</a>
+      </div>
+      <p class="manual-upload__note">만들기를 누르면 PDF가 서버를 통해 OpenAI에 전송됩니다. 공유 권한이 있는 문서를 사용하세요. 결과는 현재 탭에만 표시되며 새로고침하면 사라집니다. AI가 만든 내용과 근거 페이지를 원문과 확인해 주세요.</p>
+    </section>
+
     <!-- ===== 챕터 화면 =====
          목차를 누르면 js/chapter.js가 여기에 챕터 제목 + 탭(카드뉴스 · 숏폼 · 퀴즈 · 체크리스트 · 보이는 라디오)을 그린다.
          내용은 js/data/chapters.js, 각 컴포넌트는 js/components/ 에 있다. -->
@@ -126,9 +149,12 @@
   <script src="js/components/quiz.js"></script>
   <script src="js/components/checklist.js"></script>
   <script src="js/components/radio.js"></script>
+  <script src="js/components/manual-learning.js"></script>
   <script src="js/data/articles.js"></script>
   <script src="js/data/chapters.js"></script>
+  <script src="js/data/manual-sample.js"></script>
   <script src="js/chapter.js"></script>
+  <script src="js/manual-upload.js"></script>
   <script src="js/simulation.js"></script>
   <script src="js/chat.js"></script>
   <script src="js/book.js"></script>

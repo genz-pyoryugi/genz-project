@@ -94,6 +94,7 @@ function renderQuiz(questions, ctx) {
 
 // Supabase 접근은 Next.js API가 담당한다. 브라우저에 별도 키를 넣지 않는다.
 Components.quiz = (_examples, ctx) => {
+  if (ctx.localOnly) return renderQuiz(_examples, ctx);
   const el = h("div", { class: "quiz", "aria-live": "polite" });
   const controller = new AbortController();
   let activeQuiz = null;

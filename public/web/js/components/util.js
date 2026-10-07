@@ -59,6 +59,7 @@ const sameCategory = (a, b) =>
 //  render(data, ctx): 실제 컴포넌트 ({ el, destroy })
 //  fallback: DB에 이 챕터 데이터가 없거나 불러오지 못하면 대신 그릴 데이터 (chapters.js)
 function fromTable(table, ctx, { toData, render, fallback }) {
+  if (ctx.localOnly) return render(fallback, ctx);
   const el = h("div", { "aria-live": "polite" });
   let active = null;
   let destroyed = false;
