@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
-import { PostItPost, PlacedSticker } from '../../types/community';
-import { OfficeStickerSvg } from './OfficeStickerSvg.tsx';
+'use client';
+
+import React, { useState, useRef } from 'react';
+import { PostItPost, PlacedSticker } from '@/types/community';
+import { OfficeStickerSvg } from './OfficeStickerSvg';
 import { OFFICE_STICKER_LIBRARY } from '@/data/officeData';
-import { X, Sparkles, Plus, Building2, Clock, ThumbsUp } from 'lucide-react';
-import { sound } from '../../utils/audio';
+import { X, Sparkles, Plus, Building2, Clock, ThumbsUp, Move, Trash2 } from 'lucide-react';
+import { sound } from '@/utils/audio';
 
 interface PostItInspectModalProps {
   post: PostItPost | null;
   isOpen: boolean;
   onClose: () => void;
   onAddComment: (post: PostItPost) => void;
+  onRemoveComment?: (postId: string, commentId: string) => void;
   onStickSticker: (postId: string, stickerId: string, x: number, y: number) => void;
+  onRemoveSticker?: (postId: string, placedStickerId: string) => void;
+  onMoveSticker?: (postId: string, placedStickerId: string, newX: number, newY: number) => void;
   activeStickerId: string | null;
   onOpenStickerDrawer: () => void;
 }
@@ -20,11 +25,17 @@ export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
   isOpen,
   onClose,
   onAddComment,
+  onRemoveComment,
   onStickSticker,
+  onRemoveSticker,
+  onMoveSticker,
   activeStickerId,
   onOpenStickerDrawer,
 }) => {
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
+  const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
+  const [draggedSticker, setDraggedSticker] = useState<{ id: string; x: number; y: number } | null>(null);
+  const paperRef = useRef<HTMLDivElement>(null);
 
   if (!isOpen || !post) return null;
 
@@ -38,6 +49,17 @@ export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
 
       sound.playStickSound();
       onStickSticker(post.id, activeStickerId, clampedX, clampedY);
+      e.stopPropagation();
+    } else if (selectedStickerId && onMoveSticker) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = ((e.clientX - rect.left) / rect.width) * 100;
+      const clickY = ((e.clientY - rect.top) / rect.height) * 100;
+      const clampedX = Math.max(8, Math.min(88, clickX));
+      const clampedY = Math.max(10, Math.min(88, clickY));
+
+      sound.playStickSound();
+      onMoveSticker(post.id, selectedStickerId, clampedX, clampedY);
+      setSelectedStickerId(null);
       e.stopPropagation();
     }
   };
@@ -86,6 +108,7 @@ export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
 
         {/* Enlarged Post-it Sheet */}
         <div
+          ref={paperRef}
           onClick={handlePaperClick}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setCursorPos(null)}
@@ -133,19 +156,19 @@ export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
           </div>
 
           {/* Title */}
-          <h2 className="font-ui font-extrabold text-xl sm:text-2xl text-[#112334] mb-3 leading-snug">
+          <h2 className="font-ui font-extrabold text-xl sm:text-2xl text-[#112334] mb-3 leading-snug break-keep">
             {post.title}
           </h2>
 
           {/* Story Body */}
-          <div className="font-dakkuda text-xl sm:text-2xl text-black/90 leading-relaxed mb-6">
+          <div className="font-dakkuda text-xl sm:text-2xl text-black/90 leading-relaxed mb-6 break-keep">
             {post.highlightedText ? (
-              <p>
+              <p className="break-keep">
                 {post.content.split(post.highlightedText).map((part, idx, arr) => (
                   <React.Fragment key={idx}>
                     {part}
                     {idx < arr.length - 1 && (
-                      <mark className="bg-[#2B729E]/25 px-1.5 py-0.5 rounded text-[#112334] font-bold underline decoration-[#2B729E] decoration-wavy decoration-2">
+                      <mark className="bg-[#2B729E]/25 px-1.5 py-0.5 rounded text-[#112334] font-bold underline decoration-[#2B729E] decoration-wavy decoration-2 break-keep">
                         {post.highlightedText}
                       </mark>
                     )}
@@ -153,7 +176,7 @@ export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
                 ))}
               </p>
             ) : (
-              <p>{post.content}</p>
+              <p className="break-keep">{post.content}</p>
             )}
           </div>
 
@@ -196,7 +219,21 @@ export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
                       <span className="font-bold text-[#2B729E]">
                         [{cmt.authorRole}] {cmt.author}
                       </span>
-                      <span>{cmt.createdAt}</span>
+                      <div className="flex items-center gap-2">
+                        <span>{cmt.createdAt}</span>
+                        {onRemoveComment && (
+                          <button
+                            onClick={() => {
+                              sound.playPeelSound();
+                              onRemoveComment(post.id, cmt.id);
+                            }}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-500/10 px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors cursor-pointer"
+                            title="테이프 조언 삭제"
+                          >
+                            삭제 ✕
+                          </button>
+                        )}
+                      </div>
                     </div>
                     {cmt.targetSentence && (
                       <p className="text-xs font-ui text-[#58534C] italic mb-1 border-l-2 border-current pl-2">
@@ -226,6 +263,18 @@ export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
                     >
                       <OfficeStickerSvg type={sDef?.iconType || 'coffee-drip'} size={16} />
                       <span className="text-[#112334] font-medium">[{stk.authorRole}] {stk.author}</span>
+                      {onRemoveSticker && (
+                        <button
+                          onClick={() => {
+                            sound.playPeelSound();
+                            onRemoveSticker(post.id, stk.id);
+                          }}
+                          className="ml-1 text-red-500 hover:text-red-700 hover:bg-red-100 p-0.5 rounded text-[10px]"
+                          title="스티커 떼기"
+                        >
+                          ✕
+                        </button>
+                      )}
                     </span>
                   );
                 })}
@@ -247,25 +296,118 @@ export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
           {/* Render Physical Stickers on the Enlarged Post-it */}
           {post.stickers.map((stk: PlacedSticker) => {
             const stickerDef = OFFICE_STICKER_LIBRARY.find((s) => s.id === stk.stickerId);
+            const isSelected = selectedStickerId === stk.id;
+            const isDragging = draggedSticker?.id === stk.id;
+            const displayX = isDragging ? draggedSticker.x : stk.x;
+            const displayY = isDragging ? draggedSticker.y : stk.y;
+
             return (
               <div
                 key={stk.id}
-                className="absolute z-25 group/sticker cursor-pointer transition-transform hover:scale-130"
+                className={`absolute z-25 group/sticker cursor-grab active:cursor-grabbing transition-transform select-none ${
+                  isSelected ? 'ring-2 ring-[#2B729E] ring-offset-2 rounded-full scale-135' : 'hover:scale-120'
+                }`}
                 style={{
-                  left: `${stk.x}%`,
-                  top: `${stk.y}%`,
+                  left: `${displayX}%`,
+                  top: `${displayY}%`,
                   transform: `translate(-50%, -50%) rotate(${stk.rotation}deg) scale(${stk.scale * 1.25})`,
                 }}
-                onClick={(e) => {
+                onPointerDown={(e) => {
+                  if ((e.target as HTMLElement).closest('[data-toolbar]')) {
+                    e.stopPropagation();
+                    return;
+                  }
                   e.stopPropagation();
+                  setSelectedStickerId(stk.id);
                   sound.playStickSound();
+                  try {
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                  } catch {}
+                  setDraggedSticker({ id: stk.id, x: stk.x, y: stk.y });
                 }}
+                onPointerMove={(e) => {
+                  if (draggedSticker?.id === stk.id && paperRef.current) {
+                    const rect = paperRef.current.getBoundingClientRect();
+                    const newX = Math.round(Math.max(8, Math.min(88, ((e.clientX - rect.left) / rect.width) * 100)) * 10) / 10;
+                    const newY = Math.round(Math.max(10, Math.min(88, ((e.clientY - rect.top) / rect.height) * 100)) * 10) / 10;
+                    setDraggedSticker({ id: stk.id, x: newX, y: newY });
+                  }
+                }}
+                onPointerUp={(e) => {
+                  if (draggedSticker?.id === stk.id) {
+                    try {
+                      e.currentTarget.releasePointerCapture(e.pointerId);
+                    } catch {}
+                    if (onMoveSticker && (draggedSticker.x !== stk.x || draggedSticker.y !== stk.y)) {
+                      sound.playStickSound();
+                      onMoveSticker(post.id, stk.id, draggedSticker.x, draggedSticker.y);
+                    }
+                    setDraggedSticker(null);
+                  }
+                }}
+                onClick={(e) => {
+                  if ((e.target as HTMLElement).closest('[data-toolbar]')) {
+                    e.stopPropagation();
+                    return;
+                  }
+                  e.stopPropagation();
+                  setSelectedStickerId(stk.id);
+                }}
+                title={`${stk.author} (${stk.authorRole}): ${stickerDef?.name} (클릭하여 떼기 or 드래그로 이동)`}
               >
                 <OfficeStickerSvg type={stickerDef?.iconType || 'coffee-drip'} size={48} />
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/sticker:block z-40 bg-[#112334] text-white text-xs px-2.5 py-1 rounded shadow-lg whitespace-nowrap font-ui pointer-events-none">
-                  <span className="font-semibold text-[#FFDC73]">[{stk.authorRole}] {stk.author}</span>
-                  <span> · {stickerDef?.name}</span>
-                </div>
+                
+                {/* Selected Action Toolbar: Stays visible until closed! */}
+                {isSelected ? (
+                  <div
+                    data-toolbar="true"
+                    className="absolute -top-11 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1.5 bg-[#112334] text-white text-[11px] font-ui px-2.5 py-1 rounded-full shadow-2xl border border-[#2B729E] whitespace-nowrap animate-in fade-in zoom-in-95 cursor-default"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onPointerUp={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span className="text-[#FFDC73] text-[10px] font-bold flex items-center gap-1">
+                      <Move className="w-3 h-3 text-[#FFDC73]" /> 드래그 이동
+                    </span>
+                    <span className="text-white/20">|</span>
+                    {onRemoveSticker && (
+                      <button
+                        type="button"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          sound.playPeelSound();
+                          setSelectedStickerId(null);
+                          onRemoveSticker(post.id, stk.id);
+                        }}
+                        className="px-2.5 py-0.5 rounded bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-bold text-[10px] flex items-center gap-1 transition-colors shadow-xs cursor-pointer"
+                        title="스티커 떼기"
+                      >
+                        <Trash2 className="w-2.5 h-2.5" /> 떼기
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setSelectedStickerId(null);
+                      }}
+                      className="p-0.5 text-white/50 hover:text-white rounded-full transition-colors ml-0.5 cursor-pointer"
+                      title="선택 해제"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/sticker:block z-40 bg-[#112334] text-white text-xs px-2.5 py-1 rounded shadow-lg whitespace-nowrap font-ui pointer-events-none">
+                    <span className="font-semibold text-[#FFDC73]">[{stk.authorRole}] {stk.author}</span>
+                    <span> · {stickerDef?.name}</span>
+                    <span className="text-white/50 text-[10px] ml-1">(클릭시 떼기/이동)</span>
+                  </div>
+                )}
               </div>
             );
           })}
