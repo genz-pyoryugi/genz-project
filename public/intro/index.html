@@ -115,15 +115,21 @@
       `@media (min-width:601px){.hero__book{bottom:${(h * 0.075).toFixed(1)}px}}`;
   }
 
-  // 본 웹 헤더는 position: fixed 지만 iframe 이 본 웹 전체 길이로 늘어나 있어서 iframe 맨 위에 붙어 버린다.
-  // 본 웹으로 스크롤해 들어가면 그만큼 헤더를 내려서, 로고가 항상 화면 왼쪽 위에 보이게 한다.
-  function pinHeader() {
+  // 본 웹의 헤더·사이드바는 position: fixed 지만 iframe 이 본 웹 전체 길이로 늘어나 있어서 iframe 맨 위에 붙어 버린다.
+  // 본 웹으로 스크롤해 들어가면 그만큼 내려서 항상 지금 보이는 화면에 붙어 있게 하고 (헤더 + data-pin 요소),
+  // 실제 화면 높이를 --host-vh 로 알려 준다 (사이드바 높이).
+  function pinToScreen() {
     const doc = mainWebFrame.contentDocument;
-    const header = doc && doc.querySelector(".header");
-    if (!header) return;
+    if (!doc || !doc.documentElement) return;
     const offset = Math.max(0, -mainWebFrame.getBoundingClientRect().top);
     const value = offset ? `translateY(${offset}px)` : "";
-    if (header.style.transform !== value) header.style.transform = value;
+    doc.querySelectorAll(".header, [data-pin]").forEach((el) => {
+      if (el.style.transform !== value) el.style.transform = value;
+    });
+    const vh = window.innerHeight + "px";
+    if (doc.documentElement.style.getPropertyValue("--host-vh") !== vh) {
+      doc.documentElement.style.setProperty("--host-vh", vh);
+    }
   }
 
   function resizeMainWeb() {
@@ -145,7 +151,7 @@
   mainWebFrame.addEventListener("load", () => {
     fitHeroToScreen();
     resizeMainWeb();
-    pinHeader();
+    pinToScreen();
 
     const observer = new MutationObserver(resizeMainWeb);
     // 헤더를 내리는 style 변경(스크롤마다 일어남)은 높이와 상관없으니 class 변경만 본다
@@ -160,9 +166,9 @@
   window.addEventListener("resize", () => {
     fitHeroToScreen();
     resizeMainWeb();
-    pinHeader();
+    pinToScreen();
   });
-  window.addEventListener("scroll", pinHeader, { passive: true });
+  window.addEventListener("scroll", pinToScreen, { passive: true });
 </script>
 </body>
 </html>
