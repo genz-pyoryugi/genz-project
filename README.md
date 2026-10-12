@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+﻿# 카드뉴스 콘텐츠 컴포넌트
 
-## Getting Started
+이 브랜치(`content`)는 신입사원 치명적 실수 TOP 3 카드뉴스를 개발합니다.
 
-First, run the development server:
+## 실행
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+http://localhost:3000 에 접속하면 카드뉴스 컴포넌트만 표시됩니다.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 구성
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- TOP 3 카드 3장과 원문보기 카드 1장
+- 1080 × 1350px 기준, 세로 4:5
+- Pretendard 로컬 폰트, #fdf9f2 베이지 배경
+- 세 카드 하단에 동일한 전구 아이콘 팁 박스
+- 카드 내부 하단 점 표시, 외부 이전·다음 버튼
+- 출처 문구와 이미지 저장 버튼은 표시하지 않음
 
-## Learn More
+## 파일
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `public/web/js/components/cardnews.js`: 카드 렌더링 및 슬라이드 동작
+- `public/web/js/components/cardnews-preview.js`: 컴포넌트 등록 및 단독 화면 연결
+- `public/web/js/components/util.js`: DOM 생성 공통 도구
+- `public/web/js/data/articles.js`: 원문 기사 데이터
+- `public/web/css/cardnews-preview.css`: 단독 실행 화면 스타일
+- `public/web/css/components.css`: 컴포넌트 스타일
+- `public/web/assets/picture/*-beige.png`: 삽화
+- `public/web/assets/fonts/`: Pretendard 파일 및 라이선스
