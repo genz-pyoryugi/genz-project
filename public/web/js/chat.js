@@ -2,22 +2,8 @@
 // 첫 화면 오른쪽 아래 채팅 책을 클릭하면 책 왼쪽에 펼쳐지는 채팅창.
 // 뒤 화면은 반투명하게 어두워진다. (열고 닫기는 js/book.js가 BookChat.open / close로 부른다)
 //
-// 답변은 서버 없이 키워드로 맞는 챕터를 찾아 체크리스트 핵심 2가지와 바로가기 링크를 보여준다.
-// 나중에 AI를 붙이려면 reply()만 바꾸면 된다.
+// 답변은 AI 상담을 붙일 자리(reply())만 두었다. 연결 전에는 준비 중 안내로 답한다.
 const BookChat = (() => {
-  // 챕터(소주제)별 키워드. 입력에 많이 포함된 쪽을 고른다.
-  const KEYWORDS = [
-    { chapter: "ch1", words: ["인사", "호칭", "첫 출근", "첫출근", "첫인상", "자기소개", "뭐라고 불"] },
-    { chapter: "ch2", topic: "mail", words: ["메일", "이메일", "참조", "첨부", "회신", "제목"] },
-    { chapter: "ch2", topic: "question", words: ["질문", "물어", "모르겠", "여쭤"] },
-    { chapter: "ch2", topic: "tone", words: ["말투", "존댓말", "메신저", "넵", "이모지", "ㅋㅋ", "쿠션어", "거절"] },
-    { chapter: "ch3", words: ["회의", "전화", "발언", "응대", "통화"] },
-    { chapter: "ch4", words: ["탕비실", "점심", "회식", "공용", "동료", "사생활", "관계"] },
-    { chapter: "ch5", words: ["지각", "휴가", "연차", "퇴사", "이직", "인수인계", "근태", "늦"] },
-    { chapter: "ch6", words: ["경조사", "축의금", "조문", "장례", "결혼", "청첩장", "부의금"] },
-    { chapter: "ch7", words: ["보고", "실수", "피드백", "사과", "중간보고", "수습"] },
-  ];
-
   const SUGGESTIONS = ["메일 제목 어떻게 써요?", "지각할 것 같아요", "회식 거절해도 되나요?", "업무 실수를 했어요"];
   const GREETING = "무엇이든 물어보세요";
 
@@ -151,40 +137,9 @@ const BookChat = (() => {
     }, 600);
   }
 
-  // 키워드로 챕터를 찾아 체크 포인트 2개 + 바로가기 링크로 답한다
+  // AI 상담 답변 자리 (Supabase 등으로 연결 예정). text = 사용자가 보낸 질문
   function reply(text) {
-    let best = null;
-    let bestScore = 0;
-    KEYWORDS.forEach((entry) => {
-      const score = entry.words.filter((w) => text.includes(w)).length;
-      if (score > bestScore) {
-        best = entry;
-        bestScore = score;
-      }
-    });
-
-    if (!best) {
-      addMessage("bot", "음… 딱 맞는 챕터를 찾지 못했어요.\n'메일', '회의', '지각', '회식', '실수'처럼 상황을 짧게 적어 주세요.");
-      return;
-    }
-
-    const chapter = CHAPTERS.find((c) => c.id === best.chapter);
-    const topic = best.topic && chapter.topics?.find((t) => t.key === best.topic);
-    const source = topic ? chapter.content[topic.key] : chapter;
-    const name = `${chapter.num} ${chapter.title}${topic ? ` › ${topic.label}` : ""}`;
-    const tips = source.checklist.slice(0, 2).map((item) => `✔ ${item}`).join("\n");
-
-    addMessage("bot", `「${name}」에서 도움이 될 것 같아요.\n${tips}`,
-      h("button", {
-        class: "chat__link",
-        type: "button",
-        onClick: () => {
-          api.onRequestClose();
-          const hash = `#${chapter.id}`;
-          if (location.hash === hash) openChapter(chapter.id);
-          else location.hash = hash;
-        },
-      }, `${name} 보러 가기 →`));
+    addMessage("bot", "AI 상담 연결을 준비하고 있어요.\n조금만 기다려 주세요!");
   }
 
   // geo: 화면 좌표 { right: 책갈피 왼쪽 끝, top: 책갈피 끝, bottom: 책 위 모서리 }
