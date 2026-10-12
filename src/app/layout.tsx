@@ -23,6 +23,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      {/* 👇 여기에 <head> 태그를 그대로 넣어주시면 됩니다! */}
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+        <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Gaegu:wght@400;700&family=Nanum+Pen+Script&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      </head>
+
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

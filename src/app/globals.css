@@ -1,30 +1,33 @@
-/* 1. 구글 손글씨 폰트 불러오기 (개구체, 나눔손글씨, Caveat) */
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Gaegu:wght@300;400;700&family=Nanum+Pen+Script&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-
-/* 2. 포스트잇 및 테이프 조언용 폰트 클래스 */
-.font-dakkuda {
-  font-family: 'Gaegu', 'Nanum Pen Script', cursive, sans-serif;
-}
-
-.font-handwriting {
-  font-family: 'Caveat', 'Nanum Pen Script', cursive;
-}
-
-.font-ui {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-}
-
-/* 3. 마스킹 테이프 반투명 질감 효과 */
-.scotch-tape {
-  background: rgba(255, 255, 255, 0.75);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
+/* ========================================================
+   1. 폰트 및 Tailwind 임포트 (반드시 파일 최상단에 위치)
+   ======================================================== */
 @import "tailwindcss";
 
+/* ========================================================
+   2. Next.js 기본 테마 변수
+   ======================================================== */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* 젠지 표류기 공식 컬러 토큰 */
+  --page-bg: #EAE6DF;
+  --page-surface: #F2EFEB;
+  --navy-dark: #112334;
+  --navy-sub: #203548;
+  --steel-blue: #2B729E;
+  --steel-blue-light: #448CB8;
+  --border-subtle: #D2CCC2;
+  --text-primary: #112334;
+  --text-secondary: #58534C;
+  --text-muted: #857F76;
+  
+  /* 포스트잇 종이 컬러 */
+  --postit-yellow: #FFF7BA;
+  --postit-blue: #DDF1FA;
+  --postit-mint: #DCF4E8;
+  --postit-peach: #FFE5DB;
+  --postit-ivory: #FDFBF7;
 }
 
 @theme inline {
@@ -44,5 +47,108 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* ✨ 기본 본문 폰트를 Pretendard 우선으로 적용 */
+  font-family: 'Pretendard', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+/* ========================================================
+   3. 젠지 오피스 폰트 클래스 (손글씨, UI, 다꾸)
+   ======================================================== */
+.font-dakkuda {
+  font-family: 'Gaegu', 'Nanum Pen Script', -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", sans-serif;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.font-handwriting {
+  font-family: 'Caveat', 'Nanum Pen Script', -apple-system, BlinkMacSystemFont, "Pretendard", cursive;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.font-ui {
+  font-family: 'Pretendard', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 단어 중간 줄바꿈 방지 */
+p, h1, h2, h3, h4, h5, h6, span, div, button {
+  word-break: keep-all;
+}
+
+/* ========================================================
+   4. 포스트잇 종이 질감 & 입체 그림자 효과
+   ======================================================== */
+.postit-base {
+  position: relative;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.postit-base::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 24px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.05), transparent);
+  pointer-events: none;
+  border-top-left-radius: 2px;
+  border-top-right-radius: 2px;
+}
+
+.shadow-postit {
+  box-shadow: 
+    0 1px 2px rgba(17, 35, 52, 0.06),
+    0 4px 10px -2px rgba(17, 35, 52, 0.1),
+    0 8px 16px -4px rgba(17, 35, 52, 0.06);
+}
+
+.shadow-postit-hover {
+  box-shadow: 
+    0 2px 4px rgba(17, 35, 52, 0.08),
+    0 12px 24px -4px rgba(17, 35, 52, 0.16),
+    0 18px 30px -8px rgba(17, 35, 52, 0.08);
+}
+
+/* ========================================================
+   5. 마스킹 테이프 리얼 질감 효과
+   ======================================================== */
+.scotch-tape {
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.08);
+  clip-path: polygon(
+    0% 0%, 100% 0%, 98% 30%, 100% 70%, 98% 100%,
+    0% 100%, 2% 70%, 0% 30%
+  );
+  backdrop-filter: blur(1px);
+}
+
+.craft-tape {
+  background: #E0CDB7;
+  border-top: 1px solid rgba(140, 110, 80, 0.3);
+  border-bottom: 1px solid rgba(140, 110, 80, 0.3);
+  clip-path: polygon(
+    0% 0%, 100% 0%, 99% 30%, 100% 70%, 98% 100%,
+    0% 100%, 1% 70%, 0% 30%
+  );
+}
+
+/* ========================================================
+   6. 슬림 스크롤바 디자인
+   ======================================================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #E2DDD5;
+}
+::-webkit-scrollbar-thumb {
+  background: #BAB2A6;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9D9487;
 }

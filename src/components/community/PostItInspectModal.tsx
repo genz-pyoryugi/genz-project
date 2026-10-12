@@ -18,6 +18,7 @@ interface PostItInspectModalProps {
   onMoveSticker?: (postId: string, placedStickerId: string, newX: number, newY: number) => void;
   activeStickerId: string | null;
   onOpenStickerDrawer: () => void;
+  isMacStyle?: boolean;
 }
 
 export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
@@ -215,19 +216,19 @@ export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
                       transform: `rotate(${idx % 2 === 0 ? -0.5 : 0.7}deg)`,
                     }}
                   >
-                    <div className="flex items-center justify-between text-xs font-ui opacity-80 mb-1">
-                      <span className="font-bold text-[#2B729E]">
+                    <div className="flex items-center justify-between text-xs font-ui opacity-80 mb-1.5 whitespace-nowrap">
+                      <span className="font-bold text-[#2B729E] whitespace-nowrap">
                         [{cmt.authorRole}] {cmt.author}
                       </span>
-                      <div className="flex items-center gap-2">
-                        <span>{cmt.createdAt}</span>
+                      <div className="flex items-center gap-2 whitespace-nowrap">
+                        <span className="whitespace-nowrap">{cmt.createdAt}</span>
                         {onRemoveComment && (
                           <button
                             onClick={() => {
                               sound.playPeelSound();
                               onRemoveComment(post.id, cmt.id);
                             }}
-                            className="text-red-500 hover:text-red-700 hover:bg-red-500/10 px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors cursor-pointer"
+                            className="text-red-500 hover:text-red-700 hover:bg-red-500/10 px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors cursor-pointer whitespace-nowrap"
                             title="테이프 조언 삭제"
                           >
                             삭제 ✕
@@ -236,11 +237,11 @@ export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
                       </div>
                     </div>
                     {cmt.targetSentence && (
-                      <p className="text-xs font-ui text-[#58534C] italic mb-1 border-l-2 border-current pl-2">
+                      <p className="text-xs font-ui text-[#58534C] italic mb-1.5 border-l-2 border-current pl-2 break-keep">
                         인용: "{cmt.targetSentence}"
                       </p>
                     )}
-                    <p className="font-dakkuda text-lg leading-relaxed">
+                    <p className="font-dakkuda text-lg leading-relaxed break-keep">
                       "{cmt.content}"
                     </p>
                   </div>

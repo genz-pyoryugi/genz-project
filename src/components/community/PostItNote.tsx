@@ -157,21 +157,20 @@ export const PostItNote: React.FC<PostItNoteProps> = ({
           </div>
         )}
 
-        {/* Post-it Header: Category tag & Author */}
-        <div className="flex items-center justify-between text-xs mb-3 pb-2 border-b border-black/8">
-          <div className="flex items-center gap-1.5">
-            <span className="font-ui font-semibold text-[11px] text-[#2B729E] tracking-tight">
+{/* Post-it Header: Category tag & Author */}
+        <div className="flex items-start justify-between gap-2 text-xs mb-3 pb-2 border-b border-black/8 font-ui">
+          <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+            <span className="font-semibold text-[11px] text-[#2B729E] tracking-tight break-keep leading-tight">
               #{post.categoryTag}
             </span>
-            <span aria-hidden="true" className="text-black/20">·</span>
-            <span className="text-[11px] text-black/60 font-ui">
+            <span className="text-[10px] text-black/50 whitespace-nowrap font-normal">
               {post.createdAt}
             </span>
           </div>
-          <div className="flex items-center gap-1 text-[11px] text-black/70 font-ui font-medium">
-            <Building2 className="w-3 h-3 text-black/50" />
-            <span>{post.author.companyType || '신입'}</span>
-            <span className="text-[#2B729E] font-semibold">[{post.author.role}]</span>
+          <div className="flex items-center gap-1 text-[11px] text-black/70 font-medium whitespace-nowrap shrink-0 pt-0.5">
+            <Building2 className="w-3 h-3 text-black/40 shrink-0" />
+            <span className="whitespace-nowrap">{post.author.companyType || '신입'}</span>
+            <span className="text-[#2B729E] font-semibold whitespace-nowrap">[{post.author.role}]</span>
           </div>
         </div>
 
@@ -249,11 +248,16 @@ export const PostItNote: React.FC<PostItNoteProps> = ({
                     transform: `rotate(${idx % 2 === 0 ? -0.8 : 0.6}deg)`,
                   }}
                 >
-                  <div className="flex items-center justify-between text-[10px] font-ui opacity-75 mb-0.5">
-                    <span className="font-semibold text-[#2B729E]">[{cmt.authorRole}] {cmt.author}</span>
-                    <span>{cmt.createdAt}</span>
+                  <div className="flex items-center justify-between text-[10px] font-ui opacity-75 mb-0.5 whitespace-nowrap">
+                    <span className="font-semibold text-[#2B729E] whitespace-nowrap">[{cmt.authorRole}] {cmt.author}</span>
+                    <span className="whitespace-nowrap">{cmt.createdAt}</span>
                   </div>
-                  <p className="text-sm font-dakkuda leading-snug line-clamp-2">
+                  {cmt.targetSentence && (
+                    <p className="text-[10px] font-ui text-[#58534C] italic mb-0.5 border-l-2 border-current pl-1.5 line-clamp-1 break-keep">
+                      인용: "{cmt.targetSentence}"
+                    </p>
+                  )}
+                  <p className="text-sm font-dakkuda leading-snug line-clamp-2 break-keep">
                     "{cmt.content}"
                   </p>
                 </div>
