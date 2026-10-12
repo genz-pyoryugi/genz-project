@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>표류 상담소</title>
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/chat.css" />
+  <style>
+    /* 인트로 사무실의 SOS(휴대폰) 팝업 안에서 쓰는 채팅 전용 페이지.
+       본 웹 첫 화면의 채팅(js/chat.js)을 그대로 불러와 이 페이지를 꽉 채우게 연다. */
+    html, body { height: 100%; margin: 0; background: #0d2236; }
+    body { font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
+    .hero { position: relative; height: 100%; }
+    .chat-overlay { display: none; }                       /* 뒤 화면 어둡게는 사무실 팝업이 맡음 */
+    .chat {
+      left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important;
+      border: 0; border-radius: 0; box-shadow: none; transform-origin: center;
+    }
+    .chat__win--min, .chat__win--max { display: none; }   /* 크기는 팝업 창이 정함: 닫기만 남김 */
+    .chat__versions { display: none; }                     /* Chat / 시뮬레이션은 사무실의 다른 물건으로 나눠 엶 (?view=) */
+    .chat__head { padding-top: 22px; }
+
+    /* ===== 메신저 테마 (사무실 SOS 휴대폰, ?view=chat) =====
+       휴대폰 메신저 규격: 위 내비게이션 바(왼쪽 뒤로 · 가운데 제목) · 15px 본문 · 말풍선 최대 78% · 둥근 입력창 + 동그란 전송 버튼.
+       흰 화면 · 상담사 말풍선 회색 · 내 말풍선 파랑. 상담사 두 명 그림은 휴대폰 밖(사무실 팝업)으로 빼서 여기서는 숨김 */
+    html.theme-messenger, .theme-messenger body { background: #fff; }
+    .theme-messenger body { font-family: -apple-system, "SF Pro Text", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
+    .theme-messenger .chat { background: #fff; color: #1b2433; }
+    /* 내비게이션 바 */
+    .theme-messenger .chat__head { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 52px;
+      padding: 4px 52px 6px; border-bottom: 0.5px solid #e3e6ea; background: rgba(255, 255, 255, 0.96); text-align: center; }
+    .theme-messenger .chat__title { margin: 0; color: #111827; font-size: 21px; font-weight: 800; letter-spacing: -0.01em; }
+    .theme-messenger .chat__sub { margin: 1px 0 0; color: #8a93a3; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .theme-messenger .chat__controls { top: 50%; left: 4px; right: auto; transform: translateY(-50%); }
+    .theme-messenger .chat__win--close { width: 40px; height: 40px; border-radius: 50%; color: #2f7cf6; }
+    .theme-messenger .chat__win--close svg { width: 22px; height: 22px; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; shape-rendering: geometricPrecision; }
+    .theme-messenger .chat__win--close:hover, .theme-messenger .chat__win--close:focus-visible { background: #f1f5fd; color: #1f5fd1; }
+    /* 대화 */
+    .theme-messenger .chat__intro { display: none; }
+    .theme-messenger .chat__log { background: #fff; gap: 6px; padding: 14px 12px; }
+    .theme-messenger .chat__msg { max-width: 78%; gap: 6px; }
+    .theme-messenger .chat__bubble { padding: 8px 13px; font-size: 15px; line-height: 1.42;
+      background: #eceef1; color: #1b2433; border-radius: 18px 18px 18px 5px; }
+    .theme-messenger .chat__msg--user .chat__bubble { background: #2f7cf6; color: #fff; border-radius: 18px 18px 5px 18px; }
+    .theme-messenger .chat__msg.is-typing .chat__bubble { color: #8a93a3; }
+    .theme-messenger .chat__link { padding: 7px 12px; font-size: 13px; background: #e8f0fe; color: #1f5fd1; }
+    /* 추천 질문 */
+    .theme-messenger .chat__chips { gap: 6px; padding: 0 14px 8px; }
+    .theme-messenger .chat__chip { padding: 6px 11px; font-size: 13px; border-color: #d5e3fb; background: #f4f8ff; color: #2f6fd8; }
+    .theme-messenger .chat__chip:hover { background: #e8f0fe; }
+    /* 입력 바 */
+    .theme-messenger .chat__form { align-items: center; gap: 8px; padding: 8px 18px 4px; border-top: 0.5px solid #e3e6ea; }
+    .theme-messenger .chat__input { height: 38px; padding: 0 14px; font-size: 15px; background: #f2f3f5; border: 1px solid transparent; color: #111827; }
+    .theme-messenger .chat__input:focus { border-color: #b8d0fb; background: #fff; }
+    .theme-messenger .chat__input::placeholder { color: #9aa3b2; }
+    .theme-messenger .chat__send { display: grid; place-items: center; width: 38px; height: 38px; padding: 0; border-radius: 50%; background: #2f7cf6; color: #fff; }
+    .theme-messenger .chat__send svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  </style>
+</head>
+<body>
+  <section class="hero"></section>
+
+  <script src="js/components/util.js"></script>
+  <script src="js/data/chapters.js"></script>
+  <script src="js/simulation.js"></script>
+  <script src="js/chat.js"></script>
+  <script>
+    // 사무실(부모 창)에 알리기: 닫기 / 챕터 바로가기
+    const tellOffice = (msg) => { if (parent !== window) parent.postMessage(msg, location.origin); };
+
+    // chat.js의 "…보러 가기" 링크는 챕터를 열려고 openChapter()나 location.hash를 쓴다 → 사무실에 넘김
+    function openChapter(id) { tellOffice({ type: "genz-sos:chapter", id }); }
+    window.addEventListener("hashchange", () => {
+      const id = location.hash.slice(1);
+      history.replaceState(null, "", location.pathname);
+      if (/^ch\d+$/.test(id)) openChapter(id);
+    });
+
+    BookChat.onRequestClose = () => tellOffice({ type: "genz-sos:close" });
+    const fill = () => ({ right: innerWidth, top: 0, bottom: innerHeight });
+    BookChat.open(fill());
+
+    // ?view=sim → AI 팀장 시뮬레이션만 (사무실 모니터), 그 외 → 상담 채팅만 (사무실 휴대폰 SOS)
+    const view = new URLSearchParams(location.search).get("view");
+    if (view !== "sim") {
+      document.documentElement.classList.add("theme-messenger");
+      document.querySelector(".chat__title").textContent = "SOS chat";
+      document.querySelector(".chat__sub").remove();
+      document.title = "SOS chat";
+      // 휴대폰 메신저처럼: 닫기는 왼쪽 위 '뒤로', 보내기는 동그란 화살표 버튼
+      const back = document.querySelector(".chat__win--close");
+      back.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+      back.setAttribute("aria-label", "닫기");
+      back.title = "닫기";
+      const sendBtn = document.querySelector(".chat__send");
+      sendBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5.5 11.5L12 5l6.5 6.5"/></svg>';
+      sendBtn.setAttribute("aria-label", "보내기");
+      document.querySelector(".chat__input").placeholder = "메시지 입력";
+    }
+    if (view === "sim") {
+      document.querySelector('.chat__version[data-view="sim"]').click();
+      document.querySelector(".chat__title").textContent = "AI 팀장 시뮬레이션";
+      document.querySelector(".chat__sub").textContent = "실제 회사 상황으로 AI 팀장과 대화를 연습해 보세요";
+      document.title = "AI 팀장 시뮬레이션";
+    }
+    window.addEventListener("resize", () => BookChat.position(fill()));
+  </script>
+</body>
+</html>

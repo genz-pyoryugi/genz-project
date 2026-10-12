@@ -22,6 +22,8 @@
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const mainWeb = document.getElementById('main-web'), mainFrame = document.getElementById('mainWebFrame');
   const rib2 = document.getElementById('rib2'), stripEls = document.querySelectorAll('.strip, .tail i');
+  const duskBg = document.getElementById('duskBg'), duskCopy = document.getElementById('duskCopy');
+  const duskT1 = document.getElementById('duskT1'), duskT2 = document.getElementById('duskT2');
 
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -184,6 +186,9 @@
     col.style.transform = `translateY(-50%) scale(${k.toFixed(3)})`;
     go.style.left = gx + 'px';
     go.style.top = hintTop + 'px'; go.style.bottom = 'auto';
+    // welcome lines: centred on the same axis as the page text, kept clear of the bookmark
+    duskCopy.style.left = gx + 'px';
+    duskCopy.style.setProperty('--dusk-w', Math.min(760, (R - L) - 2 * Math.max(16, (R - L) * .06)) + 'px');
   }
   addEventListener('resize', () => { resize(); layoutPlatform(); }); resize(); layoutPlatform();
   if (mainFrame) mainFrame.addEventListener('load', () => requestAnimationFrame(layoutPlatform));
@@ -353,11 +358,13 @@
   const capWin = [[.12, .25], [.28, .41], [.42, .5], [.53, .66], [.67, .745], [.755, .85]];
 
   let cur = 0, prevY = 0, vel = 0, done = false;
-  // r = raw intro progress. The story (p) runs over the first 84%, then holds briefly on the open page,
-  // then the page bookmark thins down to the chat book's bookmark width (THIN) while the page stays put.
+  // r = raw intro progress. The story (p) runs up to SC, then holds briefly on the open page, the screen darkens
+  // with the welcome lines (DUSK), then the bookmark thins down to the chat book's bookmark width (THIN).
   // Only after that does the main web (#main-web) scroll in below, and the bookmark shortens into the chat book (hq).
-  const SC = .84;                       // story (sea → open book) ends at 84% of the intro scroll
-  const THIN = [.87, 1];                // bookmark thins (still on the open page)
+  // keep SC × (intro height − 100vh) ≈ 1025vh so the story pace stays the same when #intro's height changes
+  const SC = .633;                      // story (sea → open book) ends here
+  const DUSK = [.66, .72], DUSK_T1 = [.705, .755], DUSK_T2 = [.78, .83]; // screen darkens, then the welcome lines
+  const THIN = [.9, 1];                 // bookmark thins (over the dark screen)
   const targetP = () => { const d = intro.offsetHeight - stage.offsetHeight; return clamp(-intro.getBoundingClientRect().top / d); };
 
   function render(r, t, hq) {
@@ -425,8 +432,15 @@
     // hand-off: the page bookmark (now #rib2, fixed over everything) first thins to the chat book's bookmark
     // width while the page holds (THIN); then the main web scrolls up from below and the bookmark shortens
     // down into the chat book until it matches the chat book's own bookmark exactly, and hands over to it.
-    const m = sm(...THIN, r);
-    const cr = (m > 0 || hq > 0) && hq < .98 ? chatRibbon() : null; // by .98 it already matches the chat book's ribbon
+    const m = sm(...THIN, r), dk = sm(...DUSK, r);
+    duskBg.style.opacity = dk.toFixed(3);
+    [[duskT1, DUSK_T1], [duskT2, DUSK_T2]].forEach(([el, win]) => {
+      const a = sm(...win, r);
+      el.style.opacity = a.toFixed(3);
+      el.style.transform = `translateY(${((1 - a) * 14).toFixed(1)}px)`;
+    });
+    // #rib2 takes over from the page bookmark as soon as the screen darkens, so the bookmark stays lit above the dark layer
+    const cr = (dk > 0 || m > 0 || hq > 0) && hq < .98 ? chatRibbon() : null; // by .98 it already matches the chat book's ribbon
     stripEls.forEach(el => el.style.visibility = cr ? 'hidden' : '');
     rib2.style.opacity = cr ? 1 : 0;
     if (cr) {
@@ -438,7 +452,7 @@
       rib2.style.setProperty('--slant', (cr.slant * m).toFixed(2) + 'px');
       rib2.style.background = `rgb(${lerp(70, 67, m)},${lerp(148, 145, m)},${lerp(169, 159, m)})`; // → chat book ribbon colour
     }
-    go.style.opacity = (sm(.95, .99, p) * (1 - sm(0, .15, hq))).toFixed(3);
+    go.style.opacity = (sm(.95, .99, p) * (1 - dk) * (1 - sm(0, .15, hq))).toFixed(3);
     const tocA = (1 - sm(.92, .97, p)).toFixed(3); tocBits.forEach(el => el.style.opacity = tocA);
     pageMarks.forEach(el => el.style.opacity = tocA); // SOS label + folio sit at the page bottom, mid-screen on phones
     pages.style.borderRadius = o > .5 ? '0' : '';
