@@ -1284,3 +1284,38 @@
 .quiz__feedback.is-wrong {
   color: #c2463d;
 }
+
+@font-face {
+  font-family: Pretendard;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/web/assets/fonts/PretendardVariable.woff2') format('woff2');
+}
+.cardnews__card.cardnews__card--rookie {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  padding: 0;
+  background: #fdf9f2;
+  display: block;
+  overflow: hidden;
+  font-family: Pretendard, sans-serif;
+}
+.rookie-card__image { display: block; width: 100%; height: auto; }
+.rookie-card__source {
+  position: absolute;
+  left: 5.93%; top: 66.6667%; width: 88.14%; height: 10%;
+  display: block;
+  background: transparent;
+  border-radius: 999px; text-decoration: none;
+}
+.rookie-card__source:hover { background: rgba(0, 40, 90, .1); }
+.rookie-card__source:focus-visible, .rookie-card__download:focus-visible { outline: 3px solid #172c40; outline-offset: -4px; }
+.rookie-card__download {
+  border: 1px solid #b6d5e6; border-radius: 20px;
+  padding: 8px 16px; background: #fff; color: #175487;
+  font: 600 13px Pretendard, sans-serif; cursor: pointer;
+}
+.rookie-card__download:disabled { opacity: .5; cursor: wait; }
+.rookie-card__status { position: absolute; top: 45%; left: 8%; right: 8%; text-align: center; color: #175487; }
+.cardnews__track:has(.cardnews__card--rookie) { align-items: flex-start; }

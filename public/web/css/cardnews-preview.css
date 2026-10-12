@@ -1,0 +1,24 @@
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  background: #f3f6f9;
+  color: #13233a;
+  font-family: Pretendard, sans-serif;
+}
+.cardnews-preview {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 32px 16px;
+}
+.cardnews-preview > .cardnews__deck { width: min(100%, 420px); }
+.cardnews-preview .cardnews__deck { position: relative; }
+.cardnews-preview .cardnews__dots {
+  position: absolute;
+  top: auto;
+  bottom: calc(40px + 16px + 16px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+button { font-family: inherit; }

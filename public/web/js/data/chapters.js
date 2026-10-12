@@ -400,8 +400,10 @@ const CHAPTERS = [
     num: "07",
     title: "업무 보고 & 실수 대처",
     desc: "진행 공유 · 수습",
+    related: ["a11", "a12", "a13"],
     cardnews: {
-      articles: ["a1", "a11", "a12", "a13"], // 동아일보 기사 id (js/data/articles.js)
+      rookieTop3: true,
+      articles: ["a1"], // TOP 3 이미지 카드 3장 + 원문보기 카드 1장
       instagram: null, // 동아일보 인스타 게시물 링크 "https://www.instagram.com/p/..." 넣으면 실제 카드뉴스 표시
       source: null,    // 출처 표시(선택): { name: "동아일보", title: "제목", date: "2026.01.01", url: "원문 링크" }
       cards: [
