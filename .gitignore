@@ -42,3 +42,7 @@ next-env.d.ts
 
 # Local PDF extraction dependencies and scratch files
 /.tools/
+
+# Keep unrelated learning and handoff work local on this branch
+/public/learning/
+/team-handoff/
