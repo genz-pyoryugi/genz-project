@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>젠지표류기 · 콘텐츠 샘플</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f6f2eb;color:#17283d;font-family:system-ui,sans-serif}header{padding:24px 5%;border-bottom:1px solid #ded6cb;display:flex;justify-content:space-between;gap:20px}a{color:#813047}main{max-width:1400px;margin:auto;padding:32px}h1{margin-bottom:8px}p{line-height:1.65}.topics{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0}.topics span{padding:10px;border:1px solid #ddd;border-radius:8px}.topics .active{background:#813047;color:white}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.panel{padding:24px;border:1px solid #ded6cb;border-radius:18px;background:#fffdfa;min-width:0}h2{font-size:20px;margin-top:0}button{font:inherit;cursor:pointer;padding:12px 16px;border:1px solid #b7ac9e;border-radius:9px;background:white;color:#17283d}button:hover{border-color:#813047}button.primary{background:#813047;color:white;border-color:#813047}button:disabled{opacity:.5;cursor:default}.illustration{background:#ede3d3;border-radius:12px;min-height:140px;display:grid;place-items:center;font-size:64px;margin:16px 0}.choices{display:grid;gap:10px}.feedback{min-height:48px;font-size:14px;color:#813047}.order{list-style:none;padding:0}.order li{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:8px 0;padding:10px;background:#f4eee5;border-radius:8px}.order button{padding:5px 9px}.check{display:flex;gap:10px;padding:14px 0}.check input{width:20px;height:20px;accent-color:#813047}.scene{position:relative;height:210px;border-radius:12px;background:#e5dbc9;overflow:hidden}.scene:before{content:'🏢  🌿  🪑';position:absolute;top:10px;left:15px;font-size:36px}.scene button{position:absolute;top:85px;width:42%;min-height:100px;background:#fff8ed}.scene button:first-child{left:5%}.scene button:last-child{right:5%}.scene button.found{outline:4px solid #813047}.scene small{display:block;font-size:12px}.nav{display:flex;align-items:center;justify-content:space-between;gap:10px}.note{font-size:13px;color:#665e53}footer{padding:28px;text-align:center;font-size:13px}@media(max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){main{padding:20px}.grid{grid-template-columns:1fr}header{flex-direction:column}}
+</style>
+<link rel="stylesheet" href="design.css">
+</head>
+<body>
+<header><strong>젠지표류기<span>오늘도 조금씩,<br>잘 적응하는 중이에요.</span></strong><nav><a class="selected" href="index.html">기사로 배우기</a><a href="https://www.donga.com/news/amp/all/20260410/133715092/2" target="_blank" rel="noopener noreferrer">원문 보기</a></nav><a href="/web/home.html">기존 홈페이지 ↗</a></header>
+<main>
+<h1>공용 공간 &amp; 비품 관리</h1><p>기사 하나로 배우는 6가지 콘텐츠</p>
+<p class="source-badge">동아일보 기사 기반 · 학습용 예시</p><div class="hero-art" aria-hidden="true"></div>
+<div class="topics" aria-label="예정된 주제"><span>조직 이해 &amp; 적응</span><span>업무 절차 &amp; 기준</span><span>질문 &amp; 소통</span><span>협업 &amp; 동료 존중</span><span>직장 내 관계 &amp; 예절</span><span>근무 &amp; 재택 수칙</span><span class="active">공용 공간 &amp; 비품 관리</span></div>
+<p class="note">현재는 공용 비품 주제만 구현한 샘플입니다. 위 주제 표시는 선택 기능을 연결하기 전입니다.</p>
+<div class="grid">
+<section class="panel"><h2>① 한눈에 보기</h2><div class="illustration" aria-hidden="true">📄 🖨️</div><h3 id="card-title"></h3><p id="card-text"></p><div class="nav"><button id="prev" aria-label="이전 카드">←</button><span id="card-count"></span><button id="next" aria-label="다음 카드">→</button></div></section>
+<section class="panel"><h2>② 순서 맞추기</h2><p>버튼으로 순서를 바꿔 보세요.</p><p class="note">기사 내용을 바탕으로 구성한 학습용 예시 순서입니다.</p><ul id="order" class="order"></ul><button class="primary" id="order-check">정답 확인</button><p class="feedback" id="order-feedback" aria-live="polite"></p></section>
+<section class="panel"><h2>③ 상황 선택</h2><div class="illustration" aria-hidden="true">🤔 🖨️</div><p>복사용지를 마지막까지 썼어요. 다음 행동으로 적절한 것은?</p><div class="choices"><button data-choice="true">다음 사람을 위해 용지를 보충한다</button><button data-choice="false">다른 사람이 채우도록 그대로 둔다</button></div><p class="feedback" id="choice-feedback" aria-live="polite"></p></section>
+<section class="panel"><h2>④ 잘못된 행동 찾기</h2><p>다 쓰고 방치한 비품 2곳을 찾아보세요.</p><div class="scene" aria-label="임시 사무실 장면"><button data-spot="paper"><span aria-hidden="true">🖨️</span><small>용지가 빈 프린터</small></button><button data-spot="cups"><span aria-hidden="true">🥤</span><small>컵이 빈 비품함</small></button></div><p id="spot-feedback" class="feedback" aria-live="polite">발견한 개수: 0 / 2</p><button id="spot-reset">다시 찾기</button><p class="note">최종 그림 대신 클릭 동작을 확인하는 임시 장면입니다.</p></section>
+<section class="panel"><h2>⑤ O/X 퀴즈</h2><p>공용 비품 보충은 다른 사람에게 맡겨도 된다.</p><div class="nav"><button data-quiz="O">O</button><button data-quiz="X">X</button></div><p id="quiz-feedback" class="feedback" aria-live="polite"></p></section>
+<section class="panel"><h2>⑥ 체크리스트</h2><label class="check"><input type="checkbox">남은 비품을 확인했어요</label><label class="check"><input type="checkbox">부족한 비품을 보충했어요</label><label class="check"><input type="checkbox">다음 사람이 사용할 수 있어요</label><p id="check-count" aria-live="polite">완료: 0 / 3</p><p class="note">체크 상태는 현재 페이지에서만 유지됩니다.</p></section>
+</div>
+</main>
+<footer>회사 공식 규정이 아닌 기사 기반 학습 예시입니다. <a href="https://www.donga.com/news/amp/all/20260410/133715092/2" target="_blank" rel="noopener noreferrer">원본 기사 보기</a></footer>
+<script>
+'use strict';
+const cards=[['다음 사람을 위한 작은 배려','공용 비품을 다 썼다면 다음 사람이 사용할 수 있도록 보충해요.'],['함께 쓰는 물건을 확인해요','복사용지나 컵처럼 함께 사용하는 비품의 상태를 살펴봐요.'],['배려도 협업의 일부예요','비품 관리를 다른 사람의 일로만 생각하지 않고 함께 챙겨요.']];let card=0;
+function renderCard(){document.getElementById('card-title').textContent=cards[card][0];document.getElementById('card-text').textContent=cards[card][1];document.getElementById('card-count').textContent=`${card+1} / ${cards.length}`;document.getElementById('prev').disabled=card===0;document.getElementById('next').disabled=card===cards.length-1}
+document.getElementById('prev').onclick=()=>{if(card>0)card--;renderCard()};document.getElementById('next').onclick=()=>{if(card<cards.length-1)card++;renderCard()};renderCard();
+const steps=['공용 비품 사용','남은 수량 확인','부족한 비품 보충'];let order=[2,0,1];
+function renderOrder(){const list=document.getElementById('order');list.replaceChildren();order.forEach((value,index)=>{const row=document.createElement('li');const title=document.createElement('span');title.textContent=steps[value];row.append(title);const controls=document.createElement('span');[-1,1].forEach(delta=>{const button=document.createElement('button');button.textContent=delta<0?'↑':'↓';button.setAttribute('aria-label',steps[value]+(delta<0?' 위로':' 아래로'));button.disabled=index+delta<0||index+delta>=order.length;button.onclick=()=>{[order[index],order[index+delta]]=[order[index+delta],order[index]];document.getElementById('order-feedback').textContent='';renderOrder()};controls.append(button)});row.append(controls);list.append(row)})}renderOrder();
+document.getElementById('order-check').onclick=()=>{document.getElementById('order-feedback').textContent=order.every((v,i)=>v===i)?'정답이에요! 사용한 뒤 상태를 확인하고 부족한 비품을 보충해요.':'다시 생각해 보세요. 먼저 사용하고, 남은 수량을 확인한 뒤 보충해요.'};
+document.querySelectorAll('[data-choice]').forEach(button=>button.onclick=()=>{document.getElementById('choice-feedback').textContent=button.dataset.choice==='true'?'좋아요! 다음 사람이 쓸 수 있도록 보충하는 행동이에요.':'기사는 공용 비품을 다음 사람이 사용할 수 있도록 보충하라고 안내해요.'});
+const found=new Set();document.querySelectorAll('[data-spot]').forEach(button=>button.onclick=()=>{found.add(button.dataset.spot);button.classList.add('found');button.setAttribute('aria-pressed','true');document.getElementById('spot-feedback').textContent=`발견한 개수: ${found.size} / 2`+(found.size===2?' · 모두 찾았어요! 사용 후 보충해요.':'')});document.getElementById('spot-reset').onclick=()=>{found.clear();document.querySelectorAll('[data-spot]').forEach(button=>{button.classList.remove('found');button.setAttribute('aria-pressed','false')});document.getElementById('spot-feedback').textContent='발견한 개수: 0 / 2'};
+document.querySelectorAll('[data-quiz]').forEach(button=>button.onclick=()=>{document.getElementById('quiz-feedback').textContent=(button.dataset.quiz==='X'?'정답이에요! ':'다시 확인해 보세요. ')+'사용 후 다음 사람이 사용할 수 있도록 보충하는 것이 기사의 조언이에요.'});
+document.querySelectorAll('.check input').forEach(input=>input.onchange=()=>{document.getElementById('check-count').textContent=`완료: ${document.querySelectorAll('.check input:checked').length} / 3`});
+</script>
+</body>
+</html>
