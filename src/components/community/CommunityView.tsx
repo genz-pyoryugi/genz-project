@@ -6,7 +6,7 @@ import { OfficeStickerDrawer } from './OfficeStickerDrawer';
 import { TapeCommentModal } from './TapeCommentModal';
 import { PostItWriteModal } from './PostItWriteModal';
 import { PostItInspectModal } from './PostItInspectModal';
-import { VisibleRadioWidget } from './VisibleRadioWidget';
+import { CommunityTutorialModal } from './CommunityTutorialModal';
 import { 
   Plus, 
   Sparkles, 
@@ -18,7 +18,10 @@ import {
   CheckCircle2, 
   Filter,
   Compass,
-  BookmarkCheck
+  BookmarkCheck,
+  Laptop,
+  Layers,
+  HelpCircle
 } from 'lucide-react';
 import { sound } from '@/utils/audio';
 
@@ -114,10 +117,30 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
   const [isStickerDrawerOpen, setIsStickerDrawerOpen] = useState(false);
   const [inspectPostId, setInspectPostId] = useState<string | null>(null);
   const [commentPost, setCommentPost] = useState<PostItPost | null>(null);
-  const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
+const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0); // 👈 추가!
+
+  // 처음 접속 시 자동으로 튜토리얼 팝업을 띄우는 useEffect 👈 추가!
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const seen = localStorage.getItem('genz_office_tutorial_seen');
+        if (!seen) {
+          const timer = setTimeout(() => {
+            setTutorialStep(0);
+            setIsTutorialOpen(true);
+          }, 450);
+          return () => clearTimeout(timer);
+        }
+      } catch {}
+    }
+  }, []);
   const [filterMode, setFilterMode] = useState<'all' | 'hasAdvice' | 'popular'>('all');
   const [sortOrder, setSortOrder] = useState<'latest' | 'adviceCount' | 'stickerCount'>('latest');
 
+
+  
   // Directly derive inspectPost from live posts array for instant UI updates
   const inspectPost = inspectPostId
     ? posts.find((p) => p.id === inspectPostId) || null
@@ -282,7 +305,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                 젠지 표류기
               </span>
               <span className="text-[#2B729E] font-ui font-extrabold text-sm sm:text-base tracking-tight">
-                오피스 커뮤니티
+                오피스 고민상담소
               </span>
             </div>
           </div>
@@ -294,7 +317,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                 sound.playPeelSound();
                 setIsStickerDrawerOpen((prev) => !prev);
               }}
-              className="px-3.5 py-1.5 rounded-full text-xs font-semibold border border-[#D5CFC5] bg-white text-[#112334] hover:bg-[#F2EFEB] flex items-center gap-1.5 transition-all shadow-2xs"
+              className="px-3.5 py-1.5 rounded-full text-xs font-semibold border border-[#D5CFC5] bg-white text-[#112334] hover:bg-[#F2EFEB] flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5 text-[#2B729E]" />
               <span className="hidden sm:inline">스티커 보관함</span>
@@ -307,7 +330,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                 sound.playStickSound();
                 setIsWriteModalOpen(true);
               }}
-              className="px-4 py-1.5 rounded-full bg-[#112334] hover:bg-[#203548] text-white text-xs font-bold tracking-wide flex items-center gap-1.5 shadow-xs transition-colors"
+              className="px-4 py-1.5 rounded-full bg-[#112334] hover:bg-[#203548] text-white text-xs font-bold tracking-wide flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>포스트잇 붙이기</span>
@@ -316,204 +339,244 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
         </div>
       </header>
 
-      {/* 2. Standalone Community Hero Banner */}
-      <section className="w-full bg-[#F2EFEB] border-b border-[#D8D2C6] px-4 sm:px-8 py-8 sm:py-10">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 border border-[#D5CFC5] text-[#2B729E] text-xs font-bold font-ui mb-3 shadow-2xs break-keep" style={{ wordBreak: 'keep-all' }}>
-              <span className="text-base">📌</span>
-              <span>신입사원 익명 포스트잇 & 보이는 라디오 라이브</span>
+      {/* Main macOS Window Frame (실제 UI 적용: 맥 데스크 윈도우 & 포스트잇 보드) */}
+      <div className="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 py-6 sm:py-8 flex flex-col gap-5 font-ui">
+        {/* Main Window Frame */}
+        <div className="bg-[#FAF8F5]/90 backdrop-blur-xl border border-white/90 rounded-2xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.18)] ring-1 ring-black/5 overflow-hidden flex flex-col transition-all">
+          {/* Window Titlebar */}
+          <div className="bg-[#F2EFEB]/95 border-b border-[#E5DFD4] px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 select-none">
+            {/* 1. 좌측 상단: 트래픽 라이트 버튼 삭제 후 [오피스 고민상담소 | 젠지 표류기 데스크] 배치 */}
+            <div className="flex items-center gap-2">
+              <span className="flex items-center justify-center w-6 h-6 rounded-md bg-[#2B729E]/10 text-[#2B729E] text-xs font-bold shadow-2xs">
+                📋
+              </span>
+              <div className="flex items-center gap-1.5 font-ui">
+                <span className="text-sm font-black tracking-tight text-[#112334]">
+                  오피스 고민상담소
+                </span>
+                <span className="text-black/25 font-normal text-xs">|</span>
+                <span className="text-xs font-semibold text-[#666056]">
+                  젠지 표류기 데스크
+                </span>
+              </div>
             </div>
-            
-            <h1 
-              className="font-ui font-black text-2xl sm:text-4xl text-[#112334] tracking-tight leading-snug mb-3 break-keep"
-              style={{ wordBreak: 'keep-all' }}
-            >
-              혼자 끙끙 앓지 말고, 포스트잇에 솔직하게 털어놓으세요!
-            </h1>
-            
-            <p 
-              className="font-ui text-xs sm:text-sm text-[#666056] leading-relaxed break-keep max-w-2xl"
-              style={{ wordBreak: 'keep-all' }}
-            >
-              사소해서 사수에게 묻기 머뭇거려졌던 오피스 질문들. 익명으로 포스트잇을 남기면 동기와 선배들이 마스킹 테이프 조언과 응원 스티커를 착! 붙여드립니다. 특별히 공감과 응원이 모인 사연은 실시간 ‘보이는 라디오’ 스튜디오에서 생생한 음성과 조언으로 함께 나누실 수 있습니다.
-            </p>
+
+            {/* 2. 중앙 창 이름 위치: 튜토리얼 버튼 생성 (4단계 핵심 기능 안내 모달 연동) */}
+            <div className="flex items-center justify-center order-3 sm:order-2 w-full sm:w-auto">
+              <button
+                onClick={() => {
+                  sound.playPageFlipSound();
+                  setIsTutorialOpen(true);
+                }}
+                className="group inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/95 hover:bg-white text-[#1E3A52] hover:text-[#0F1E2C] border border-[#D5CFC5] hover:border-[#2B729E] shadow-2xs hover:shadow-xs transition-all text-xs font-bold tracking-tight cursor-pointer"
+                title="처음 방문하셨나요? 4단계 커뮤니티 이용 가이드 열기"
+              >
+                <span className="text-amber-500 group-hover:scale-110 transition-transform">💡</span>
+                <span>튜토리얼</span>
+                <span className="text-[10px] bg-[#2B729E]/10 text-[#2B729E] font-extrabold px-1.5 py-0.2 rounded-full">
+                  가이드
+                </span>
+              </button>
+            </div>
+
+            {/* 3. 우측: Quick Counter Pills */}
+            <div className="flex items-center gap-2 justify-end text-xs font-medium text-[#666056] order-2 sm:order-3">
+              <span className="bg-black/5 px-2.5 py-1 rounded-full text-[11px]">
+                고민 <strong>{posts.length}</strong>
+              </span>
+              <span className="bg-[#2B729E]/10 text-[#2B729E] px-2.5 py-1 rounded-full text-[11px] font-semibold">
+                조언 <strong>{totalComments}</strong>
+              </span>
+              <span className="bg-[#D94B38]/10 text-[#D94B38] px-2.5 py-1 rounded-full text-[11px] font-semibold">
+                스티커 <strong>{totalStickers}</strong>
+              </span>
+            </div>
           </div>
 
-          {/* Live Metrics Desk Counter */}
-          <div className="flex items-center gap-2 sm:gap-3 bg-white/70 border border-[#D5CFC5] rounded-xl p-3 sm:p-4 shadow-xs self-start md:self-auto font-ui shrink-0">
-            <div className="text-center px-2 sm:px-3">
-              <div className="text-xs text-[#888175] font-medium break-keep" style={{ wordBreak: 'keep-all' }}>등록된 고민</div>
-              <div className="text-lg sm:text-xl font-black text-[#112334] mt-0.5">{posts.length}개</div>
-            </div>
-            <div className="w-px h-8 bg-[#D8D2C6]" />
-            <div className="text-center px-2 sm:px-3">
-              <div className="text-xs text-[#888175] font-medium break-keep" style={{ wordBreak: 'keep-all' }}>테이프 조언</div>
-              <div className="text-lg sm:text-xl font-black text-[#2B729E] mt-0.5">{totalComments}개</div>
-            </div>
-            <div className="w-px h-8 bg-[#D8D2C6]" />
-            <div className="text-center px-2 sm:px-3">
-              <div className="text-xs text-[#888175] font-medium break-keep" style={{ wordBreak: 'keep-all' }}>공감 스티커</div>
-              <div className="text-lg sm:text-xl font-black text-[#D94B38] mt-0.5">{totalStickers}개</div>
-            </div>
-          </div>
-        </div>
-      </section>
+{/* macOS Window Toolbar & Segmented Control */}
+            <div className="bg-[#F8F6F2]/80 border-b border-[#E5DFD4] px-3 sm:px-5 py-3 flex flex-col gap-3">
+              {/* Row 1: Category Navigation as macOS Segmented Control (가로 스크롤바 완전 숨김 & 1줄 일렬 정렬 & 글자 잘림 없는 자연스러운 분배) */}
+<div 
+  id="tutorial-target-tabs"  /* 👈 이 id 추가! */        
+                className="w-full overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                <div className="flex items-center p-1 bg-[#E8E3DA]/80 rounded-xl border border-[#D5CFC5]/60 w-full min-w-max lg:min-w-0 gap-0.5 sm:gap-1">
+                  {TOPIC_FILTERS.map((topic) => {
+                    const isSelected = selectedTopic === topic.id;
+                    const topicCount = topic.id === 'all' 
+                      ? posts.length 
+                      : posts.filter((p) => p.chapterId === topic.id).length;
 
-      {/* 2.5 📻 [보이는 라디오 슬롯] 조장이 추후 컨텐츠/코드를 자유롭게 교체할 수 있는 위치 확보 */}
-      <div className="w-full pt-6 pb-2">
-        <VisibleRadioWidget />
-      </div>
+                    return (
+                      <button
+                        key={topic.id}
+                        onClick={() => {
+                          sound.playPageFlipSound();
+                          setSelectedTopic(topic.id);
+                        }}
+                        className={`flex-auto py-1.5 px-1 sm:px-1.5 xl:px-2.5 rounded-lg text-[11px] sm:text-[11.5px] xl:text-xs font-medium transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap text-center ${
+                          isSelected
+                            ? 'bg-white text-[#112334] font-bold shadow-xs'
+                            : 'text-[#645F56] hover:text-[#112334] hover:bg-white/40'
+                        }`}
+                        title={`${topic.label} (${topicCount})`}
+                      >
+                        {topic.icon && <span className="text-xs shrink-0">{topic.icon}</span>}
+                        <span className="shrink-0 tracking-tight">{topic.label}</span>
+                        <span className={`text-[10px] px-1 sm:px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
+                          isSelected ? 'bg-black/8 text-[#112334]' : 'bg-black/5 text-[#888175]'
+                        }`}>
+                          {topicCount}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-
-
-      {/* 3. Topic Category Navigation Tabs - 이모티콘 없이 모든 탭이 일렬로 한 줄에 정렬 */}
-      <nav className="w-full bg-[#FAF8F5] border-b border-[#D8D2C6] px-3 sm:px-6 lg:px-8 py-3 sticky top-[57px] z-20 shadow-2xs">
-        <div className="max-w-6xl mx-auto overflow-x-auto no-scrollbar sm:overflow-visible">
-          <div className="grid grid-cols-8 gap-1 sm:gap-1.5 lg:gap-2 font-ui min-w-[640px] sm:min-w-0">
-            {TOPIC_FILTERS.map((topic) => {
-              const isSelected = selectedTopic === topic.id;
-              const topicCount = topic.id === 'all' 
-                ? posts.length 
-                : posts.filter((p) => p.chapterId === topic.id).length;
-
-              return (
+            {/* Row 2: Sub-filters & Quick Actions */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-0.5">
+              {/* Filter pills */}
+              <div className="flex items-center gap-1.5 text-xs">
                 <button
-                  key={topic.id}
-                  onClick={() => {
-                    sound.playPageFlipSound();
-                    setSelectedTopic(topic.id);
-                  }}
-                  className={`w-full py-2 px-1 sm:px-2 rounded-full text-[11px] sm:text-xs font-semibold transition-all flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap border ${
-                    isSelected
-                      ? 'bg-[#112334] text-white border-[#112334] shadow-xs'
-                      : 'bg-[#EDE8E0] text-[#443E36] border-[#DFD8CC] hover:bg-[#E0DAD0] hover:text-[#112334]'
+                  onClick={() => setFilterMode('all')}
+                  className={`px-3 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                    filterMode === 'all'
+                      ? 'bg-[#112334] text-white font-bold shadow-2xs'
+                      : 'bg-white/80 text-[#555048] hover:bg-white border border-[#D8D2C6]'
                   }`}
-                  style={{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }}
-                  title={`${topic.label} (${topicCount})`}
                 >
-                  {topic.icon && (
-                    <span className="text-xs shrink-0">{topic.icon}</span>
-                  )}
-                  <span className="font-semibold tracking-tight whitespace-nowrap">
-                    {topic.label}
-                  </span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold shrink-0 ${
-                    isSelected ? 'bg-white/20 text-white' : 'bg-black/8 text-[#666056]'
-                  }`}>
-                    {topicCount}
-                  </span>
+                  전체 ({displayedPosts.length})
                 </button>
-              );
-            })}
+                <button
+                  onClick={() => setFilterMode('hasAdvice')}
+                  className={`px-3 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                    filterMode === 'hasAdvice'
+                      ? 'bg-[#112334] text-white font-bold shadow-2xs'
+                      : 'bg-white/80 text-[#555048] hover:bg-white border border-[#D8D2C6]'
+                  }`}
+                >
+                  선배 조언 있는 글
+                </button>
+                <button
+                  onClick={() => setFilterMode('popular')}
+                  className={`px-3 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                    filterMode === 'popular'
+                      ? 'bg-[#112334] text-white font-bold shadow-2xs'
+                      : 'bg-white/80 text-[#555048] hover:bg-white border border-[#D8D2C6]'
+                  }`}
+                >
+                  인기 공감 글 🔥
+                </button>
+              </div>
+
+              {/* Right Actions: Sticker Drawer & Post-it Write & Sort */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 text-xs text-[#736D64] mr-2">
+                  <span className="text-[11px]">정렬:</span>
+                  <button
+                    onClick={() => setSortOrder('latest')}
+                    className={`hover:text-[#112334] cursor-pointer ${sortOrder === 'latest' ? 'font-bold text-[#112334]' : ''}`}
+                  >
+                    최신순
+                  </button>
+                  <span>·</span>
+                  <button
+                    onClick={() => setSortOrder('adviceCount')}
+                    className={`hover:text-[#112334] cursor-pointer ${sortOrder === 'adviceCount' ? 'font-bold text-[#112334]' : ''}`}
+                  >
+                    조언순
+                  </button>
+                  <span>·</span>
+                  <button
+                    onClick={() => setSortOrder('stickerCount')}
+                    className={`hover:text-[#112334] cursor-pointer ${sortOrder === 'stickerCount' ? 'font-bold text-[#112334]' : ''}`}
+                  >
+                    스티커순
+                  </button>
+                </div>
+
+                <button
+                  id="tutorial-target-stickers" /* 👈 이 id 추가! */
+                  onClick={() => {
+                    sound.playPeelSound();
+                    setIsStickerDrawerOpen((prev) => !prev);
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-[#D5CFC5] bg-white text-[#112334] hover:bg-[#F2EFEB] flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-[#2B729E]" />
+                  <span>스티커함</span>
+                </button>
+
+                <button
+                  id="tutorial-target-write" /* 👈 이 id 추가! */
+                  onClick={() => {
+                    sound.playStickSound();
+                    setIsWriteModalOpen(true);
+                  }}
+                  className="px-3.5 py-1.5 rounded-lg bg-[#2B729E] hover:bg-[#235F84] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>포스트잇 쓰기</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+{/* The Post-it Canvas Inside the Mac Window (정갈한 그리드와 아날로그의 만남) */}
+          <div className="p-6 sm:p-8 bg-[#FAF8F5]/85 min-h-[550px]">
+            {displayedPosts.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
+                {displayedPosts.map((post, idx) => (
+                  <div
+                    key={post.id}
+                    id={idx === 0 ? "tutorial-target-postit" : undefined}
+                    className={`transition-all duration-300 rounded-sm ${
+                      isTutorialOpen && tutorialStep === 2 && idx === 0
+                        ? 'ring-4 ring-emerald-400 ring-offset-4 ring-offset-[#FAF8F5] shadow-[0_0_35px_rgba(52,211,153,0.95)] scale-[1.02] z-20'
+                        : ''
+                    }`}
+                  >
+                    <PostItNote
+                      post={post}
+                      onOpenInspect={(p) => setInspectPostId(p.id)}
+                      onAddComment={(p) => setCommentPost(p)}
+                      onStickSticker={handleStickSticker}
+                      onRemoveSticker={handleRemoveSticker}
+                      onMoveSticker={handleMoveSticker}
+                      activeStickerId={activeStickerId}
+                      onOpenStickerDrawer={() => setIsStickerDrawerOpen(true)}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-24 text-center rounded-2xl border-2 border-dashed border-[#D2CCC2] bg-white/50 my-6">
+                <span className="text-4xl block mb-2">📌</span>
+                <h3 className="font-bold text-base text-[#112334]">
+                  이 주제에는 아직 등록된 고민이 없습니다.
+                </h3>
+                <p className="text-xs text-[#736D64] mt-1">
+                  첫 번째 고민 포스트잇을 직접 붙여보세요!
+                </p>
+                <button
+                  onClick={() => setIsWriteModalOpen(true)}
+                  className="mt-4 px-4 py-2 rounded-full bg-[#112334] text-white text-xs font-semibold shadow-xs cursor-pointer"
+                >
+                  + 포스트잇 붙이기
+                </button>
+              </div>
+            )}
           </div>
         </div>
-      </nav>
-
-      {/* 4. Filter & Sort Bar */}
-      <section className="max-w-6xl w-full mx-auto px-4 sm:px-8 pt-5 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-ui">
-        {/* Status Filters */}
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => setFilterMode('all')}
-            className={`px-3 py-1 rounded-md font-medium transition-colors ${
-              filterMode === 'all'
-                ? 'bg-white text-[#112334] shadow-2xs font-bold border border-[#D5CFC5]'
-                : 'text-[#666056] hover:text-[#112334]'
-            }`}
-          >
-            전체 ({displayedPosts.length})
-          </button>
-          <button
-            onClick={() => setFilterMode('hasAdvice')}
-            className={`px-3 py-1 rounded-md font-medium transition-colors ${
-              filterMode === 'hasAdvice'
-                ? 'bg-white text-[#112334] shadow-2xs font-bold border border-[#D5CFC5]'
-                : 'text-[#666056] hover:text-[#112334]'
-            }`}
-          >
-            선배 조언 있는 글
-          </button>
-          <button
-            onClick={() => setFilterMode('popular')}
-            className={`px-3 py-1 rounded-md font-medium transition-colors ${
-              filterMode === 'popular'
-                ? 'bg-white text-[#112334] shadow-2xs font-bold border border-[#D5CFC5]'
-                : 'text-[#666056] hover:text-[#112334]'
-            }`}
-          >
-            인기 공감 글 🔥
-          </button>
-        </div>
-
-        {/* Sorting Dropdown/Buttons */}
-        <div className="flex items-center gap-2 text-[#736D64]">
-          <span className="text-[11px]">정렬:</span>
-          <button
-            onClick={() => setSortOrder('latest')}
-            className={`hover:text-[#112334] ${sortOrder === 'latest' ? 'font-bold text-[#112334] underline underline-offset-4' : ''}`}
-          >
-            최신순
-          </button>
-          <span>·</span>
-          <button
-            onClick={() => setSortOrder('adviceCount')}
-            className={`hover:text-[#112334] ${sortOrder === 'adviceCount' ? 'font-bold text-[#112334] underline underline-offset-4' : ''}`}
-          >
-            조언 많은순
-          </button>
-          <span>·</span>
-          <button
-            onClick={() => setSortOrder('stickerCount')}
-            className={`hover:text-[#112334] ${sortOrder === 'stickerCount' ? 'font-bold text-[#112334] underline underline-offset-4' : ''}`}
-          >
-            스티커 많은순
-          </button>
-        </div>
-      </section>
-
-      {/* 5. Main Post-it Board Grid */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-8 pb-20 pt-2">
-        {displayedPosts.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
-            {displayedPosts.map((post) => (
-              <PostItNote
-                key={post.id}
-                post={post}
-                onOpenInspect={(p) => setInspectPostId(p.id)}
-                onAddComment={(p) => setCommentPost(p)}
-                onStickSticker={handleStickSticker}
-                onRemoveSticker={handleRemoveSticker}
-                onMoveSticker={handleMoveSticker}
-                activeStickerId={activeStickerId}
-                onOpenStickerDrawer={() => setIsStickerDrawerOpen(true)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="py-24 text-center rounded-2xl border-2 border-dashed border-[#D2CCC2] bg-[#FAF8F5]/60 my-6">
-            <span className="text-4xl block mb-2">📌</span>
-            <h3 className="font-bold text-base text-[#112334] font-ui">
-              이 주제에는 아직 등록된 고민이 없습니다.
-            </h3>
-            <p className="text-xs text-[#736D64] mt-1 font-ui">
-              첫 번째 고민 포스트잇을 직접 붙여보세요!
-            </p>
-            <button
-              onClick={() => setIsWriteModalOpen(true)}
-              className="mt-4 px-4 py-2 rounded-full bg-[#112334] text-white text-xs font-semibold shadow-xs"
-            >
-              + 포스트잇 붙이기
-            </button>
-          </div>
-        )}
-      </main>
+      </div>
 
       {/* 6. Dedicated Community Footer */}
       <footer className="w-full bg-[#E4DFC] border-t border-[#D5CFC5] py-8 px-4 sm:px-8 text-center text-xs font-ui text-[#7A746B]">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-[#112334]">젠지 표류기 커뮤니티</span>
+            <span className="font-bold text-[#112334]">젠지 표류기 오피스 상담소</span>
             <span>·</span>
             <span>오늘도 사무실에서 고군분투하는 모든 신입사원들을 응원합니다.</span>
           </div>
@@ -539,7 +602,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                 sound.playTapeSnipSound();
                 setActiveStickerId(null);
               }}
-              className="ml-2 px-3 py-1 rounded-full bg-red-500 hover:bg-red-600 text-white text-xs font-semibold flex items-center gap-1 transition-colors shadow-xs"
+              className="ml-2 px-3 py-1 rounded-full bg-red-500 hover:bg-red-600 text-white text-xs font-semibold flex items-center gap-1 transition-colors shadow-xs cursor-pointer"
             >
               <X className="w-3 h-3" />
               모드 종료
@@ -578,6 +641,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
         onMoveSticker={handleMoveSticker}
         activeStickerId={activeStickerId}
         onOpenStickerDrawer={() => setIsStickerDrawerOpen(true)}
+        isMacStyle={true}
       />
 
       <PostItWriteModal
@@ -586,6 +650,22 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
         onClose={() => setIsWriteModalOpen(false)}
         onSubmit={handleCreatePostIt}
       />
+
+<CommunityTutorialModal
+  isOpen={isTutorialOpen}
+  onClose={() => setIsTutorialOpen(false)}
+  currentStepIdx={tutorialStep}
+  onStepChange={setTutorialStep}
+  onOpenWriteModal={() => setIsWriteModalOpen(true)}
+  onOpenInspectModal={() => {
+    if (displayedPosts.length > 0) {
+      setInspectPostId(displayedPosts[0].id);
+    }
+  }}
+  onOpenStickerDrawer={(open) => setIsStickerDrawerOpen(open !== undefined ? open : true)}
+  onSelectTopic={(topicId) => setSelectedTopic(topicId)}
+/>
     </div>
   );
 };
+
