@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Python radio preview
+__pycache__/
+*.py[cod]
+.venv/
+!.env.example
