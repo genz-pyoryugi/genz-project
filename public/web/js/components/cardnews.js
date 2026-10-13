@@ -10,7 +10,9 @@
 // DB contents 테이블에 이 챕터의 기사가 있으면 그 기사들을 카드로, 없으면 chapters.js의 카드뉴스를 보여준다.
 const PRESS_NAMES = { donga: "동아일보", yna: "연합뉴스", newsis: "뉴시스" };
 
-Components.cardnews = (localData, ctx) => fromTable("contents", ctx, {
+Components.cardnews = (localData, ctx) => localData?.rookieTop3
+  ? renderCardnews(localData, ctx)
+  : fromTable("contents", ctx, {
   fallback: localData,
   toData: (rows) => {
     const articles = rows
@@ -41,7 +43,10 @@ function renderCardnews(raw, ctx) {
   let credit = null;
 
   if (articles.length) {
-    body = createDeck(articles.map(articleSlide));
+    body = createDeck(articles.flatMap((article) =>
+      article.url?.includes("86918805") || article.title.includes("신입사원 치명적")
+        ? rookieMistakeSlides(article)
+        : [articleSlide(article)]));
     const presses = [...new Set(articles.map((article) => article.press || "동아일보"))].join(" · ");
     credit = h("p", { class: "cardnews__source" },
       `출처: ${presses} · 기사 제목과 요약만 소개하며, 전체 내용은 각 카드의 원문 보기에서 확인할 수 있어요.`);
@@ -124,7 +129,7 @@ function createDeck(slides) {
 
   const cards = slides.map((content, i) =>
     h("article", {
-      class: "cardnews__card",
+      class: `cardnews__card${content.rookie ? " cardnews__card--rookie" : ""}`,
       "aria-roledescription": "카드",
       "aria-label": `${i + 1} / ${slides.length}`,
     }, content));
@@ -182,4 +187,112 @@ function createDeck(slides) {
     viewport,
     h("div", { class: "cardnews__controls" }, prevBtn, counter, nextBtn),
     dots);
+}
+
+// Reusable 1080 × 1350 image cards; canvas text uses the actual Pretendard font.
+const ROOKIE_MISTAKES = [
+  { title: '지시와 다른 방향으로 업무 진행', percent: 18.5, lines: ['상사의 의도를 잘못 파악하여', '엉뚱한 결과물을 내는 실수입니다.'], tip: ['업무를 시작하기 전,', '목적과 결과물부터 확인하세요.'] },
+  { title: '근태 및 복장 등 기본 예의 실수', percent: 16.7, lines: ['지각이나 부적절한 복장 등', '직장 내 기본 매너를 지키지 않는 행동입니다.'], tip: ['시간 약속과 복장 규정을', '미리 확인하는 습관을 들이세요.'] },
+  { title: '상사 뒷담화 등 말실수', percent: 14.7, lines: ['언행 불일치나 뒷담화 등으로', '동료와의 관계를 잃는 말실수입니다.'], tip: ['가벼운 한마디도', '상대의 입장에서 생각하세요.'] },
+];
+const rookieArtworkPromises = {};
+function rookieArtwork(index) {
+  const source = index === 0 ? '/web/assets/picture/rookie-mistakes-no-bubbles-beige.png'
+    : index === 1 ? '/web/assets/picture/rookie-punctuality-dress-beige.png'
+    : '/web/assets/picture/rookie-mistakes-art-beige.png';
+  return rookieArtworkPromises[source] ??= new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => { delete rookieArtworkPromises[source]; reject(new Error('삽화를 불러오지 못했습니다.')); };
+    image.src = source;
+  });
+}
+function rookieMistakeSlides(article) {
+  return Array.from({ length: 4 }, (_, index) => {
+    const canvas = h('canvas', { width: 1080, height: 1350, class: 'rookie-card__image', role: 'img', 'aria-label': index < 3 ? `${index + 1}위: ${ROOKIE_MISTAKES[index].title} (${ROOKIE_MISTAKES[index].percent}%). ${ROOKIE_MISTAKES[index].lines.join(' ')}` : '신입사원 치명적 실수 TOP 3. 원문에서 자세히 확인하세요.' });
+    const content = [canvas];
+    if (index === 3) content.push(h('a', { href: article.url, target: '_blank', rel: 'noopener noreferrer', class: 'rookie-card__source', 'aria-label': '원문보기: 신입사원 치명적인 실수 TOP 3' }));
+    content.rookie = true;
+    const status = h('span', { class: 'rookie-card__status', role: 'status' }, '이미지를 준비하고 있어요…');
+    content.push(status);
+    Promise.all([index < 3 ? rookieArtwork(index) : null, document.fonts.load('700 48px Pretendard'), document.fonts.load('500 36px Pretendard')]).then(([art]) => {
+      drawRookieCard(canvas, art, index);
+      status.remove();
+    }).catch(() => { status.textContent = '이미지를 불러오지 못했습니다. 새로고침해 주세요.'; });
+    return content;
+  });
+}
+function drawRookieCard(canvas, art, index) {
+  const c = canvas.getContext('2d');
+  c.fillStyle = '#fdf9f2'; c.fillRect(0, 0, 1080, 1350);
+  const text = (value, x, y, size = 42, weight = 700, color = '#202b33') => {
+    c.font = `${weight} ${size}px Pretendard`; c.fillStyle = color; c.fillText(value, x, y);
+  };
+  const pill = (x, y, w, height, color) => { c.beginPath(); c.roundRect(x, y, w, height, height / 2); c.fillStyle = color; c.fill(); };
+  text('신입사원 치명적 실수', 64, 90, 39);
+  text('TOP 3', 64, 157, 62, 800, '#086bce');
+  if (index < 3) {
+    const panelWidth = index === 1 ? art.width : art.width / 3;
+    const illustrationWidth = 470 * panelWidth / art.height;
+    c.drawImage(art, index === 1 ? 0 : panelWidth * index, 0, panelWidth, art.height,
+      (1080 - illustrationWidth) / 2, 192, illustrationWidth, 470);
+    c.strokeStyle = '#23333e'; c.lineWidth = 3; c.beginPath(); c.moveTo(64, 672); c.lineTo(1016, 672); c.stroke();
+    const data = ROOKIE_MISTAKES[index];
+    text(`${index + 1}위`, 64, 750, 60, 800, '#086bce');
+    text(data.title, 64, 828, 48, 800);
+    data.lines.forEach((line, i) => text(line, 64, 902 + i * 55, 38, 500));
+    pill(64, 993, 760, 48, '#ffffff');
+    c.strokeStyle = '#253744'; c.lineWidth = 3; c.stroke();
+    pill(64, 993, 760 * data.percent / 100, 48, '#086bce');
+    text(`${data.percent}%`, 850, 1034, 46, 800);
+    drawRookieTip(c, data.tip);
+  } else {
+    text('작은 실수도,', 64, 420, 68, 800);
+    text('미리 알면 줄일 수 있어요.', 64, 509, 65, 800);
+    text('TOP 3와 더 많은 실수 유형,', 64, 650, 40, 500);
+    text('자세한 조사 내용은 원문에서 확인하세요.', 64, 710, 40, 500);
+    pill(64, 900, 952, 135, '#086bce');
+    c.save();
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    text('원문보기', 540, 967.5, 48, 800, '#ffffff');
+    c.restore();
+  }
+}
+
+// All three ranked cards share the first card's exact tip layout.
+function drawRookieTip(c, lines) {
+  c.save();
+  c.beginPath(); c.roundRect(64, 1085, 952, 158, 79);
+  c.fillStyle = '#f1e8d8'; c.fill();
+  drawTipLightbulb(c, 160, 1164);
+  c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+  c.fillStyle = '#175487';
+  c.font = '600 34px Pretendard';
+  c.fillText(lines[0].replace(/,$/, ''), 248, 1147);
+  c.font = '800 36px Pretendard';
+  c.fillText(lines[1], 248, 1196);
+  c.restore();
+}
+
+// Draw a crisp lightbulb badge at the same resolution as the card image.
+function drawTipLightbulb(c, x, y) {
+  c.save();
+  c.translate(x, y);
+  c.beginPath(); c.arc(0, 0, 52, 0, Math.PI * 2);
+  c.fillStyle = '#ffd044'; c.fill();
+  c.strokeStyle = '#695127'; c.lineWidth = 5;
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  c.beginPath();
+  c.moveTo(-12, 13);
+  c.bezierCurveTo(-12, 2, -23, -1, -23, -17);
+  c.bezierCurveTo(-23, -46, 23, -46, 23, -17);
+  c.bezierCurveTo(23, -1, 12, 2, 12, 13);
+  c.closePath(); c.fillStyle = '#fff3bb'; c.fill(); c.stroke();
+  c.beginPath(); c.moveTo(0, 12); c.lineTo(0, -5);
+  c.moveTo(-8, -13); c.lineTo(0, -5); c.lineTo(8, -13); c.stroke();
+  c.beginPath(); c.roundRect(-12, 14, 24, 14, 4);
+  c.fillStyle = '#a48b57'; c.fill(); c.stroke();
+  c.beginPath(); c.moveTo(-5, 34); c.lineTo(5, 34); c.stroke();
+  c.restore();
 }

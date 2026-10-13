@@ -2,7 +2,7 @@
 // 첫 화면 오른쪽 아래 채팅 책을 클릭하면 책 왼쪽에 펼쳐지는 채팅창.
 // 뒤 화면은 반투명하게 어두워진다. (열고 닫기는 js/book.js가 BookChat.open / close로 부른다)
 //
-// 답변은 AI 상담을 붙일 자리(reply())만 두었다. 연결 전에는 준비 중 안내로 답한다.
+// 답변은 백엔드 AI 상담(/api/sos, js/sos-api.js)이 쓴다. 대화는 서버가 Supabase에 저장한다.
 const BookChat = (() => {
   const SUGGESTIONS = ["메일 제목 어떻게 써요?", "지각할 것 같아요", "회식 거절해도 되나요?", "업무 실수를 했어요"];
   const GREETING = "무엇이든 물어보세요";
@@ -123,23 +123,34 @@ const BookChat = (() => {
     return item;
   }
 
-  function send(raw) {
+  let pending = false;
+
+  async function send(raw) {
     const text = raw.trim();
-    if (!text) return;
+    if (!text || pending) return;
+    pending = true;
     input.value = "";
     addMessage("user", text);
 
     const typing = addMessage("bot", "…");
     typing.classList.add("is-typing");
-    setTimeout(() => {
+    try {
+      const answer = await reply(text);
       typing.remove();
-      reply(text);
-    }, 600);
+      addMessage("bot", answer);
+    } catch (err) {
+      typing.remove();
+      addMessage("bot", `답변을 받지 못했어요.
+${err.message}`);
+    } finally {
+      pending = false;
+    }
   }
 
-  // AI 상담 답변 자리 (Supabase 등으로 연결 예정). text = 사용자가 보낸 질문
+  // AI 상담 답변: 백엔드 /api/sos (js/sos-api.js). 답변 문자열을 돌려주고, 실패하면 Error
   function reply(text) {
-    addMessage("bot", "AI 상담 연결을 준비하고 있어요.\n조금만 기다려 주세요!");
+    if (typeof SosApi === "undefined") return Promise.reject(new Error("상담 서버 연결 스크립트가 없어요."));
+    return SosApi.ask(text);
   }
 
   // geo: 화면 좌표 { right: 책갈피 왼쪽 끝, top: 책갈피 끝, bottom: 책 위 모서리 }

@@ -38,7 +38,10 @@ const Simulation = (() => {
     const el = h("div", { class: "chat__view sim", role: "tabpanel", hidden: true });
     let scenarios = [];
     let category = null;
-    let personality = "balanced";
+    let customPersonality = ""; // 직접 입력한 팀장 성격 (있으면 아래 선택 대신 이 설명을 씀, 최대 120자)
+    const PRESETS = [["calm", "차분한"], ["encouraging", "격려하는"], ["direct", "직설적인"]];
+    let personaChosen = false; // 첫 화면에서 팀장 성격을 정했는지
+    let personality = "calm"; // 팀장 성격: calm · encouraging · direct. 시작할 때 서버로 보내고, 이후 대화는 서명된 세션이 같은 성격을 유지한다
 
     // --- 1) 불러오기 ---
     function load() {
@@ -72,15 +75,16 @@ const Simulation = (() => {
     // --- 2) 카테고리 · 상황 선택 ---
     function showList() {
       const names = categories();
-      if (!names.some((name) => sameCategory(name, category))) category = names[0];
+      // 처음에는 큰 목차(카테고리)만 보여 주고, 고르면 그 카테고리의 상황을 보여 준다
+      if (!names.some((name) => sameCategory(name, category))) category = null;
 
-      const chips = names.map((name) =>
-        h("button", {
-          class: "chat__chip",
-          type: "button",
-          "aria-pressed": String(sameCategory(name, category)),
-          onClick: () => { category = name; showList(); },
-        }, name));
+      const chapterNum = (name) => CHAPTERS.find((c) => sameCategory(c.title, name))?.num;
+      const toc = names.map((name) =>
+        h("li", null,
+          h("button", { class: "sim__item sim__toc-item", type: "button", onClick: () => { category = name; showList(); } },
+            h("span", { class: "sim__item-head" },
+              h("span", { class: "sim__item-title" }, [chapterNum(name), name].filter(Boolean).join("  ")),
+              h("span", { class: "sim__toc-count" }, `${scenarios.filter((s) => sameCategory(s.category, name)).length}개 ›`)))));
 
       const items = scenarios.filter((s) => sameCategory(s.category, category)).map((s) =>
         h("li", null,
@@ -90,16 +94,53 @@ const Simulation = (() => {
               s.difficulty && h("span", { class: "sim__level", "data-level": s.difficulty }, s.difficulty)),
             h("span", { class: "sim__item-desc" }, s.context))));
 
+      // ① 첫 화면: 팀장 성격 정하기 (버튼을 누르거나 직접 입력 후 확인하면 ② 목차로)
+      if (!personaChosen) {
+        let customInput, nextBtn;
+        const choose = () => { personaChosen = true; showList(); };
+        const syncNext = () => { nextBtn.disabled = !customPersonality.trim(); };
+        el.replaceChildren(
+          h("div", { class: "sim__intro" }, h("p", { class: "chat__sim-badge" }, "SIMULATION")),
+          // 팀원 일러스트: 배지와 성격 입력 사이 빈 공간
+          h("img", { class: "sim__team", src: "assets/picture/sim-team.webp", alt: "", draggable: "false" }),
+          // 성격 입력 묶음은 화면 아래쪽 빈 공간에 놓는다 (.sim__persona-step)
+          h("div", { class: "sim__intro sim__persona-step" },
+            h("label", { class: "sim__custom" },
+              h("span", { class: "sim__custom-label" }, "팀장님의 성격을 입력해주세요"),
+              h("span", { class: "sim__custom-row" },
+                (customInput = h("input", {
+                  class: "sim__custom-input", type: "text", maxlength: "120", value: customPersonality,
+                  placeholder: "직접 입력 (예: 꼼꼼하지만 유머 있는 팀장)",
+                  onInput: e => { customPersonality = e.target.value; syncNext(); },
+                  onKeydown: e => { if (e.key === "Enter" && !e.isComposing && customPersonality.trim()) choose(); },
+                })),
+                (nextBtn = h("button", { class: "chat__send sim__custom-next", type: "button", onClick: () => { if (customPersonality.trim()) choose(); } }, "확인")))),
+            // 예시 성격 버튼: 누르면 그 성격으로 정하고 바로 목차로 (직접 입력은 비움)
+            h("div", { class: "sim__presets", role: "group", "aria-label": "예시 팀장 성격" },
+              PRESETS.map(([value, label]) => h("button", {
+                class: "chat__chip sim__preset", type: "button", "aria-pressed": String(!customPersonality.trim() && value === personality),
+                onClick: () => { personality = value; customPersonality = ""; customInput.value = ""; choose(); },
+              }, label)))));
+        syncNext();
+        return;
+      }
+
+      // ② 목차 · ③ 상황 목록: 위에 정한 성격을 한 줄로 보여 주고 '변경'으로 ①로 돌아간다
+      const personaName = customPersonality.trim() || PRESETS.find(([value]) => value === personality)[1] + " 팀장";
       el.replaceChildren(
         h("div", { class: "sim__intro" },
           h("p", { class: "chat__sim-badge" }, "SIMULATION"),
-          h("p", { class: "sim__lead" }, "AI팀장과 실제 회사 상황을 연습해 보세요.\n카테고리를 고르고 상황을 선택하세요.")),
-        h("label", { class: "sim__personality" }, "팀장 성격 ",
-          h("select", { "aria-label": "팀장 성격", onChange: e => { personality = e.target.value; } },
-            [["balanced", "차분한 팀장"], ["supportive", "격려하는 팀장"], ["direct", "직설적인 팀장"]].map(([value, label]) =>
-              h("option", { value, selected: value === personality }, label)))),
-        h("div", { class: "chat__chips sim__chips", "aria-label": "카테고리" }, chips),
-        h("ul", { class: "sim__list" }, items));
+          h("div", { class: "sim__persona" },
+            h("span", { class: "sim__persona-label" }, "팀장 성격"),
+            h("span", { class: "sim__persona-name" }, personaName),
+            h("button", { class: "sim__back", type: "button", onClick: () => { personaChosen = false; showList(); } }, "변경")),
+          category ? h("p", { class: "sim__lead" }, "연습할 상황을 선택하세요.") : ""),
+        category
+          ? h("div", { class: "sim__cat-bar" },
+              h("button", { class: "sim__back", type: "button", onClick: () => { category = null; showList(); } }, "← 목차"),
+              h("span", { class: "sim__cat-title" }, [chapterNum(category), category].filter(Boolean).join("  ")))
+          : "",
+        h("ul", { class: category ? "sim__list" : "sim__list sim__list--toc", "aria-label": category ? "상황" : "카테고리" }, category ? items : toc));
     }
 
     // --- 3) 역할극 ---
@@ -153,7 +194,7 @@ const Simulation = (() => {
         try {
           const response = await fetch("/api/simulation", {
             method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(60000),
-            body: JSON.stringify(action === "start" ? { action, scenarioId: scenario.id, personality }
+            body: JSON.stringify(action === "start" ? { action, scenarioId: scenario.id, personality, ...(customPersonality.trim() ? { customPersonality: customPersonality.trim() } : {}) }
               : { action, session, ...(action === "chat" ? { message } : {}) }),
           });
           const data = await response.json();
@@ -187,9 +228,11 @@ const Simulation = (() => {
         }
       }
 
+      // 상황 카드: 제목(크게) → "상황" 라벨 → 설명. 'AI팀장:' 첫 질문은 아래 대화에서 팀장이 직접 말하므로 넣지 않는다
       log.append(h("li", { class: "sim__context" },
+        h("p", { class: "sim__context-title" }, scenario.title),
         h("span", { class: "sim__context-label" }, "상황"),
-        h("p", null, scenario.situation)));
+        h("p", { class: "sim__context-body" }, scenario.context)));
 
       el.replaceChildren(
         h("div", { class: "sim__bar" },

@@ -20,6 +20,8 @@
     .chat__win--min, .chat__win--max { display: none; }   /* 크기는 팝업 창이 정함: 닫기만 남김 */
     .chat__versions { display: none; }                     /* Chat / 시뮬레이션은 사무실의 다른 물건으로 나눠 엶 (?view=) */
     .chat__head { padding-top: 22px; }
+    .theme-sim .chat__controls { display: none; }
+    .theme-sim .chat__head { padding: 16px 20px 12px; }   /* 창 버튼이 없으니 오른쪽 여백도 비움 → 제목이 한 줄 */
 
     /* ===== 메신저 테마 (사무실 SOS 휴대폰, ?view=chat) =====
        휴대폰 메신저 규격: 위 내비게이션 바(왼쪽 뒤로 · 가운데 제목) · 15px 본문 · 말풍선 최대 78% · 둥근 입력창 + 동그란 전송 버튼.
@@ -46,16 +48,54 @@
     .theme-messenger .chat__msg.is-typing .chat__bubble { color: #8a93a3; }
     .theme-messenger .chat__link { padding: 7px 12px; font-size: 13px; background: #e8f0fe; color: #1f5fd1; }
     /* 추천 질문 */
-    .theme-messenger .chat__chips { gap: 6px; padding: 0 14px 8px; }
-    .theme-messenger .chat__chip { padding: 6px 11px; font-size: 13px; border-color: #d5e3fb; background: #f4f8ff; color: #2f6fd8; }
+    .theme-messenger .chat__chips { display: grid; grid-template-columns: 1fr 1fr; overflow: visible; gap: 6px; padding: 0 14px 8px; }   /* 추천 질문 2×2: 잘리지 않게 */
+    .theme-messenger .chat__chip { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 6px 8px; font-size: clamp(11px, 3.3vw, 13px); }
+    .theme-messenger .chat__chip { border-color: #d5e3fb; background: #f4f8ff; color: #2f6fd8; }
     .theme-messenger .chat__chip:hover { background: #e8f0fe; }
     /* 입력 바 */
-    .theme-messenger .chat__form { align-items: center; gap: 8px; padding: 8px 18px 4px; border-top: 0.5px solid #e3e6ea; }
+    .theme-messenger .chat__form { align-items: center; gap: 8px; padding: 8px 18px 16px; border-top: 0.5px solid #e3e6ea; }
     .theme-messenger .chat__input { height: 38px; padding: 0 14px; font-size: 15px; background: #f2f3f5; border: 1px solid transparent; color: #111827; }
     .theme-messenger .chat__input:focus { border-color: #b8d0fb; background: #fff; }
     .theme-messenger .chat__input::placeholder { color: #9aa3b2; }
     .theme-messenger .chat__send { display: grid; place-items: center; width: 38px; height: 38px; padding: 0; border-radius: 50%; background: #2f7cf6; color: #fff; }
     .theme-messenger .chat__send svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    /* ===== AI 팀장 시뮬레이션 흰 테마 (사무실 모니터, ?view=sim): 흰 바탕 · 진한 글자 · 연회색 카드 · 파란 강조 ===== */
+    html.theme-sim, .theme-sim body { background: #fff; }
+    .theme-sim .chat { background: #fff; color: #1b2433; }
+    .theme-sim .chat__head { border-bottom-color: #eef0f3; }
+    .theme-sim .chat__title { color: #111827; }
+    .theme-sim .chat__sub, .theme-sim .sim__lead, .theme-sim .sim__notice { color: #6b7280; }
+    .theme-sim .chat__sim-badge { border-color: #c9dbfa; color: #2f6fd8; background: #f4f8ff; }
+    .theme-sim .sim__custom-label { color: #111827; }
+    .theme-sim .sim__custom-input, .theme-sim .chat__input { background: #f3f4f6; border-color: transparent; color: #111827; }
+    .theme-sim .sim__custom-input:focus, .theme-sim .chat__input:focus { border-color: #9cc0fb; background: #fff; }
+    .theme-sim .sim__custom-input::placeholder, .theme-sim .chat__input::placeholder { color: #9aa3b2; }
+    .theme-sim .chat__send { background: #2f7cf6; color: #fff; }
+    .theme-sim .chat__chip { border-color: #d5e3fb; background: #f4f8ff; color: #2f6fd8; }
+    .theme-sim .chat__chip:hover { background: #e8f0fe; }
+    .theme-sim .chat__chip[aria-pressed="true"] { border-color: #2f7cf6; background: #2f7cf6; color: #fff; }
+    .theme-sim .sim__persona-label, .theme-sim .sim__toc-count { color: #6b7280; }
+    .theme-sim .sim__persona-name, .theme-sim .sim__cat-title { color: #111827; }
+    .theme-sim .sim__back { border-color: #d1d5db; color: #374151; }
+    .theme-sim .sim__back:hover { background: #f3f4f6; }
+    .theme-sim .sim__item { border-color: #e5e7eb; background: #f8f9fb; color: #111827; }
+    .theme-sim .sim__item:hover { border-color: #9cc0fb; background: #eef4ff; }
+    .theme-sim .sim__item-desc { color: #6b7280; }
+    .theme-sim .sim__level { background: #eef0f3; color: #4b5563; }
+    .theme-sim .sim__level[data-level="쉬움"] { background: #e3f6ea; color: #1f8a4c; }
+    .theme-sim .sim__level[data-level="보통"] { background: #e6efff; color: #2f6fd8; }
+    .theme-sim .sim__level[data-level="어려움"] { background: #fdecea; color: #c2410c; }
+    .theme-sim .sim__bar, .theme-sim .chat__form { border-color: #eef0f3; }
+    .theme-sim .sim__bar-title { color: #111827; }
+    .theme-sim .sim__context { background: #f4f8ff; border-left-color: #2f7cf6; color: #1b2433; }
+    .theme-sim .sim__context-label, .theme-sim .sim__speaker, .theme-sim .sim__count { color: #2f6fd8; }
+    .theme-sim .chat__bubble { background: #eceef1; color: #1b2433; }
+    .theme-sim .chat__msg--user .chat__bubble { background: #2f7cf6; color: #fff; }
+    .theme-sim .chat__msg.is-typing .chat__bubble { color: #8a93a3; }
+    .theme-sim .chat__link { background: #e8f0fe; color: #1f5fd1; }
+    .theme-sim .sim__score { border-color: #e5e7eb; background: #f8f9fb; color: #1b2433; }
+    .theme-sim .sim__score input { accent-color: #2f7cf6; }
+    .theme-sim .sim__ghost { border-color: #d1d5db; color: #374151; }
   </style>
 </head>
 <body>
@@ -64,6 +104,7 @@
   <script src="js/components/util.js"></script>
   <script src="js/data/chapters.js"></script>
   <script src="js/simulation.js"></script>
+  <script src="js/sos-api.js"></script>
   <script src="js/chat.js"></script>
   <script>
     // 사무실(부모 창)에 알리기: 닫기 / 챕터 바로가기
@@ -101,6 +142,7 @@
     if (view === "sim") {
       document.querySelector('.chat__version[data-view="sim"]').click();
       document.querySelector(".chat__title").textContent = "AI 팀장 시뮬레이션";
+      document.documentElement.classList.add("theme-sim");   // 닫기는 사무실 팝업의 흰 X 버튼이 맡음
       document.querySelector(".chat__sub").textContent = "실제 회사 상황으로 AI 팀장과 대화를 연습해 보세요";
       document.title = "AI 팀장 시뮬레이션";
     }

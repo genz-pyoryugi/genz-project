@@ -187,8 +187,8 @@
     go.style.left = gx + 'px';
     go.style.top = hintTop + 'px'; go.style.bottom = 'auto';
     // welcome lines: centred on the same axis as the page text, kept clear of the bookmark
-    duskCopy.style.left = gx + 'px';
-    duskCopy.style.setProperty('--dusk-w', Math.min(760, (R - L) - 2 * Math.max(16, (R - L) * .06)) + 'px');
+    duskCopy.style.left = W / 2 + 'px';   // welcome lines sit in the middle of the screen
+    duskCopy.style.setProperty('--dusk-w', '760px');
   }
   addEventListener('resize', () => { resize(); layoutPlatform(); }); resize(); layoutPlatform();
   if (mainFrame) mainFrame.addEventListener('load', () => requestAnimationFrame(layoutPlatform));
@@ -362,9 +362,10 @@
   // with the welcome lines (DUSK), then the bookmark thins down to the chat book's bookmark width (THIN).
   // Only after that does the main web (#main-web) scroll in below, and the bookmark shortens into the chat book (hq).
   // keep SC × (intro height − 100vh) ≈ 1025vh so the story pace stays the same when #intro's height changes
-  const SC = .633;                      // story (sea → open book) ends here
-  const DUSK = [.66, .72], DUSK_T1 = [.705, .755], DUSK_T2 = [.78, .83]; // screen darkens, then the welcome lines
-  const THIN = [.9, 1];                 // bookmark thins (over the dark screen)
+  // same scroll positions as before (story ends at ~1025vh); only the dark tail after the welcome lines is shorter
+  const SC = .6856;                     // story (sea → open book) ends here
+  const DUSK = [.715, .78], DUSK_T1 = [.766, .818], DUSK_T2 = [.8455, .9]; // screen darkens, then the welcome lines
+  const THIN = [.92, 1];                // bookmark thins (over the dark screen)
   const targetP = () => { const d = intro.offsetHeight - stage.offsetHeight; return clamp(-intro.getBoundingClientRect().top / d); };
 
   function render(r, t, hq) {

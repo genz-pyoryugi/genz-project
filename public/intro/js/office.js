@@ -38,6 +38,7 @@
     notebook: '<rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 12.2l2.6 2.6L16.2 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
     calendar: '<path d="M7 2.5h2V5h6V2.5h2V5h1.5A2.5 2.5 0 0 1 21 7.5v11a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 18.5v-11A2.5 2.5 0 0 1 5.5 5H7z"/><rect x="5" y="9.5" width="14" height="9.5" rx="1" fill="#fff"/><rect x="7" y="11.5" width="3" height="3" rx=".6"/>',
     postit: '<path d="M4 4h16a1 1 0 0 1 1 1v10.5L15.5 21H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M15 21v-5a1 1 0 0 1 1-1h5" fill="#fff" opacity=".55"/>',
+    book: '<path d="M5 3.5h8a1.5 1.5 0 0 1 1.5 1.5v3h-2V5.5h-7v13h7V16h2v3a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V5A1.5 1.5 0 0 1 5 3.5z"/><path d="M16 8l4 4-4 4v-3H9v-2h7z"/>',
     pen: '<circle cx="12" cy="12" r="9.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.2" fill="#fff"/>',
     radio: '<path d="M12 3a9 9 0 0 0-9 9v5.5A2.5 2.5 0 0 0 5.5 20H7a1 1 0 0 0 1-1v-5a1 1 0 0 0-1-1H5v-1a7 7 0 0 1 14 0v1h-2a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h1.5a2.5 2.5 0 0 0 2.5-2.5V12a9 9 0 0 0-9-9z"/>',
     default: '<circle cx="12" cy="12" r="8"/>'
@@ -75,7 +76,7 @@
   // ---- hotspot states (on the button): .is-hovered / .is-active / .is-flash / .is-pulse
   let active = null;
   function select(s) {
-    const { object, label, href } = s.btn.dataset;
+    const { object, label, href, scroll } = s.btn.dataset;
     console.log(`${object} clicked`);
     spots.forEach(o => o !== s && o.btn.classList.remove('is-active'));
     s.btn.classList.add('is-active');
@@ -83,7 +84,10 @@
     if (!reduce) ripple(s.dot);
     active = s;
     // data-href → open that page full screen over the office; otherwise the placeholder panel
-    if (href) setTimeout(() => { if (active === s) openContent(href, label, s.btn.dataset.popup); }, reduce ? 0 : 280);
+    // data-title: 팝업 제목 (없으면 메뉴명)
+    // data-scroll="#id" → scroll the page down to that section (e.g. the guidebook → 목차 below)
+    if (scroll) { setTimeout(() => { close(); document.querySelector(scroll)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); }, reduce ? 0 : 280); }
+    else if (href) setTimeout(() => { if (active === s) openContent(href, s.btn.dataset.title || label, s.btn.dataset.popup); }, reduce ? 0 : 280);
     else { panelKey.textContent = object; panelTitle.textContent = label; panel.hidden = false; }
     window.dispatchEvent(new CustomEvent('genz-office:select', { detail: { object, label, href } }));
   }
@@ -114,9 +118,16 @@
   function openContent(href, label, popup) {
     if (contentFrame.getAttribute('src') !== href) contentFrame.src = href;   // keep it loaded for quick reopening
     content.classList.toggle('office-content--chat', popup === 'chat');
-    const phone = popup === 'phone' || popup === 'phone-dark';
+    const phone = popup === 'phone' || popup === 'phone-dark' || popup === 'phone-plain';
     content.classList.toggle('office-content--phone', phone);
     content.classList.toggle('office-content--phone-dark', popup === 'phone-dark');
+    content.classList.toggle('office-content--phone-plain', popup === 'phone-plain');
+    content.classList.toggle('office-content--fit', popup === 'fit');
+    content.classList.toggle('office-content--medium', popup === 'medium');
+    content.classList.toggle('office-content--sheet', popup === 'sheet');
+    content.classList.toggle('office-content--quiz', popup === 'quiz');
+    content.classList.toggle('office-content--card', popup === 'card');
+    if (popup === 'fit') requestAnimationFrame(fitObject);
     if (phone) {
       const now = new Date();
       document.getElementById('officeContentTime').textContent = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -140,6 +151,67 @@
   }
   contentClose.addEventListener('click', close);
   document.getElementById('officeContentBackdrop').addEventListener('click', close);
+  // fit popup: scale the page's main object (the calendar) so all of it fits inside the popup, no scrolling.
+  // Done from here so the page's own code stays untouched.
+  const FIT_ITEM = '.calendar-object';
+  function fitObject() {
+    if (!content.classList.contains('office-content--fit')) return;
+    let doc;
+    try { doc = contentFrame.contentDocument; } catch (e) { return; }
+    const item = doc && doc.querySelector(FIT_ITEM);
+    if (!item) return;
+    // all changes go into our own <style> — never onto React's elements (that breaks hydration of the page)
+    let st = doc.getElementById('office-fit-style');
+    if (!st) {
+      st = doc.createElement('style');
+      st.id = 'office-fit-style';
+      doc.head.appendChild(st);
+    }
+    const base = 'html,body{overflow:hidden!important;background:transparent!important}' +
+      '.calendar-scene{min-height:0!important;height:100vh;padding:0!important;display:flex;align-items:center;justify-content:center}' +
+      '.calendar-object{width:1100px;flex:none;transform-origin:center}' +
+      // keep the desktop layout at any popup size (the page switches layouts by viewport width) and only scale it
+      '.calendar-paper{padding:43px 34px 18px!important}.paper-note{font-size:10px!important;text-align:right!important}' +
+      '.source-note{display:none!important}';
+    st.textContent = base;                       // layout first, then measure (offset sizes ignore transforms)
+    const w = contentFrame.clientWidth, h = contentFrame.clientHeight;
+    const k = Math.min(1, (h - 70) / (item.offsetHeight + 30), (w - 50) / (item.offsetWidth + 40));
+    st.textContent = base + `.calendar-object{transform:scale(${k.toFixed(3)})}`;
+  }
+
+  contentFrame.addEventListener('load', () => {
+    fitObject();
+    // pages with their own '× → 첫 화면' link (e.g. /checklist): inside the popup the white close button does that job
+    try {
+      const doc = contentFrame.contentDocument;
+      if (doc && !doc.getElementById('office-embed-style')) {
+        const st = doc.createElement('style');
+        st.id = 'office-embed-style';
+        st.textContent = '.checklist-close,.quiz-close{display:none!important}' +
+          // sheet popup: drop the page's office photo and let the checklist paper fill the popup
+          'html,body{background:transparent!important;overflow:hidden!important}' +
+          // no visible scrollbars inside the popup (areas still scroll with the wheel / touch)
+          '*{scrollbar-width:none!important}*::-webkit-scrollbar{display:none!important}' +
+          '.checklist-scene{background:transparent!important;padding:24px 0 0!important;min-height:0!important;height:100vh}' +
+          '.office-wash{display:none!important}.checklist-sheet{width:100%!important;height:calc(100vh - 24px)!important;min-height:0!important}' +
+          // quiz: same, keeping room on the right for the pen mascot beside the paper
+          // quiz popup: the paper fills the box under its title bar (even corners, no tilt); the pen mascot sits in the 210px gutter outside, on the right
+          '.quiz-scene{background:transparent!important;padding:0 210px 0 0!important;min-height:0!important;height:100vh;display:block!important}' +
+          '.quiz-office-shade{display:none!important}.quiz-paper{height:100vh!important;min-height:0!important;max-width:none!important;' +
+          'border-radius:0 0 14px 14px!important;transform:none!important;box-shadow:none!important}' +
+          '.quiz-pen-side{right:0!important;bottom:0!important;transform-origin:bottom right}' +
+          // shorter popups: shrink the pen mascot so its speech bubble isn't cut off at the top
+          '@media (max-height:700px){.quiz-pen-side{transform:scale(.84)}}@media (max-height:580px){.quiz-pen-side{transform:scale(.7)}}';
+        doc.head.appendChild(st);
+      }
+    } catch (e) {}
+    try {
+      const doc = contentFrame.contentDocument;
+      if (doc.fonts) doc.fonts.ready.then(fitObject);
+    } catch (e) {}
+  });
+  addEventListener('resize', fitObject);
+
   // messages from the page in the popup (web/sos.html): close it, or jump to a chapter of the main web below
   addEventListener('message', e => {
     if (e.origin !== location.origin || !e.data || !String(e.data.type).startsWith('genz-sos:')) return;
@@ -159,7 +231,10 @@
   });
   // ESC while the focus is inside the (same-origin) page in the iframe
   contentFrame.addEventListener('load', () => {
-    try { contentFrame.contentWindow.addEventListener('keydown', e => { if (e.key === 'Escape' && !content.hidden) close(); }); } catch (e) {}
+    try { contentFrame.contentWindow.addEventListener('keydown', e => {
+      // the page's own open dialog (e.g. a calendar sticker) closes first; ESC then closes the popup
+      if (e.key === 'Escape' && !content.hidden && !contentFrame.contentDocument.querySelector('dialog[open]')) close();
+    }); } catch (e) {}
   });
   function ripple(dot) {
     const r = document.createElement('span');

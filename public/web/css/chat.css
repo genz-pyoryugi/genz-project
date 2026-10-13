@@ -629,3 +629,49 @@ html.is-chat-open body {
     animation: none;
   }
 }
+
+/* 팀장 성격 직접 입력 (SIMULATION 배지 아래) */
+.sim__custom { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.sim__custom-label { font-size: 0.82rem; font-weight: 700; color: rgba(255, 255, 255, 0.85); }
+.sim__custom-input { padding: 9px 12px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; outline: 0;
+  background: rgba(0, 0, 0, 0.25); color: #fff; font: inherit; font-size: 0.88rem; }
+.sim__custom-input:focus { border-color: #6fa3c8; }
+.sim__custom-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+.sim__custom-hint { font-size: 0.72rem; color: rgba(255, 255, 255, 0.5); }
+.sim__presets { display: flex; flex-wrap: wrap; gap: 6px; }   /* 예시 성격 버튼 (선택된 것은 .chat__chip[aria-pressed="true"]) */
+
+/* 시뮬레이션 목차 (카테고리 먼저) */
+.sim__toc-count { flex-shrink: 0; font-size: 0.75rem; color: rgba(255, 255, 255, 0.55); }
+.sim__cat-bar { display: flex; align-items: center; gap: 10px; padding: 4px 20px 8px; }
+.sim__cat-title { font-size: 0.92rem; font-weight: 700; }
+
+/* 시뮬레이션 첫 화면: 팀장 성격 정하기 */
+.sim__custom-row { display: flex; gap: 6px; }
+.sim__custom-row .sim__custom-input { flex: 1; min-width: 0; }
+.sim__custom-next { padding: 0 14px; }
+.sim__custom-next:disabled { opacity: 0.4; cursor: default; }
+/* 목차 화면 위: 정한 성격 한 줄 요약 */
+.sim__persona { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.sim__persona-label { flex-shrink: 0; font-size: 0.78rem; color: rgba(255, 255, 255, 0.6); }
+.sim__persona-name { flex: 1; min-width: 0; font-size: 0.88rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sim__persona-step { margin: 0 0 clamp(12px, 8%, 18%); gap: clamp(12px, 3vh, 22px); }   /* 제목 · 입력창 · 예시 버튼 사이를 넉넉하게 */
+.sim__persona-step .sim__custom { gap: 14px; }
+.sim__persona-step .sim__custom-label { font-size: 0.95rem; }
+.sim__persona-step .sim__custom-input { padding: 12px 14px; }
+.sim__persona-step .sim__presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.sim__persona-step .sim__preset { padding: 8px 4px; text-align: center; white-space: nowrap; }   /* 첫 화면: 성격 입력 묶음을 아래쪽 빈 공간에 */
+
+/* 목차: 7개 카테고리가 스크롤 없이 남은 높이에 다 들어가게 (줄 높이를 나눠 가짐) */
+.sim__list--toc { overflow: hidden; gap: 5px; padding-top: 0; padding-bottom: 8px; }
+.sim__list--toc > li { flex: 1 1 0; min-height: 31px; max-height: 58px; display: flex; }
+.sim__list--toc .sim__toc-item { flex: 1; min-height: 0; justify-content: center; padding: 0 14px; }
+.sim__list--toc .sim__item-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.sim__list--toc .sim__item-title { font-size: 0.9rem; }
+.sim:has(.sim__list--toc) .sim__intro { padding-bottom: 8px; }
+
+/* 상황 카드: 제목 크게 · "상황" 라벨 강조 후 한 줄 띄고 설명 */
+.sim__context-title { margin: 0 0 12px; font-size: 1.05rem; font-weight: 800; line-height: 1.4; word-break: keep-all; }
+.sim__context .sim__context-label { margin-bottom: 6px; font-size: 0.8rem; letter-spacing: 0.04em; }
+.sim__context-body { margin: 0; white-space: pre-line; }
+.sim__team { flex: 1 1 auto; min-height: 120px; width: 100%; max-height: 260px; margin: 8px 0 -6px; object-fit: contain; object-position: center bottom; pointer-events: none; user-select: none; }
+.sim__persona-step .sim__preset { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: clamp(0.7rem, 3.4vw, 0.8rem); }

@@ -18,7 +18,10 @@ export async function POST(request: Request) {
   const secretKey = process.env.SUPABASE_SECRET_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
 
-  if (!url || !publicKey || !secretKey || !openaiKey) {
+  // SUPABASE_SECRET_KEY가 없으면 대화 저장 없이 답변만 한다 (이전 대화는 화면이 보낸 history로 이어감)
+  const persist = !!secretKey;
+
+  if (!url || !publicKey || !openaiKey) {
     return NextResponse.json(
       { error: "서버 연결 설정이 누락됐어요." },
       { status: 500 }
@@ -50,7 +53,7 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: { question?: unknown; sessionId?: unknown };
+  let body: { question?: unknown; sessionId?: unknown; history?: unknown };
 
   try {
     body = await request.json();
@@ -84,17 +87,17 @@ export async function POST(request: Request) {
     );
   }
 
-  const database = createClient(url, secretKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  const database = persist
+    ? createClient(url, secretKey!, { auth: { persistSession: false, autoRefreshToken: false } })
+    : null;
 
   const userId = authData.user.id;
   let sessionId =
-    typeof body.sessionId === "string" ? body.sessionId : null;
+    persist && typeof body.sessionId === "string" ? body.sessionId : null;
 
   try {
     // 서버용 키는 권한 제한을 우회하므로 소유자를 직접 확인합니다.
-    if (sessionId) {
+    if (database && sessionId) {
       const { data, error } = await database
         .from("sos_sessions")
         .select("id")
@@ -114,7 +117,16 @@ export async function POST(request: Request) {
 
     let history: { role: "user" | "assistant"; content: string }[] = [];
 
-    if (sessionId) {
+    if (!database && Array.isArray(body.history)) {
+      // 저장 없는 모드: 화면이 보낸 최근 대화(최대 12개)만 받는다
+      history = body.history.slice(-12).flatMap((m: unknown) => {
+        const msg = m as { role?: unknown; content?: unknown };
+        return (msg?.role === "user" || msg?.role === "assistant") && typeof msg.content === "string"
+          ? [{ role: msg.role, content: msg.content.slice(0, 4000) }] : [];
+      });
+    }
+
+    if (database && sessionId) {
       const { data, error } = await database
         .from("sos_messages")
         .select("role,content,created_at")
@@ -175,6 +187,8 @@ export async function POST(request: Request) {
         { status: 502 }
       );
     }
+
+    if (!database) return NextResponse.json({ answer });
 
     if (!sessionId) {
       const { data, error } = await database

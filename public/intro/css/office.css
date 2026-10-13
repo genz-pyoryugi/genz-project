@@ -119,17 +119,22 @@
 .office-content[hidden]{display:none}
 .office-content__backdrop{position:absolute;inset:0;background:rgba(8,12,20,.52);opacity:0;transition:opacity .3s ease;cursor:pointer}
 .office-content__dialog{position:relative;display:flex;flex-direction:column;width:min(94vw,1500px);height:88vh;height:88svh;
-  background:#f6f3ec;border-radius:14px;overflow:hidden;box-shadow:0 24px 70px rgba(5,10,25,.45),0 2px 8px rgba(5,10,25,.18);
+  background:#f6f3ec;border-radius:14px;overflow:visible;box-shadow:0 24px 70px rgba(5,10,25,.45),0 2px 8px rgba(5,10,25,.18);
   opacity:0;transform:scale(.96);transition:opacity .3s ease,transform .3s cubic-bezier(.2,.8,.3,1)}
 .office-content.is-open .office-content__backdrop{opacity:1}
 .office-content.is-open .office-content__dialog{opacity:1;transform:none}
 .office-content__bar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;height:48px;padding:0 10px 0 20px;
   border-bottom:1px solid rgba(22,35,63,.1);background:#fbf9f4}
 .office-content__title{margin:0;font-size:15px;font-weight:700;color:#16233f;letter-spacing:-.01em}
-.office-content__close{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;border:0;background:transparent;color:#16233f;cursor:pointer}
-.office-content__close:hover{background:rgba(22,35,63,.08)}
+/* close: white round button just outside the popup's top-right corner (phone popups: beside the phone screen) */
+.office-content__close{position:absolute;z-index:3;top:0;left:min(calc(100% + 14px),calc(100% + (100vw - 100%) / 2 - 58px));display:grid;place-items:center;width:46px;height:46px;border-radius:50%;border:0;
+  background:#fff;color:#16233f;box-shadow:0 6px 18px rgba(5,10,25,.35);cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.office-content__close:hover{transform:scale(1.06);box-shadow:0 8px 22px rgba(5,10,25,.45)}
 .office-content__close:focus-visible{outline:2px solid rgb(40,115,255);outline-offset:2px}
-.office-content__close svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.office-content__close svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.office-content--phone .office-content__close{top:calc(114 / 1659 * 100%);left:calc(767 / 948 * 100% + 18px)}
+/* narrow windows: no room outside, so it sits on the popup's corner instead */
+@media (max-width:700px){.office-content__close{top:-14px;left:auto;right:-6px}.office-content--phone .office-content__close{left:auto;right:calc(196 / 948 * 100% - 10px);top:calc(114 / 1659 * 100% - 14px)}}
 .office-content__frame{flex:1;display:block;width:100%;min-height:0;border:0;background:#f6f3ec}
 @media (prefers-reduced-motion:reduce){.office-content__backdrop,.office-content__dialog{transition:none}}
 /* chat-window popup (SOS): narrow, dark like the chat, no header bar (the chat page has its own title + close) */
@@ -139,7 +144,7 @@
 .office-content--chat .office-content__frame{background:#0d2236}
 
 /* inner screen (wraps header bar + iframe); phone-only parts are hidden by default */
-.office-content__screen{position:relative;flex:1;display:flex;flex-direction:column;min-height:0}
+.office-content__screen{position:relative;flex:1;display:flex;flex-direction:column;min-height:0;border-radius:inherit;overflow:hidden}
 .office-content__status,.office-content__home{display:none}
 
 /* phone popup (SOS): the chat sits on the screen of a phone held in a hand (assets/images/phone-hand.webp, 948×1659).
@@ -181,9 +186,9 @@
   box-shadow:0 10px 24px rgba(10,20,40,.28);opacity:0;transform:scale(.6);
   transition:opacity .3s ease .18s,transform .4s cubic-bezier(.3,1.5,.5,1) .18s}
 .office-content--phone.is-open .office-content__agent{opacity:1;transform:none}
-.office-content__agent--left{background-image:url(../../web/assets/picture/chat_woman.png)!important;
+.office-content__agent--left{background-image:url(../assets/images/sos-logo.png)!important;background-size:92%!important;background-position:50% 50%!important;background-color:#fff!important;
   left:calc(233 / 948 * 100% - var(--av) * .84);top:calc(300 / 1659 * 100%)}
-.office-content__agent--right{background-image:url(../assets/images/sos-user.png)!important;background-size:cover!important;background-position:50% 20%!important;
+.office-content__agent--right{border-color:#3584fc!important;background-image:url(../assets/images/sos-user.png)!important;background-size:cover!important;background-position:50% 20%!important;
   left:calc(767 / 948 * 100% - var(--av) * .16);top:calc(470 / 1659 * 100%);transition-delay:.3s!important}
 @media (prefers-reduced-motion:reduce){.office-content--phone .office-content__agent{transition:none}}
 
@@ -193,3 +198,39 @@
 .office-content--phone-dark .office-content__status{color:#fff}
 .office-content--phone-dark .office-content__home{background:rgba(255,255,255,.75)}
 .office-content--phone-dark .office-content__agent{display:none}
+
+/* fit popup (calendar): the normal popup box, sized to the calendar's shape; js scales the calendar so all of it
+   shows inside without scrolling */
+.office-content--fit .office-content__dialog{height:min(90vh,900px);height:min(90svh,900px);width:min(94vw,calc((min(90vh,900px) - 48px) * 1.36))}
+.office-content--fit .office-content__frame{color-scheme:light} /* same scheme as the page inside, else Chrome paints an opaque backing */
+
+/* medium popup (checklist · quiz): the normal popup box, narrower */
+.office-content--medium .office-content__dialog{width:min(94vw,920px);height:min(88vh,820px);height:min(88svh,820px)}
+.office-content--medium .office-content__frame{color-scheme:light;background:#eae7e0}
+.office-content--phone-plain .office-content__agent{display:none}   /* AI 팀장: 흰 휴대폰, 상담사 프로필 없음 */
+/* sheet popup (checklist): no box or title bar — the page's own paper sheet is the popup */
+.office-content--sheet .office-content__dialog{width:min(94vw,1260px);height:min(88vh,890px);height:min(88svh,890px);background:transparent;box-shadow:none;border-radius:20px}
+.office-content--sheet .office-content__bar{display:none}
+.office-content--sheet .office-content__frame{background:transparent;color-scheme:light}
+.office-content--sheet .office-content__close{top:24px}   /* 종이 위쪽(핀 자리 24px 아래)에 맞춤 */
+/* quiz popup: normal box + title bar sized to the quiz paper; the iframe reaches 210px past the box's right edge so the
+   pen mascot shows outside it. The whole group is shifted left so it stays centred. */
+.office-content--quiz .office-content__dialog{width:min(calc(94vw - 230px),1100px);height:min(88vh,860px);height:min(88svh,860px);left:-105px}
+.office-content--quiz .office-content__screen{overflow:visible;border-radius:0 0 14px 14px}
+.office-content--quiz .office-content__frame{flex:1 1 auto;align-self:flex-start;width:calc(100% + 210px);background:transparent;color-scheme:light}
+.office-content--quiz .office-content__close{top:-10px}
+/* card popup (card news): narrow box sized to one 4:5 card + its controls */
+.office-content--card .office-content__dialog{width:min(94vw,500px);height:min(90vh,760px);height:min(90svh,760px)}
+.office-content--card .office-content__frame{background:#f3f6f9;color-scheme:light}
+/* red marker (젠지 표류기 책): same glowing dot, red instead of blue */
+.hotspot--red .hotspot-dot{background:radial-gradient(circle,#fff 0 16%,rgba(255,110,96,.92) 24%,rgba(255,150,138,.72) 50%,rgba(255,150,138,.36) 62%,rgba(255,150,138,.08) 100%);
+  box-shadow:0 0 12px 3px rgba(255,120,105,.7),0 0 28px 9px rgba(255,120,105,.34)}
+.hotspot--red .hotspot-dot::before{background:radial-gradient(circle,rgba(235,60,45,0) 0 30%,rgba(235,60,45,.8) 42%,rgba(235,60,45,0) 70%)}
+.office-stage.is-ready .hotspot--red.is-hovered .hotspot-dot,.office-stage.is-ready .hotspot--red.is-active .hotspot-dot{
+  background:radial-gradient(circle,#fff 0 17%,rgb(225,45,35) 20% 50%,#fff 53% 63%,rgba(235,70,55,.45) 66% 100%);
+  box-shadow:0 0 0 5px rgba(235,70,55,.3),0 0 26px 10px rgba(220,40,30,.75)}
+.hotspot--red .hotspot-label__icon{fill:rgb(220,45,35)}
+.hotspot--red .hotspot-ripple{border-color:rgba(255,150,138,.95)}
+.hotspot--red.is-pulse .hotspot-dot{animation-name:hs-pulse-red}
+@keyframes hs-pulse-red{0%,100%{box-shadow:0 0 12px 3px rgba(255,120,105,.7),0 0 28px 9px rgba(255,120,105,.34)}
+  45%{box-shadow:0 0 0 6px rgba(235,70,55,.3),0 0 30px 12px rgba(220,40,30,.8)}}
