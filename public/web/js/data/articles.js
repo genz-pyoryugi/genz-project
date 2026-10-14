@@ -8,7 +8,7 @@ const ARTICLES = {
     summary: "첫 출근에서 질문하지 않는 태도, 시간 엄수, 뒷담화, 공용비품 관리 등 신입사원이 놓치기 쉬운 기본 직장생활 사례를 다룹니다.",
     year: "2026", category: "신입사원 실수",
     tags: ["첫 출근", "질문", "지각", "오피스 룰"],
-    url: "https://www.donga.com/news/Society/article/all/20260410/133715092/2",
+    url: "https://www.donga.com/news/amp/all/20260410/133715092/2",
   },
   a1: {
     title: "신입사원 치명적인 실수 3위 상사 뒷담화, 2위 근태·복장, 1위는?",

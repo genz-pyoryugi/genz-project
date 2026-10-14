@@ -124,7 +124,7 @@ function createInstagram(url) {
 }
 
 // --- 카드 넘기기 (slides: 카드마다 안에 넣을 요소 배열) ---
-function createDeck(slides) {
+function createDeck(slides, { onChange, onNextEnd } = {}) {
   let index = 0;
 
   const cards = slides.map((content, i) =>
@@ -142,12 +142,14 @@ function createDeck(slides) {
     "aria-label": "카드뉴스. 좌우 방향키로 넘길 수 있어요",
   }, track);
 
-  const counter = h("span", { class: "cardnews__counter", "aria-live": "polite" });
   const prevBtn = h("button", {
     class: "cardnews__nav", type: "button", "aria-label": "이전 카드", onClick: () => go(index - 1),
   }, "‹");
   const nextBtn = h("button", {
-    class: "cardnews__nav", type: "button", "aria-label": "다음 카드", onClick: () => go(index + 1),
+    class: "cardnews__nav", type: "button", "aria-label": "다음 카드", onClick: () => {
+      if(index===slides.length-1 && onNextEnd) onNextEnd();
+      else go(index+1);
+    },
   }, "›");
   const dots = h("div", { class: "cardnews__dots" },
     slides.map((_, i) => h("button", {
@@ -157,17 +159,21 @@ function createDeck(slides) {
   function go(i) {
     index = Math.max(0, Math.min(slides.length - 1, i));
     track.style.transform = `translateX(${-index * 100}%)`;
-    counter.textContent = `${index + 1} / ${slides.length}`;
     prevBtn.disabled = index === 0;
-    nextBtn.disabled = index === slides.length - 1;
+    nextBtn.disabled = index === slides.length - 1 && !onNextEnd;
+    nextBtn.setAttribute('aria-label',index===slides.length-1 && onNextEnd ? '학습 후 상태 확인' : '다음 카드');
     // 화면 밖 카드의 링크는 탭 키로 가지 않게
     cards.forEach((card, j) => { card.inert = j !== index; });
     [...dots.children].forEach((dot, j) => dot.setAttribute("aria-current", String(j === index)));
+    onChange?.(index, slides.length);
   }
 
   viewport.addEventListener("keydown", (e) => {
     if (e.key === "ArrowLeft") go(index - 1);
-    if (e.key === "ArrowRight") go(index + 1);
+    if (e.key === "ArrowRight") {
+      if(index===slides.length-1 && onNextEnd) onNextEnd();
+      else go(index+1);
+    }
   });
 
   // 스와이프: 40px 이상 끌면 넘김
@@ -185,7 +191,7 @@ function createDeck(slides) {
 
   return h("div", { class: "cardnews__deck" },
     viewport,
-    h("div", { class: "cardnews__controls" }, prevBtn, counter, nextBtn),
+    h("div", { class: "cardnews__controls" }, prevBtn, nextBtn),
     dots);
 }
 
@@ -211,6 +217,7 @@ function rookieMistakeSlides(article) {
   return Array.from({ length: 4 }, (_, index) => {
     const canvas = h('canvas', { width: 1080, height: 1350, class: 'rookie-card__image', role: 'img', 'aria-label': index < 3 ? `${index + 1}위: ${ROOKIE_MISTAKES[index].title} (${ROOKIE_MISTAKES[index].percent}%). ${ROOKIE_MISTAKES[index].lines.join(' ')}` : '신입사원 치명적 실수 TOP 3. 원문에서 자세히 확인하세요.' });
     const content = [canvas];
+    if (index < 3) content.push(createTipBell());
     if (index === 3) content.push(h('a', { href: article.url, target: '_blank', rel: 'noopener noreferrer', class: 'rookie-card__source', 'aria-label': '원문보기: 신입사원 치명적인 실수 TOP 3' }));
     content.rookie = true;
     const status = h('span', { class: 'rookie-card__status', role: 'status' }, '이미지를 준비하고 있어요…');
@@ -265,7 +272,6 @@ function drawRookieTip(c, lines) {
   c.save();
   c.beginPath(); c.roundRect(64, 1085, 952, 158, 79);
   c.fillStyle = '#f1e8d8'; c.fill();
-  drawTipLightbulb(c, 160, 1164);
   c.textAlign = 'left'; c.textBaseline = 'alphabetic';
   c.fillStyle = '#175487';
   c.font = '600 34px Pretendard';
@@ -275,24 +281,28 @@ function drawRookieTip(c, lines) {
   c.restore();
 }
 
-// Draw a crisp lightbulb badge at the same resolution as the card image.
-function drawTipLightbulb(c, x, y) {
+// Shared yellow notification bell for the tip on each of the first three cards.
+function createTipBell() {
+  const canvas=h('canvas',{width:144,height:144,class:'rookie-tip-bell','aria-hidden':'true'});
+  drawTipBell(canvas.getContext('2d'),72,72);
+  return canvas;
+}
+
+function drawTipBell(c, x, y) {
   c.save();
-  c.translate(x, y);
-  c.beginPath(); c.arc(0, 0, 52, 0, Math.PI * 2);
-  c.fillStyle = '#ffd044'; c.fill();
-  c.strokeStyle = '#695127'; c.lineWidth = 5;
-  c.lineCap = 'round'; c.lineJoin = 'round';
-  c.beginPath();
-  c.moveTo(-12, 13);
-  c.bezierCurveTo(-12, 2, -23, -1, -23, -17);
-  c.bezierCurveTo(-23, -46, 23, -46, 23, -17);
-  c.bezierCurveTo(23, -1, 12, 2, 12, 13);
-  c.closePath(); c.fillStyle = '#fff3bb'; c.fill(); c.stroke();
-  c.beginPath(); c.moveTo(0, 12); c.lineTo(0, -5);
-  c.moveTo(-8, -13); c.lineTo(0, -5); c.lineTo(8, -13); c.stroke();
-  c.beginPath(); c.roundRect(-12, 14, 24, 14, 4);
-  c.fillStyle = '#a48b57'; c.fill(); c.stroke();
-  c.beginPath(); c.moveTo(-5, 34); c.lineTo(5, 34); c.stroke();
+  c.translate(x,y);
+  const clapper=c.createLinearGradient(-12,24,13,50);
+  clapper.addColorStop(0,'#d99828');clapper.addColorStop(1,'#94501d');
+  c.beginPath();c.ellipse(0,34,14,18,0,0,Math.PI*2);c.fillStyle=clapper;c.fill();
+  c.beginPath();c.arc(0,-43,7,0,Math.PI*2);c.fillStyle='#dca21d';c.fill();
+  const gold=c.createLinearGradient(-32,-25,36,24);
+  gold.addColorStop(0,'#ffdf66');gold.addColorStop(.45,'#ffd02c');gold.addColorStop(1,'#eeb21b');
+  c.beginPath();c.moveTo(-42,22);c.quadraticCurveTo(-30,12,-30,-10);
+  c.bezierCurveTo(-30,-51,30,-51,30,-10);c.quadraticCurveTo(30,12,42,22);
+  c.quadraticCurveTo(45,28,35,28);c.lineTo(-35,28);c.quadraticCurveTo(-45,28,-42,22);
+  c.closePath();c.fillStyle=gold;c.fill();
+  c.beginPath();c.ellipse(-16,-20,6,14,.3,0,Math.PI*2);c.fillStyle='#fff4b033';c.fill();
+  c.beginPath();c.moveTo(-37,26);c.quadraticCurveTo(0,30,37,26);
+  c.strokeStyle='#d89818';c.lineWidth=2;c.lineCap='round';c.stroke();
   c.restore();
 }

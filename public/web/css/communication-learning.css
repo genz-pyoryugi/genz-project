@@ -1,0 +1,62 @@
+/* Existing cream card, blue emphasis, editable text and shared bell tip. */
+.communication-card{position:relative;height:100%;display:flex;flex-direction:column;background:#fdf9f2;color:#13233a;font-family:Pretendard,sans-serif;overflow:hidden;border:0;border-radius:16px}
+.communication-header{margin:0;max-width:none;padding:16px 24px 10px;background:transparent;color:#202b33;flex-shrink:0}
+.communication-header h3{font-size:21px;line-height:1.3;margin:0;font-weight:800;word-break:keep-all;color:#086bce}
+.communication-message{font-size:12px;line-height:1.5;margin:8px 0 0;color:#175487}
+.communication-header:not(.communication-header--summary){padding:20px 24.888889px 10px}
+.communication-header:not(.communication-header--summary) h3{font-size:15.166667px;line-height:1.3;color:#202b33;font-weight:700}
+.communication-header:not(.communication-header--summary) .communication-message{font-size:24.111111px;line-height:1.3;margin-top:-3px;font-weight:800;color:#086bce;word-break:keep-all}
+.communication-header--summary{padding-top:20px}
+.communication-header--summary h3{font-size:14px;line-height:1.3;color:#086bce}
+.communication-header--summary .communication-message{margin-top:18px;font-size:25px;line-height:1.5;font-weight:800;color:#202b33;word-break:keep-all}
+.communication-body{padding:8px 24px 34px;display:flex;flex-direction:column;gap:6px;min-height:0;flex:1}
+.communication-card:not([data-lesson-card="5"]) .communication-body{padding:8px 24.888889px 110px}
+.communication-art{height:72px;flex:0 0 72px;margin:0;display:flex;justify-content:center;overflow:hidden}
+.communication-card[data-lesson-card="2"] .communication-art{height:36px;flex-basis:36px}
+.communication-card[data-lesson-card="3"] .communication-art{height:52px;flex-basis:52px}
+.communication-art-window{position:relative;height:100%;aspect-ratio:var(--art-cell-ratio,5/3);overflow:hidden}
+.communication-art img{position:absolute;width:300%;height:200%;max-width:none;display:block}
+.communication-block{border-left:3px solid #9ab8d9;padding:0 0 0 9px}
+.communication-block h4{font-size:13px;line-height:1.4;margin:0 0 3px;color:#175487}
+.communication-block p{font-size:12px;line-height:1.5;margin:0}
+.communication-block--example,.communication-block--action{background:#f1e8d8;padding:9px 10px;border-left:0;border-radius:10px}
+.communication-block--example h4{font-size:10px;color:#66788d}
+.communication-block--skill{padding:0 0 0 8px}
+.communication-block--skill p{font-size:11px;line-height:1.45}
+.communication-takeaway{font-size:11px;line-height:1.5;font-weight:600;color:#175487;margin:auto 0 0;padding-top:6px}
+/* Match the original 1080 × 1350 canvas: tip (64,1085,952,158). */
+.communication-tip{position:absolute;left:5.925926%;top:80.370370%;width:88.148148%;height:11.703704%;min-height:0;box-sizing:border-box;margin:0;padding:0;border-radius:999px;background:#f1e8d8;display:flex;align-items:center}
+.communication-tip .rookie-tip-bell{position:absolute;left:4.033613%;top:13.544304%;width:12.100840%;height:auto;transform-origin:50% 25%}
+.communication-tip .communication-takeaway{margin:0 4% 0 19.327731%;padding:0;min-width:0;font-size:13.222222px;line-height:1.441176;font-weight:600}
+.communication-card[data-lesson-card="5"] .communication-body{gap:3px;padding-bottom:107px}
+.communication-card[data-lesson-card="5"] .communication-body{gap:10px;padding-top:12px}
+.communication-card[data-lesson-card="5"] .communication-block{background:#f1e8d8;border:0;border-radius:16px;padding:8px 16px;flex-shrink:0}
+.communication-card[data-lesson-card="5"] .communication-block h4{margin-bottom:3px}
+.communication-sources{font-size:9px;line-height:1.4;color:#66788d}
+.communication-sources p{margin:0 0 3px}
+.communication-sources a{color:#175487;text-underline-offset:2px}
+.communication-more{position:absolute;left:24px;right:24px;bottom:60.7px;width:calc(100% - 48px);height:40px;border:0;cursor:pointer;margin:0}
+.quiz-panel{background:#fffdf8;border:4px solid #193f68;border-radius:16px;padding:20px;min-height:525px;color:#13233a;display:flex;flex-direction:column;gap:14px}
+.quiz-panel h3{font-size:21px;line-height:1.4;margin:0}
+.quiz-help{font-size:12px;line-height:1.5;color:#66788d;margin:0}
+.quiz-options{padding:0;margin:0;border:0;min-width:0}
+.quiz-options legend{font-size:15px;line-height:1.6;font-weight:700;padding:0;margin:0 0 14px}
+.quiz-option{display:flex;gap:10px;align-items:flex-start;padding:12px;margin:0 0 8px;border:1px solid #cbd7e5;background:#fff;border-radius:10px;font-size:13px;line-height:1.55;cursor:pointer}
+.quiz-option input{margin:4px 0 0;accent-color:#086bce;flex-shrink:0}
+.quiz-option:has(input:checked){border-color:#086bce;background:#eaf1f8;box-shadow:inset 0 0 0 1px #086bce}
+.quiz-option:has(input:focus-visible){outline:2px solid #13233a;outline-offset:2px}
+.quiz-actions{display:flex;gap:12px;margin-top:auto;align-items:center}
+.quiz-actions .learning-primary{width:auto;flex:1;margin:0}
+.quiz-secondary{border:1px solid #b5c5d7;border-radius:9px;background:transparent;color:#175487;padding:10px 12px;font:600 13px Pretendard,sans-serif;cursor:pointer}
+.quiz-secondary:disabled{opacity:.4;cursor:default}
+.quiz-secondary:focus-visible,.quiz-review summary:focus-visible{outline:2px solid #13233a;outline-offset:3px}
+.quiz-review{border:1px solid #cbd7e5;border-radius:10px;padding:12px;font-size:13px;line-height:1.5}
+.quiz-review summary{cursor:pointer;font-weight:700;color:#175487}
+.quiz-review[data-correct=false]{border-left:4px solid #b46d35}
+.quiz-review-question{font-weight:600}
+.quiz-explanations{padding-left:20px}
+.quiz-explanations li{padding:8px 0;border-bottom:1px solid #e6eaf0}
+.quiz-explanations p{margin:4px 0}
+.quiz-explanation--correct{color:#175487}
+.quiz-card-review{display:flex;flex-direction:column;gap:14px}
+.quiz-back-results{align-self:center}
