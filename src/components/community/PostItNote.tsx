@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react';
 import { PostItPost, PlacedSticker } from '@/types/community';
 import { OfficeStickerSvg } from './OfficeStickerSvg';
 import { OFFICE_STICKER_LIBRARY } from '@/data/officeData';
-import { MessageSquare, Plus, Sparkles, Building2, Move, Trash2, X } from 'lucide-react';
+import { MessageSquare, Plus, Sparkles, Building2, Move, Trash2, X, Radio } from 'lucide-react';
 import { sound } from '@/utils/audio';
 
 interface PostItNoteProps {
@@ -16,6 +16,7 @@ interface PostItNoteProps {
   onMoveSticker?: (postId: string, placedStickerId: string, newX: number, newY: number) => void;
   activeStickerId: string | null;
   onOpenStickerDrawer: () => void;
+  onOpenRadio?: (post: PostItPost) => void; // 인기 사연일 때만 전달됨 → 보이는 라디오로 듣기 버튼 표시
 }
 
 export const PostItNote: React.FC<PostItNoteProps> = ({
@@ -27,6 +28,7 @@ export const PostItNote: React.FC<PostItNoteProps> = ({
   onMoveSticker,
   activeStickerId,
   onOpenStickerDrawer,
+  onOpenRadio,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
@@ -205,6 +207,23 @@ export const PostItNote: React.FC<PostItNoteProps> = ({
             <p className="break-keep">{post.content}</p>
           )}
         </div>
+
+        {/* 인기 사연: 보이는 라디오로 듣기 */}
+        {onOpenRadio && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              sound.playPageFlipSound();
+              onOpenRadio(post);
+            }}
+            className="w-full -mt-2 mb-1 px-3 py-2 rounded-lg bg-[#102B46] hover:bg-[#1b3b5c] text-white font-ui text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+            title="공감과 조언을 많이 받은 인기 사연이에요. DJ 하루 & 새봄의 보이는 라디오로 들어보세요"
+          >
+            <Radio className="w-3.5 h-3.5 text-[#E4572E] shrink-0" />
+            <span className="whitespace-nowrap">인기 사연 · 라디오로 듣기</span>
+          </button>
+        )}
 
         {/* Masking Tape Comments (Attached beneath or overlapping post-it) */}
         {post.comments.length > 0 && (

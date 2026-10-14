@@ -7,6 +7,9 @@ import { TapeCommentModal } from './TapeCommentModal';
 import { PostItWriteModal } from './PostItWriteModal';
 import { PostItInspectModal } from './PostItInspectModal';
 import { CommunityTutorialModal } from './CommunityTutorialModal';
+import { VisibleRadioModal } from '@/components/radio/VisibleRadioModal';
+import { RadioHubModal } from '@/components/radio/RadioHubModal';
+import { getRadioPosts } from '@/lib/radio/popular';
 import { 
   Plus, 
   Sparkles, 
@@ -116,6 +119,8 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
   const [activeStickerId, setActiveStickerId] = useState<string | null>(null);
   const [isStickerDrawerOpen, setIsStickerDrawerOpen] = useState(false);
   const [inspectPostId, setInspectPostId] = useState<string | null>(null);
+  const [radioPost, setRadioPost] = useState<PostItPost | null>(null); // 보이는 라디오로 듣는 사연
+  const [isRadioHubOpen, setIsRadioHubOpen] = useState(false); // 보이는 라디오 입구(인기 사연 목록)
   const [commentPost, setCommentPost] = useState<PostItPost | null>(null);
 const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
@@ -256,6 +261,14 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   };
 
   // Filtering by selected topic & sub filter mode
+  // 보이는 라디오 사연: 7대 카테고리별로 공감 스티커 + 테이프 조언을 가장 많이 받은 포스트잇 1개씩
+  const radioPosts = useMemo(() => getRadioPosts(posts), [posts]);
+  const radioPostIds = useMemo(() => new Set(radioPosts.map((p) => p.id)), [radioPosts]);
+  const openRadio = (p: PostItPost) => {
+    setIsRadioHubOpen(false);
+    setRadioPost(p);
+  };
+
   const displayedPosts = useMemo(() => {
     let result = posts;
 
@@ -376,6 +389,19 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
                 <span className="text-[10px] bg-[#2B729E]/10 text-[#2B729E] font-extrabold px-1.5 py-0.2 rounded-full">
                   가이드
                 </span>
+              </button>
+
+              {/* 보이는 라디오 입구: 인기 사연을 DJ 하루 & 새봄의 방송으로 듣기 */}
+              <button
+                onClick={() => {
+                  sound.playPageFlipSound();
+                  setIsRadioHubOpen(true);
+                }}
+                className="group ml-2 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#102B46] hover:bg-[#1b3b5c] text-white border border-[#102B46] shadow-2xs hover:shadow-xs transition-all text-xs font-bold tracking-tight cursor-pointer"
+                title="공감과 조언을 가장 많이 받은 인기 사연을 보이는 라디오로 듣기"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[#E4572E] animate-pulse" />
+                <span>📻 보이는 라디오</span>
               </button>
             </div>
 
@@ -547,6 +573,7 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
                       onMoveSticker={handleMoveSticker}
                       activeStickerId={activeStickerId}
                       onOpenStickerDrawer={() => setIsStickerDrawerOpen(true)}
+                      onOpenRadio={radioPostIds.has(post.id) ? openRadio : undefined}
                     />
                   </div>
                 ))}
@@ -642,7 +669,16 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
         activeStickerId={activeStickerId}
         onOpenStickerDrawer={() => setIsStickerDrawerOpen(true)}
         isMacStyle={true}
+        onOpenRadio={inspectPost && radioPostIds.has(inspectPost.id) ? openRadio : undefined}
       />
+
+      {isRadioHubOpen && (
+        <RadioHubModal posts={radioPosts} onSelect={openRadio} onClose={() => setIsRadioHubOpen(false)} />
+      )}
+
+      {radioPost && (
+        <VisibleRadioModal key={radioPost.id} post={radioPost} onClose={() => setRadioPost(null)} />
+      )}
 
       <PostItWriteModal
         currentChapterId={(selectedTopic !== 'all' ? selectedTopic : '01') as ChapterId}
@@ -655,7 +691,12 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   isOpen={isTutorialOpen}
   onClose={() => setIsTutorialOpen(false)}
   currentStepIdx={tutorialStep}
-  onStepChange={setTutorialStep}
+  onStepChange={(step) => {
+    // 3단계(포스트잇 상세창)를 벗어나면 열어둔 상세창을 자동으로 닫아 다음 대상이 가려지지 않게 함
+    if (step !== 2) setInspectPostId(null);
+    if (step !== 3) setIsStickerDrawerOpen(false);
+    setTutorialStep(step);
+  }}
   onOpenWriteModal={() => setIsWriteModalOpen(true)}
   onOpenInspectModal={() => {
     if (displayedPosts.length > 0) {
@@ -664,6 +705,8 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   }}
   onOpenStickerDrawer={(open) => setIsStickerDrawerOpen(open !== undefined ? open : true)}
   onSelectTopic={(topicId) => setSelectedTopic(topicId)}
+  isInspectOpen={Boolean(inspectPost)}
+  isStickerDrawerOpen={isStickerDrawerOpen}
 />
     </div>
   );

@@ -17,6 +17,8 @@ export interface CommunityTutorialModalProps {
   onSelectTopic?: (topicId: string) => void;
   currentStepIdx?: number;
   onStepChange?: (step: number) => void;
+  isInspectOpen?: boolean; // 상세창이 열리고 닫힐 때 스포트라이트 위치를 다시 측정하기 위해 사용
+  isStickerDrawerOpen?: boolean; // 스티커함이 열리고 닫힐 때 스포트라이트 위치를 다시 측정하기 위해 사용
 }
 
 interface TourStep {
@@ -31,6 +33,8 @@ interface TourStep {
   actionType?: 'write' | 'tabs' | 'inspect' | 'stickers';
   glowBoxShadow: string;
   ringClass: string;
+  preferPlacement?: 'right'; // 지정하면 설명 카드를 타겟 우측에 배치 (공간 부족 시 좌측 → 위/아래 순으로 대체)
+  altTargetId?: string; // 이 요소가 화면에 있으면 targetId 대신 비춤 (예: 상세창이 열렸을 때 테이프 조언 영역)
 }
 
 const TOUR_STEPS: TourStep[] = [
@@ -72,6 +76,8 @@ const TOUR_STEPS: TourStep[] = [
     actionType: 'inspect',
     glowBoxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.78), 0 0 35px rgba(52, 211, 153, 0.9)',
     ringClass: 'ring-4 ring-emerald-400',
+    preferPlacement: 'right', // 👈 이 줄 추가! (포스트잇 우측에 배치)
+    altTargetId: 'tutorial-target-tape-comments', // 상세창이 열리면 테이프 조언 영역을 비춤
   },
   {
     step: 4,
@@ -83,6 +89,7 @@ const TOUR_STEPS: TourStep[] = [
     tip: '💡 팁: 아래 [실제 스티커함 열어보기]를 누르면 귀여운 오피스 굿즈 스티커 보관함이 열립니다!',
     actionButtonText: '✨ 실제 스티커함 열어보기',
     actionType: 'stickers',
+    altTargetId: 'tutorial-target-sticker-drawer', // 스티커함이 열리면 보관함 패널을 비춤
     glowBoxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.78), 0 0 35px rgba(251, 113, 133, 0.9)',
     ringClass: 'ring-4 ring-rose-400',
   },
@@ -97,11 +104,35 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
   onSelectTopic,
   currentStepIdx = 0,
   onStepChange,
+  isInspectOpen = false,
+  isStickerDrawerOpen = false,
 }) => {
   const [activeStep, setActiveStep] = useState(currentStepIdx);
   const [neverShowAgain, setNeverShowAgain] = useState(false);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const tipRef = useRef<HTMLDivElement>(null);
+  // 설명 카드의 실제 높이(팁 상자 포함)와 팁 상자 높이 — 카드가 타겟을 가리지 않도록 위치 계산에 사용
+  const [fullCardHeight, setFullCardHeight] = useState(320);
+  const [tipHeight, setTipHeight] = useState(0);
+
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!isOpen || !card) return;
+
+    let lastTip = 0;
+    const observer = new ResizeObserver(() => {
+      const tipH = tipRef.current?.offsetHeight ?? 0;
+      if (tipH > 0) {
+        lastTip = tipH + 14; // gap-3.5
+        setTipHeight(lastTip);
+      }
+      // 팁 상자가 접혀 있어도 펼쳤을 때의 높이를 기준으로 기록
+      setFullCardHeight(card.offsetHeight + (tipH > 0 ? 0 : lastTip));
+    });
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, [isOpen]);
 
   useEffect(() => {
     setActiveStep(currentStepIdx);
@@ -115,27 +146,37 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
   useEffect(() => {
     if (!isOpen) return;
 
+    const findTarget = () =>
+      (stepData.altTargetId && document.getElementById(stepData.altTargetId)) ||
+      document.getElementById(stepData.targetId);
+
     const measureTarget = () => {
-      const el = document.getElementById(stepData.targetId);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-        const rect = el.getBoundingClientRect();
-        setTargetRect(rect);
-      } else {
-        setTargetRect(null);
-      }
+      const el = findTarget();
+      setTargetRect(el ? el.getBoundingClientRect() : null);
     };
 
-    const timer = setTimeout(measureTarget, 80);
+    const scrollAndMeasure = () => {
+      const el = findTarget();
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      }
+      measureTarget();
+    };
+
+    const timer = setTimeout(scrollAndMeasure, 80);
+    // 부드러운 스크롤이 끝난 뒤 최종 위치로 한 번 더 보정
+    const settleTimer = setTimeout(measureTarget, 500);
     window.addEventListener('resize', measureTarget);
-    window.addEventListener('scroll', measureTarget);
+    // capture: true → 상세창 내부(overflow 영역) 스크롤도 감지
+    window.addEventListener('scroll', measureTarget, true);
 
     return () => {
       clearTimeout(timer);
+      clearTimeout(settleTimer);
       window.removeEventListener('resize', measureTarget);
-      window.removeEventListener('scroll', measureTarget);
+      window.removeEventListener('scroll', measureTarget, true);
     };
-  }, [isOpen, activeStep, stepData.targetId]);
+  }, [isOpen, activeStep, stepData.targetId, stepData.altTargetId, isInspectOpen, isStickerDrawerOpen]);
 
   if (!isOpen) return null;
 
@@ -184,6 +225,7 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
   };
 
   // 설명 카드가 타겟 요소를 가리지 않도록 위치 자동 계산
+  let isCompact = false; // 공간 부족 시 팁 상자를 숨겨 카드 높이를 줄임
   let cardStyle: React.CSSProperties = {
     position: 'fixed',
     zIndex: 60,
@@ -191,14 +233,37 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
 
   if (targetRect) {
     const cardWidth = Math.min(420, window.innerWidth - 32);
-    const fitsBelow = targetRect.bottom + 290 < window.innerHeight;
-    const top = fitsBelow 
-      ? targetRect.bottom + 16 
-      : Math.max(16, targetRect.top - 280);
+    const cardHeight = fullCardHeight;
+    const gap = 24; // 스포트라이트 테두리와 💡 배지까지 피해서 띄우는 간격
+    const fitsRight = targetRect.right + 16 + cardWidth + 16 <= window.innerWidth;
+    const fitsLeft = targetRect.left - 16 - cardWidth >= 16;
 
-    const targetCenter = targetRect.left + targetRect.width / 2;
-    let left = targetCenter - cardWidth / 2;
-    left = Math.max(16, Math.min(window.innerWidth - cardWidth - 16, left));
+    let top: number;
+    let left: number;
+
+    if (stepData.preferPlacement === 'right' && (fitsRight || fitsLeft)) {
+      // 타겟 옆(우측 우선, 안 되면 좌측)에 세로 중앙 정렬
+      left = fitsRight ? targetRect.right + 16 : targetRect.left - 16 - cardWidth;
+      top = targetRect.top + targetRect.height / 2 - cardHeight / 2;
+      top = Math.max(16, Math.min(window.innerHeight - cardHeight - 16, top));
+    } else {
+      const fitsBelow = targetRect.bottom + gap + cardHeight + 16 <= window.innerHeight;
+      const fitsAbove = targetRect.top - gap - cardHeight >= 16;
+
+      if (fitsBelow) {
+        top = targetRect.bottom + gap;
+      } else if (fitsAbove) {
+        top = targetRect.top - gap - cardHeight;
+      } else {
+        // 위아래 모두 공간이 부족하면 팁 상자를 접어 카드를 줄인 뒤 타겟 위쪽에 배치
+        isCompact = true;
+        top = Math.max(16, targetRect.top - gap - (cardHeight - tipHeight));
+      }
+
+      const targetCenter = targetRect.left + targetRect.width / 2;
+      left = targetCenter - cardWidth / 2;
+      left = Math.max(16, Math.min(window.innerWidth - cardWidth - 16, left));
+    }
 
     cardStyle = {
       ...cardStyle,
@@ -217,7 +282,8 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden font-ui select-none pointer-events-auto">
+    // pointer-events-none: 튜토리얼 레이어가 클릭을 가로채지 않아 빛이 비추는 실제 화면(스티커함, 상세창 등)을 그대로 사용할 수 있음
+    <div className="fixed inset-0 z-50 overflow-hidden font-ui select-none pointer-events-none">
       {/* 1. 배경 블랙 암전 & 해당 버튼만 불이 들어오는 스포트라이트 홀 */}
       {targetRect ? (
         <div
@@ -243,7 +309,7 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
       <div
         ref={cardRef}
         style={cardStyle}
-        className="bg-[#FAF8F5] rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] border-2 border-[#E5DFD4] p-5 sm:p-6 text-[#112334] flex flex-col gap-3.5 animate-in fade-in zoom-in-95 duration-200"
+        className="pointer-events-auto bg-[#FAF8F5] rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] border-2 border-[#E5DFD4] p-5 sm:p-6 text-[#112334] flex flex-col gap-3.5 animate-in fade-in zoom-in-95 duration-200"
       >
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -285,7 +351,12 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
           </button>
         )}
 
-        <div className="bg-[#EBF2F7] border border-[#C5DCEB] rounded-lg px-3 py-2 text-[11px] text-[#1C4D6F] font-medium flex items-center gap-1.5 break-keep">
+        <div
+          ref={tipRef}
+          className={`bg-[#EBF2F7] border border-[#C5DCEB] rounded-lg px-3 py-2 text-[11px] text-[#1C4D6F] font-medium items-center gap-1.5 break-keep ${
+            isCompact ? 'hidden' : 'flex'
+          }`}
+        >
           <span>{stepData.tip}</span>
         </div>
 

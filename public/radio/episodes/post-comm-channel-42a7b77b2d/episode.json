@@ -1,0 +1,101 @@
+{
+  "id": "post-comm-channel-42a7b77b2d",
+  "postId": "post-comm-channel",
+  "postTitle": "슬랙 vs 이메일 vs 자리 찾아가기... 연락 채널 기준이 헷갈려요 💬",
+  "title": "소통 채널 마스터하기",
+  "lines": [
+    {
+      "speaker": "senior",
+      "segment": "opening",
+      "line": "직장인들의 슬기로운 소통을 책임지는 오피스 라디오, 하루입니다.",
+      "start": 0,
+      "duration": 4.46
+    },
+    {
+      "speaker": "junior",
+      "segment": "opening",
+      "line": "신입사원 새봄입니다! 오늘은 메신저와 메일, 자리 방문 중 무엇을 써야 할지 고민이라는 사연을 준비했어요.",
+      "start": 4.46,
+      "duration": 2.0300000000000002
+    },
+    {
+      "speaker": "junior",
+      "segment": "story",
+      "line": "간단한 질문을 드릴 때 슬랙으로 할지 메일로 할지, 아니면 직접 찾아가야 할지 너무 헷갈려요. 바빠 보이실 때 DM을 보내면 알림으로 방해될까 봐 망설여집니다.",
+      "start": 6.49,
+      "duration": 1.0299999999999994
+    },
+    {
+      "speaker": "senior",
+      "segment": "talk",
+      "line": "정말 많은 신입사원분들이 공감하시는 고민이네요. 사연자님이 \"선배 자리로 직접 찾아가서 여쭤봐야 할지 채널 기준이 너무 어렵습니다\"라고 강조해 주셨어요.",
+      "start": 7.52,
+      "duration": 13.629999999999999
+    },
+    {
+      "speaker": "junior",
+      "segment": "talk",
+      "line": "맞아요! 선배님 모니터만 뚫어지게 보게 되는데, 딱 정해진 기준이 있으면 좋겠어요.",
+      "start": 21.15,
+      "duration": 1.4200000000000017
+    },
+    {
+      "speaker": "senior",
+      "segment": "tip",
+      "line": "스마트워크팀장님이 알려주신 채널 황금 3원칙을 기억해 보세요. 3분 내 단답형이나 일정 조율은 사내 메신저를 사용하세요.",
+      "caption": "소통 채널 선택의 황금 3원칙",
+      "basis": "[팀장] 스마트워크팀장",
+      "start": 22.57,
+      "duration": 16.950000000000003
+    },
+    {
+      "speaker": "junior",
+      "segment": "tip",
+      "line": "그렇군요! 그럼 증빙이 필요한 건 어떻게 해야 하나요?",
+      "basis": "[팀장] 스마트워크팀장",
+      "start": 39.52,
+      "duration": 3.309999999999995
+    },
+    {
+      "speaker": "senior",
+      "segment": "tip",
+      "line": "증빙 기록이 남아야 하는 공식 요청이나 외부 전달은 이메일로 보내면 됩니다. 즉각적인 의사결정이 필요할 땐 자리로 가서 \"지금 1분 괜찮으실까요?\"라고 구두로 물어보세요.",
+      "caption": "상황별 맞춤형 소통법",
+      "basis": "[팀장] 스마트워크팀장",
+      "start": 42.83,
+      "duration": 13.490000000000002
+    },
+    {
+      "speaker": "junior",
+      "segment": "practice",
+      "line": "\"선배님, 지금 1분 정도 이야기 나눌 수 있으실까요?\" 이렇게 먼저 여쭤보면 좋겠네요.",
+      "caption": "따라 해보기: 구두 문의 전 정중하게 묻기",
+      "start": 56.32,
+      "duration": 3.3999999999999986
+    },
+    {
+      "speaker": "senior",
+      "segment": "closing",
+      "line": "상황에 맞는 채널 선택으로 스마트한 소통을 이어가 보세요.",
+      "start": 59.72,
+      "duration": 25.049999999999997
+    },
+    {
+      "speaker": "junior",
+      "segment": "closing",
+      "line": "오피스 라디오는 다음에도 알찬 이야기로 찾아올게요!",
+      "start": 84.77,
+      "duration": 2.5900000000000034
+    }
+  ],
+  "practice_line": "\"선배님, 지금 1분 정도 이야기 나눌 수 있으실까요?\"",
+  "sources": [
+    "[팀장] 스마트워크팀장"
+  ],
+  "safety_flag": false,
+  "totalDuration": 87.36,
+  "audioUrl": "/radio/episodes/post-comm-channel-42a7b77b2d/episode.wav",
+  "hasAudio": true,
+  "alignMethod": "speaker",
+  "createdAt": "2026-10-14T08:56:36.556Z"
+}

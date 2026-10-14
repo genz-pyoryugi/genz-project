@@ -1,0 +1,112 @@
+{
+  "id": "post-culture-role-204dc596d3",
+  "postId": "post-culture-role",
+  "postTitle": "회사 조직도 보는데 제 팀의 정확한 역할과 제 업무 범위를 잘 모르겠어요 🤔",
+  "title": "내 역할과 업무 범위 찾기",
+  "lines": [
+    {
+      "speaker": "senior",
+      "segment": "opening",
+      "line": "지친 하루에 활력을 더하는 오피스 라디오, 선배 DJ 하루입니다.",
+      "start": 0,
+      "duration": 4.39
+    },
+    {
+      "speaker": "junior",
+      "segment": "opening",
+      "line": "신입 DJ 새봄입니다. 오늘은 조직도와 업무 범위가 고민이라는 사연을 준비했어요.",
+      "start": 4.39,
+      "duration": 6.590000000000001
+    },
+    {
+      "speaker": "junior",
+      "segment": "story",
+      "line": "입사 3일 차인데 팀장님은 기획을 하시고 대리님은 운영을 맡고 계십니다. 제가 여기서 구체적으로 어떤 역할을 해내야 하는지 그림이 잘 안 그려집니다. 사수에게 메인 역할을 직접 여쭤봐도 실례가 안 될까요?",
+      "start": 10.98,
+      "duration": 14.16
+    },
+    {
+      "speaker": "senior",
+      "segment": "talk",
+      "line": "3일 차니까 당연히 막막할 수 있어요. 사연자님이 짚어주신 것처럼 '제가 여기서 구체적으로 어떤 역할을 해내야 하는지 그림이 잘 안 그려집니다'라는 고민은 모든 신입이 하죠.",
+      "start": 25.14,
+      "duration": 11.829999999999998
+    },
+    {
+      "speaker": "junior",
+      "segment": "talk",
+      "line": "맞아요. 직접 물어봐도 되는지, 아니면 눈치껏 찾아야 하는지 정말 헷갈린단 말이에요!",
+      "start": 36.97,
+      "duration": 6.200000000000003
+    },
+    {
+      "speaker": "senior",
+      "segment": "tip",
+      "line": "3년차마케터선배님이 이런 조언을 남겨 주셨어요. 오히려 엄청 똘똘하고 의욕 있는 신입으로 보이니까 직접 물어보라고 하셨죠.",
+      "caption": "오히려 의욕 있는 신입으로 보여요!",
+      "basis": "[선배] 3년차마케터선배의 테이프 조언",
+      "start": 43.17,
+      "duration": 7.920000000000002
+    },
+    {
+      "speaker": "junior",
+      "segment": "tip",
+      "line": "구체적으로 어떻게 여쭤보면 좋을까요?",
+      "caption": "어떻게 여쭤봐야 할까요?",
+      "basis": "[선배] 3년차마케터선배의 테이프 조언",
+      "start": 51.09,
+      "duration": 3.030000000000001
+    },
+    {
+      "speaker": "senior",
+      "segment": "tip",
+      "line": "목표와 역할을 콕 집어서 질문해 보세요. 생존전문가 사수분은 이전 분기 보고서를 보는 것도 추천하셨답니다.",
+      "caption": "목표와 역할을 콕 집어 질문하세요",
+      "basis": "[사수] 생존전문가의 테이프 조언",
+      "start": 54.120000000000005,
+      "duration": 7.780000000000001
+    },
+    {
+      "speaker": "junior",
+      "segment": "practice",
+      "line": "자, 오늘 배운 대화법을 소리 내어 연습해 볼까요?",
+      "caption": "따라 해 봅시다!",
+      "start": 61.900000000000006,
+      "duration": 3.6299999999999955
+    },
+    {
+      "speaker": "junior",
+      "segment": "practice",
+      "line": "\"선배님, 저희 팀의 올 하반기 핵심 목표와 그 안에서 제가 서포트할 수 있는 기본 역할을 명확히 숙지하고 싶습니다!\"",
+      "caption": "역할 질문 예문",
+      "basis": "[선배] 3년차마케터선배의 테이프 조언",
+      "start": 65.53,
+      "duration": 8.960000000000008
+    },
+    {
+      "speaker": "senior",
+      "segment": "closing",
+      "line": "적극적으로 묻는 당신은 이미 멋진 프로입니다. 오피스 라디오는 내일도 여러분과 함께합니다.",
+      "start": 74.49000000000001,
+      "duration": 6.389999999999986
+    },
+    {
+      "speaker": "junior",
+      "segment": "closing",
+      "line": "모든 직장인 여러분, 오늘도 힘내세요!",
+      "start": 80.88,
+      "duration": 3.160000000000011
+    }
+  ],
+  "practice_line": "선배님, 저희 팀의 올 하반기 핵심 목표와 그 안에서 제가 서포트할 수 있는 기본 역할을 명확히 숙지하고 싶습니다!",
+  "sources": [
+    "[선배] 3년차마케터선배의 테이프 조언",
+    "[사수] 생존전문가의 테이프 조언"
+  ],
+  "safety_flag": false,
+  "totalDuration": 84.04,
+  "audioUrl": "/radio/episodes/post-culture-role-204dc596d3/episode.wav",
+  "hasAudio": true,
+  "alignMethod": "speaker",
+  "createdAt": "2026-10-14T07:46:32.013Z"
+}

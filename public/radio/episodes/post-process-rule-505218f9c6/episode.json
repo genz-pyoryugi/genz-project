@@ -1,0 +1,108 @@
+{
+  "id": "post-process-rule-505218f9c6",
+  "postId": "post-process-rule",
+  "postTitle": "동시에 업무가 3개 쏟아졌을 때, 어떤 기준으로 처리 순서를 정하나요? 📊",
+  "title": "업무 폭탄 대처법",
+  "lines": [
+    {
+      "speaker": "senior",
+      "segment": "opening",
+      "line": "지친 직장인들의 마음을 토닥여주는 오피스 라디오, 오늘도 출발합니다.",
+      "caption": "오피스 라디오 시작",
+      "basis": "DJ 하루의 경험",
+      "start": 0,
+      "duration": 4.37
+    },
+    {
+      "speaker": "junior",
+      "segment": "opening",
+      "line": "안녕하세요, 입사 3개월 차 신입 DJ 새봄입니다. 오늘 사연은 동시에 밀려든 업무 폭탄에 대한 고민이에요.",
+      "caption": "신입 DJ 새봄",
+      "basis": "DJ 새봄의 경험",
+      "start": 4.37,
+      "duration": 10.57
+    },
+    {
+      "speaker": "junior",
+      "segment": "story",
+      "line": "주간 데이터 취합, 팀장님 회의록 작성, 타 부서 요청 자료까지 한꺼번에 떨어졌어요. 셋 다 급하다고 하시는데 제 마음대로 순서를 정해서 처리해도 될까요? 업무 처리 원칙이 정말 궁금합니다.",
+      "caption": "동시 다발적 업무 폭탄",
+      "basis": "사연 원문",
+      "start": 14.940000000000001,
+      "duration": 15.809999999999999
+    },
+    {
+      "speaker": "senior",
+      "segment": "talk",
+      "line": "사연자분이 정말 막막하셨겠어요. 셋 다 급하다고 하면 신입사원 입장에서는 머릿속이 하얘지기 마련이죠.",
+      "caption": "막막한 신입사원의 마음 공감",
+      "basis": "DJ 하루의 경험",
+      "start": 30.75,
+      "duration": 9.430000000000007
+    },
+    {
+      "speaker": "junior",
+      "segment": "talk",
+      "line": "맞아요. '제 마음대로 순서를 정해서 처리해도 될까요?' 하신 이 구절이 딱 제 마음 같았어요.",
+      "caption": "폭풍 공감하는 신입 DJ",
+      "basis": "사연 구절 인용",
+      "start": 40.18000000000001,
+      "duration": 4.549999999999997
+    },
+    {
+      "speaker": "senior",
+      "segment": "tip",
+      "line": "업무 흐름 처리 원칙을 알려드릴게요. 상사의 상사 업무, 마감 시한이 정해진 업무, 타 부서 지원 업무 순으로 우선순위를 정해 보세요.",
+      "caption": "업무 처리 순서 1원칙",
+      "basis": "[선배] 업무프로과장의 테이프 조언",
+      "start": 44.730000000000004,
+      "duration": 11.530000000000001
+    },
+    {
+      "speaker": "junior",
+      "segment": "tip",
+      "line": "그렇군요! 그럼 이 순서대로 그냥 혼자 시작하면 되는 건가요?",
+      "caption": "혼자 시작해도 될까요?",
+      "basis": "DJ 새봄의 질문",
+      "start": 56.260000000000005,
+      "duration": 5.229999999999997
+    },
+    {
+      "speaker": "senior",
+      "segment": "tip",
+      "line": "아닙니다. 사수에게 현재 업무 목록을 말씀드리고, 내가 정한 순서를 확인받는 게 가장 확실한 방법이에요.",
+      "caption": "사수에게 우선순위 확인받기",
+      "basis": "[선배] 업무프로과장의 테이프 조언",
+      "start": 61.49,
+      "duration": 7.859999999999992
+    },
+    {
+      "speaker": "junior",
+      "segment": "practice",
+      "line": "사수님, 현재 세 가지 업무가 있는데 이 순서로 진행해도 괜찮을까요?",
+      "caption": "따라 해 봅시다!",
+      "basis": "[선배] 업무프로과장의 테이프 조언",
+      "start": 69.35,
+      "duration": 5.460000000000008
+    },
+    {
+      "speaker": "senior",
+      "segment": "closing",
+      "line": "일이 몰릴 때일수록 멈춰 서서 우선순위를 확인하고 소통해 보세요. 오피스 라디오는 내일도 여러분과 함께합니다.",
+      "caption": "오늘의 오피스 라디오 마침",
+      "basis": "DJ 하루의 경험",
+      "start": 74.81,
+      "duration": 8.189999999999998
+    }
+  ],
+  "practice_line": "사수님, 현재 세 가지 업무가 있는데 이 순서로 진행해도 괜찮을까요?",
+  "sources": [
+    "[선배] 업무프로과장"
+  ],
+  "safety_flag": false,
+  "totalDuration": 83,
+  "audioUrl": "/radio/episodes/post-process-rule-505218f9c6/episode.wav",
+  "hasAudio": true,
+  "alignMethod": "speaker",
+  "createdAt": "2026-10-14T08:55:34.426Z"
+}

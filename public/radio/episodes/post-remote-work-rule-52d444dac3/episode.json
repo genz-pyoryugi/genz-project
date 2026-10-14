@@ -1,0 +1,101 @@
+{
+  "id": "post-remote-work-rule-52d444dac3",
+  "postId": "post-remote-work-rule",
+  "postTitle": "주 2회 재택근무 날... 슬랙 메신저 응답 속도 몇 분 컷이어야 하나요? 💻",
+  "title": "재택근무 슬랙 응답 꿀팁",
+  "lines": [
+    {
+      "speaker": "senior",
+      "segment": "opening",
+      "line": "지친 하루에 위로를 전하는 오피스 라디오, 선배 DJ 하루입니다.",
+      "start": 0,
+      "duration": 5
+    },
+    {
+      "speaker": "junior",
+      "segment": "opening",
+      "line": "신입 DJ 새봄입니다! 오늘 사연은 IT스타트업 신입사원분이 보내주셨어요.",
+      "start": 5,
+      "duration": 7.02
+    },
+    {
+      "speaker": "junior",
+      "segment": "story",
+      "line": "저희 회사는 주 2회 재택근무를 하는데요. 화장실 가거나 밥 먹을 때 팀장님 메신저에 늦게 답할까 봐 종일 모니터 앞에만 굳어있어요. 재택할 때 신뢰를 쌓으면서도 숨 쉴 수 있는 수칙이 있을까요?",
+      "start": 12.02,
+      "duration": 15.64
+    },
+    {
+      "speaker": "senior",
+      "segment": "talk",
+      "line": "재택근무 때 딴짓으로 오해받을까 봐 걱정되는 그 마음, 정말 잘 알죠.",
+      "start": 27.66,
+      "duration": 5.550000000000001
+    },
+    {
+      "speaker": "junior",
+      "segment": "talk",
+      "line": "맞아요, 사연자님의 '재택할 때 신뢰를 쌓으면서도 숨 쉴 수 있는 수칙이 있을까요?'라는 고민에 딱 맞는 해답이 필요해요.",
+      "start": 33.21,
+      "duration": 9.439999999999998
+    },
+    {
+      "speaker": "senior",
+      "segment": "tip",
+      "line": "원격근무리더 팀장님이 주신 첫 번째 팁은 상태 메시지 선제 공유입니다. 점심 식사나 자리 비움 시간을 슬랙 상태에 미리 띄워두세요.",
+      "caption": "상태 메시지 선제 공유",
+      "basis": "[팀장] 원격근무리더의 테이프 조언",
+      "start": 42.65,
+      "duration": 10.149999999999999
+    },
+    {
+      "speaker": "junior",
+      "segment": "tip",
+      "line": "아, 미리 자리를 비운다고 알려두면 오해를 확실히 줄일 수 있겠네요!",
+      "start": 52.8,
+      "duration": 5.570000000000007
+    },
+    {
+      "speaker": "senior",
+      "segment": "tip",
+      "line": "두 번째는 1분 컷 접수 회신입니다. 당장 답을 못 해도 확인했습니다, 검토 후 답변드리겠다고 먼저 남겨보세요.",
+      "caption": "멘션 오면 1분 컷 접수",
+      "basis": "[팀장] 원격근무리더의 테이프 조언",
+      "start": 58.370000000000005,
+      "duration": 9.079999999999984
+    },
+    {
+      "speaker": "junior",
+      "segment": "practice",
+      "line": "네 팀장님 확인했습니다! 검토 후 10분 내로 답변드리겠습니다.",
+      "caption": "따라 해봐요: 1분 컷 접수 회신",
+      "basis": "[팀장] 원격근무리더의 테이프 조언",
+      "start": 67.44999999999999,
+      "duration": 5.170000000000016
+    },
+    {
+      "speaker": "senior",
+      "segment": "closing",
+      "line": "작은 소통의 센스가 모여 든든한 신뢰를 만든답니다.",
+      "start": 72.62,
+      "duration": 5.3799999999999955
+    },
+    {
+      "speaker": "junior",
+      "segment": "closing",
+      "line": "그럼 저희는 다음 사연으로 찾아올게요. 안녕히 계세요!",
+      "start": 78,
+      "duration": 3.200000000000003
+    }
+  ],
+  "practice_line": "네 팀장님 확인했습니다! 검토 후 10분 내로 답변드리겠습니다.",
+  "sources": [
+    "[팀장] 원격근무리더의 테이프 조언"
+  ],
+  "safety_flag": false,
+  "totalDuration": 81.2,
+  "audioUrl": "/radio/episodes/post-remote-work-rule-52d444dac3/episode.wav",
+  "hasAudio": true,
+  "alignMethod": "speaker",
+  "createdAt": "2026-10-14T08:59:44.602Z"
+}

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 320" fill="none">
+  <defs>
+    <linearGradient id="silver"><stop stop-color="#46494b"/><stop offset=".22" stop-color="#f1f2f2"/><stop offset=".42" stop-color="#929799"/><stop offset=".65" stop-color="#eceeee"/><stop offset="1" stop-color="#484c4e"/></linearGradient>
+    <linearGradient id="grille" x2="0" y2="1"><stop stop-color="#323639"/><stop offset="1" stop-color="#0c0e10"/></linearGradient>
+    <pattern id="mesh" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M0 0L6 6M6 0L0 6" stroke="#9a9d9f" stroke-width=".7"/><circle cx="3" cy="3" r=".7" fill="#d6d8d9"/></pattern>
+  </defs>
+  <ellipse cx="90" cy="302" rx="75" ry="13" fill="#000" opacity=".4"/>
+  <path d="M82 242H98V284H82Z" fill="url(#silver)" stroke="#c5c8ca"/>
+  <ellipse cx="90" cy="286" rx="69" ry="16" fill="url(#silver)" stroke="#a1a5a7" stroke-width="2"/>
+  <path d="M21 286V296C21 318 159 318 159 296V286C147 307 33 307 21 286Z" fill="url(#silver)"/>
+  <path d="M39 125V198C39 231 57 249 90 249S141 231 141 198V125" stroke="#242729" stroke-width="10"/>
+  <path d="M39 125V198C39 231 57 249 90 249S141 231 141 198V125" stroke="url(#silver)" stroke-width="6"/>
+  <rect x="47" y="12" width="86" height="192" rx="37" fill="url(#grille)" stroke="url(#silver)" stroke-width="3"/>
+  <rect x="50" y="15" width="80" height="185" rx="35" fill="url(#mesh)"/>
+  <path d="M47 106H133V178C133 235 47 235 47 178Z" fill="url(#silver)" stroke="#babfc1" stroke-width="2"/>
+  <path d="M48 106H132" stroke="#f3f3f3" stroke-width="5"/>
+  <rect x="30" y="118" width="16" height="25" rx="4" fill="url(#silver)"/>
+  <rect x="134" y="118" width="16" height="25" rx="4" fill="url(#silver)"/>
+  <circle cx="90" cy="157" r="12" fill="#50575a" stroke="#e1e3e4" stroke-width="3"/>
+  <circle cx="90" cy="157" r="8" fill="url(#silver)"/>
+</svg>

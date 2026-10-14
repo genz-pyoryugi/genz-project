@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react';
 import { PostItPost, PlacedSticker } from '@/types/community';
 import { OfficeStickerSvg } from './OfficeStickerSvg';
 import { OFFICE_STICKER_LIBRARY } from '@/data/officeData';
-import { X, Sparkles, Plus, Building2, Clock, ThumbsUp, Move, Trash2 } from 'lucide-react';
+import { X, Sparkles, Plus, Building2, Clock, ThumbsUp, Move, Trash2, Radio } from 'lucide-react';
 import { sound } from '@/utils/audio';
 
 interface PostItInspectModalProps {
@@ -19,6 +19,7 @@ interface PostItInspectModalProps {
   activeStickerId: string | null;
   onOpenStickerDrawer: () => void;
   isMacStyle?: boolean;
+  onOpenRadio?: (post: PostItPost) => void; // 이 고민과 테이프 조언으로 보이는 라디오 방송 듣기
 }
 
 export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
@@ -32,6 +33,7 @@ export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
   onMoveSticker,
   activeStickerId,
   onOpenStickerDrawer,
+  onOpenRadio,
 }) => {
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
@@ -181,8 +183,25 @@ export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
             )}
           </div>
 
+          {/* 보이는 라디오로 듣기 */}
+          {onOpenRadio && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                sound.playPageFlipSound();
+                onOpenRadio(post);
+              }}
+              className="w-full mb-2 px-4 py-3 rounded-xl bg-[#102B46] hover:bg-[#1b3b5c] text-white font-ui text-sm font-bold flex items-center justify-center gap-2 shadow-md transition-colors cursor-pointer"
+            >
+              <Radio className="w-4 h-4 text-[#E4572E]" />
+              이 사연, 보이는 라디오로 듣기
+              <span className="text-[11px] font-medium text-[#A9C4CF]">· DJ 하루 &amp; 새봄</span>
+            </button>
+          )}
+
           {/* Tape Comments Section */}
-          <div className="mt-8 pt-5 border-t border-black/10">
+          <div id="tutorial-target-tape-comments" className="mt-8 pt-5 border-t border-black/10">
             <div className="flex items-center justify-between mb-3">
               <h4 className="font-ui font-bold text-xs text-[#112334] flex items-center gap-1.5">
                 <span>📎 부착된 테이프 조언</span>

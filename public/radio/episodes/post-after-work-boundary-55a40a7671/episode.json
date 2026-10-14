@@ -1,0 +1,111 @@
+{
+  "id": "post-after-work-boundary-55a40a7671",
+  "postId": "post-after-work-boundary",
+  "postTitle": "퇴근 후 사수 카톡이나 주말 회식 번개... 어디까지 받아줘야 하나요? 🍺",
+  "title": "퇴근 후 연락과 주말 번개",
+  "lines": [
+    {
+      "speaker": "senior",
+      "segment": "opening",
+      "line": "지친 하루를 위로하는 오피스 라디오, 선배 DJ 하루입니다.",
+      "start": 0,
+      "duration": 4.93
+    },
+    {
+      "speaker": "junior",
+      "segment": "opening",
+      "line": "여러분의 직장생활 고민을 시원하게 풀어드리는 신입 DJ 새봄이에요. 오늘은 퇴근 후 연락 때문에 고민이라는 사연을 준비했어요.",
+      "start": 4.93,
+      "duration": 10.22
+    },
+    {
+      "speaker": "junior",
+      "segment": "story",
+      "line": "밤 9시에 사수님이 릴스 링크를 보내시거나 주말에 급 번개를 치실 때가 있어요. 친해지고 싶어 그러는 건 알지만 거절하면 월요일에 어색할까 봐 억지로 나가곤 합니다. 선배와의 건강한 적정 거리감은 어떻게 유지해야 할까요?",
+      "start": 15.15,
+      "duration": 17.750000000000007
+    },
+    {
+      "speaker": "senior",
+      "segment": "talk",
+      "line": "사연 속 '거절하면 월요일에 어색해질까 봐 억지로 나간다'는 말이 참 안타깝네요. 신입사원이라면 누구나 공감할 만한 고민인 것 같아요.",
+      "start": 32.900000000000006,
+      "duration": 10.86999999999999
+    },
+    {
+      "speaker": "junior",
+      "segment": "talk",
+      "line": "맞아요! 거절을 잘 못 해서 주말까지 마음을 졸이게 되더라고요. 이럴 때 현명하게 거절하는 방법이 있을까요?",
+      "start": 43.769999999999996,
+      "duration": 8.830000000000005
+    },
+    {
+      "speaker": "senior",
+      "segment": "tip",
+      "line": "오피스상담소장 팀장님이 알려주신 거절의 황금 공식을 써보세요. 감사하다고 말한 뒤 선약 사유를 대고 다음 기약을 남기는 거예요.",
+      "caption": "거절의 황금 공식 활용하기",
+      "basis": "[팀장] 오피스상담소장의 거절 공식 조언",
+      "start": 52.6,
+      "duration": 9.699999999999996
+    },
+    {
+      "speaker": "junior",
+      "segment": "tip",
+      "line": "구체적으로 뭐라고 말하면 좋을지 정말 궁금해요!",
+      "caption": "자연스러운 거절 대사",
+      "basis": "[팀장] 오피스상담소장의 거절 공식 조언",
+      "start": 62.3,
+      "duration": 3.930000000000007
+    },
+    {
+      "speaker": "senior",
+      "segment": "tip",
+      "line": "\"연락 주셔서 감사해요, 오늘은 약속이 있어 아쉽지만 다음 주에 커피 제가 살게요!\"라고 해보세요. 이렇게 대안을 붙이면 상대방도 기분 상하지 않고 적정 경계선이 자연스럽게 만들어집니다.",
+      "caption": "정중하고 센스 있게 거절하기",
+      "basis": "[팀장] 오피스상담소장의 거절 공식 조언",
+      "start": 66.23,
+      "duration": 13.299999999999997
+    },
+    {
+      "speaker": "junior",
+      "segment": "practice",
+      "line": "오늘 배운 문장, 다 같이 소리 내어 연습해 볼까요?",
+      "caption": "따라 말해보기",
+      "start": 79.53,
+      "duration": 3.780000000000001
+    },
+    {
+      "speaker": "junior",
+      "segment": "practice",
+      "line": "\"선배님 연락 주셔서 감사해요! 오늘은 선약이 있어 아쉽지만, 다음 주에 제가 맛있는 커피 꼭 살게요!\"",
+      "caption": "거절 연습 예문",
+      "basis": "[팀장] 오피스상담소장의 거절 공식 조언",
+      "start": 83.31,
+      "duration": 7.789999999999992
+    },
+    {
+      "speaker": "senior",
+      "segment": "closing",
+      "line": "때로는 정중한 거절이 건강한 관계를 만드는 지름길이 된답니다.",
+      "start": 91.1,
+      "duration": 4.810000000000002
+    },
+    {
+      "speaker": "junior",
+      "segment": "closing",
+      "line": "오피스 라디오는 내일도 알찬 사연으로 찾아올게요. 여러분, 퇴근 잘 하세요!",
+      "start": 95.91,
+      "duration": 5.969999999999999
+    }
+  ],
+  "practice_line": "선배님 연락 주셔서 감사해요! 오늘은 선약이 있어 아쉽지만, 다음 주에 제가 맛있는 커피 꼭 살게요!",
+  "sources": [
+    "[팀장] 오피스상담소장의 거절 공식 조언"
+  ],
+  "safety_flag": false,
+  "totalDuration": 101.88,
+  "audioUrl": "/radio/episodes/post-after-work-boundary-55a40a7671/episode.wav",
+  "hasAudio": true,
+  "alignMethod": "speaker",
+  "createdAt": "2026-10-14T08:58:50.868Z"
+}

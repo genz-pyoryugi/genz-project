@@ -79,7 +79,7 @@ export const OfficeStickerDrawer: React.FC<OfficeStickerDrawerProps> = ({
       {/* Main Drawer Overlay */}
       {isOpen && (
         <div className="fixed inset-x-0 bottom-0 z-40 max-w-3xl mx-auto px-4 pb-4 animate-in slide-in-from-bottom duration-200">
-          <div className="bg-[#FAF8F5] rounded-t-2xl rounded-b-xl shadow-2xl border-2 border-[#D2CCC2] overflow-hidden">
+          <div id="tutorial-target-sticker-drawer" className="bg-[#FAF8F5] rounded-t-2xl rounded-b-xl shadow-2xl border-2 border-[#D2CCC2] overflow-hidden">
             {/* Header */}
             <div className="px-5 py-3.5 bg-[#EAE6DF] border-b border-[#D2CCC2] flex items-center justify-between">
               <div className="flex items-center gap-2">
