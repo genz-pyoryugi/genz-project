@@ -11,7 +11,38 @@ body {
   place-items: center;
   padding: 32px 16px;
 }
-.cardnews-preview > .cardnews__deck { width: min(100%, 420px); }
+/* 탭은 위에 고정 (주제마다 카드 높이가 달라도 탭이 위아래로 움직이지 않게) */
+.cardnews-preview { grid-auto-flow: row; place-content: start center; gap: 14px; }
+.cardnews-preview .cardnews__deck { width: min(100%, 420px); }
+.cardnews-topics__panel { display: grid; justify-items: center; width: 100%; }
+
+/* 주제 탭: 가로로 한 줄, 넘치면 옆으로 스크롤 */
+.cardnews-topics {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.cardnews-topics::-webkit-scrollbar { display: none; }
+.cardnews-topics__tab {
+  flex: none;
+  padding: 7px 14px;
+  border: 1px solid #c9d6e2;
+  border-radius: 999px;
+  background: #fff;
+  color: #2f4157;
+  font: 600 14px Pretendard, sans-serif;
+  cursor: pointer;
+}
+.cardnews-topics__tab:hover { border-color: #2563eb; color: #13233a; }
+.cardnews-topics__tab[aria-selected="true"] { background: #13233a; border-color: #13233a; color: #fff; }
+.cardnews-topics__tab:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
+
+/* 완성된 카드 이미지 한 장 (정사각형) */
+.cardnews__card.cardnews__card--image { aspect-ratio: 1; padding: 0; background: #f8fafc; overflow: hidden; }
+.cardnews__image { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 .cardnews-preview .cardnews__deck { position: relative; }
 .cardnews-preview .cardnews__dots {
   position: absolute;
@@ -22,3 +53,100 @@ body {
   z-index: 1;
 }
 button { font-family: inherit; }
+
+/* 질문 카드 (카드뉴스 앞 · 뒤): 정사각형, 글자 크기는 카드 너비(cqw)에 맞춰 커지고 작아짐 */
+.cardnews__card.cardnews__card--survey {
+  aspect-ratio: 1;
+  container-type: inline-size;
+  justify-content: center;
+  gap: 3cqw;
+  padding: 6cqw 7cqw;
+  overflow: hidden;
+  background: linear-gradient(180deg, #2563eb 0 2.2cqw, #f8fafc 2.2cqw);
+  color: #13233a;
+  user-select: none;
+}
+.survey-card__label {
+  align-self: flex-start;
+  padding: 1.4cqw 3.4cqw;
+  border: 1px solid #c7d2fe;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3341a8;
+  font-size: 3.4cqw;
+  font-weight: 600;
+}
+.survey-card__question {
+  margin: 0;
+  font-size: 5cqw;
+  font-weight: 800;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+  white-space: pre-line;
+  word-break: keep-all;
+}
+.survey-card__options { display: flex; flex-direction: column; gap: 1.4cqw; }
+.survey-card__option {
+  padding: 2cqw 4cqw;
+  border: 1.5px solid #cfdae6;
+  border-radius: 2.6cqw;
+  background: #fff;
+  color: #2f4157;
+  font: 600 3.5cqw Pretendard, sans-serif;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.survey-card__option:hover { border-color: #2563eb; }
+.survey-card__option[aria-checked="true"] { border-color: #2563eb; background: #2563eb; color: #fff; }
+.survey-card__option:focus-visible { outline: 3px solid #13233a; outline-offset: 2px; }
+/* 1~5 눈금 */
+.survey-card__options--scale { flex-direction: row; justify-content: space-between; gap: 2cqw; margin-top: 2cqw; }
+.survey-card__options--scale .survey-card__option {
+  display: grid; place-items: center;
+  width: 12cqw; height: 12cqw; padding: 0;
+  border-radius: 50%;
+  font-size: 4.6cqw; font-weight: 800; text-align: center;
+}
+.survey-card__ends { display: flex; justify-content: space-between; margin-top: -1.6cqw; color: #64748b; font-size: 3.4cqw; font-weight: 600; }
+.survey-card__result { min-height: 1.5em; margin: 0; color: #2563eb; font-size: 3.8cqw; font-weight: 700; }
+/* 질문 카드가 있는 묶음: 카드마다 제 높이 (가장 긴 카드에 맞춰 늘어나지 않게) */
+.cardnews__track:has(.cardnews__card--survey) { align-items: flex-start; }
+/* 뒤 질문 카드: 점수별 안내 + 이동 버튼 */
+.survey-card__result:empty { display: none; }
+.survey-card__result { display: flex; flex-direction: column; align-items: flex-start; gap: 2.4cqw; padding: 3.4cqw 4cqw; border-radius: 3cqw; background: #eef4ff; }
+.survey-card__message { margin: 0; color: #2f4157; font-size: 3.4cqw; font-weight: 500; line-height: 1.6; word-break: keep-all; }
+.survey-card__cta { padding: 2cqw 4cqw; border-radius: 999px; background: #2563eb; color: #fff; font-size: 3.5cqw; font-weight: 700; text-decoration: none; }
+.survey-card__cta:hover { background: #1d4fd8; }
+.survey-card__cta:focus-visible { outline: 3px solid #13233a; outline-offset: 2px; }
+.survey-card__result { gap: 1.6cqw; }
+.survey-card__message-title { margin: 0; color: #1d4fd8; font-size: 3.9cqw; font-weight: 800; }
+.survey-card__message { white-space: pre-line; }
+.survey-card__ctas { display: flex; flex-wrap: wrap; gap: 1.6cqw; margin-top: 0.8cqw; }
+.survey-card__cta--secondary { border: 1.5px solid #2563eb; background: #fff; color: #2563eb; }
+.survey-card__cta--secondary:hover { background: #e8efff; }
+/* 안내가 나오면 카드를 조금 촘촘하게 (정사각형 안에 다 들어오게) */
+.cardnews__card--survey:has(.survey-card__result:not(:empty)) { gap: 2.2cqw; padding-top: 5cqw; padding-bottom: 5cqw; }
+.cardnews__card--survey:has(.survey-card__result:not(:empty)) .survey-card__question { font-size: 4.4cqw; }
+.cardnews__card--survey:has(.survey-card__result:not(:empty)) .survey-card__options--scale { margin-top: 0; }
+.cardnews__card--survey:has(.survey-card__result:not(:empty)) .survey-card__options--scale .survey-card__option { width: 10cqw; height: 10cqw; font-size: 4cqw; }
+.cardnews__card--survey:has(.survey-card__result:not(:empty)) .survey-card__ends { margin-top: -0.8cqw; }
+/* 답을 고른 뒤: 보기 잠김 (고른 답만 진하게) */
+.survey-card__option:disabled { cursor: default; }
+.survey-card__option:disabled:not([aria-checked="true"]) { opacity: .45; border-color: #cfdae6; }
+
+/* 카드뉴스 앞 질문: 첫 카드 위 가운데 팝업 (뒤 카드는 살짝 어둡게) — 안의 글자 크기는 상자 너비(cqw) 기준 */
+.cardnews__viewport { position: relative; }
+.survey-modal { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; padding: 6%;
+  background: rgba(15, 23, 42, 0.38); animation: survey-modal-in .25s ease-out; }
+.survey-modal.is-closing { opacity: 0; transition: opacity .25s ease; }
+.survey-modal__box { container-type: inline-size; width: min(100%, 520px); box-sizing: border-box; display: flex; flex-direction: column; gap: 3.4cqw;
+  padding: 7cqw 7cqw 6cqw; border-radius: 18px; background: #fff; color: #13233a; box-shadow: 0 18px 44px rgba(5, 10, 25, 0.35); }
+.survey-modal__box .survey-card__label { font-size: 3.8cqw; }
+.survey-modal__box .survey-card__question { font-size: 5.6cqw; }
+.survey-modal__box .survey-card__options--scale .survey-card__option { width: 12.5cqw; height: 12.5cqw; font-size: 5cqw; }
+.survey-modal__box .survey-card__ends { font-size: 3.6cqw; }
+@keyframes survey-modal-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .survey-modal { animation: none; } .survey-modal.is-closing { transition: none; } }
+/* 앞 질문에 답하기 전: 넘김 버튼 · 점 잠김 */
+.cardnews-preview .is-locked { opacity: .35; pointer-events: none; }

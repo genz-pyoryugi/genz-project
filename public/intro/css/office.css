@@ -87,12 +87,57 @@
 .hotspot-label__icon{flex:none;width:1.25em;height:1.25em;fill:rgb(40,115,255)}
 .hotspot-label__chev{flex:none;width:1em;height:1em;fill:none;stroke:#46516a;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;margin-left:2px}
 .hotspot.is-hovered .hotspot-label,.hotspot.is-active .hotspot-label{opacity:1;transform:translate(-50%,0) scale(.82)}
+/* name tags stay shown once the office is lit (no hover needed); the hovered / selected one comes to the front */
+.office-stage.is-ready .hotspot-label{opacity:1;transform:translate(-50%,0) scale(.82)}
+.office-stage.is-ready .hotspot.is-hovered,.office-stage.is-ready .hotspot.is-active{z-index:2}
+/* see-through tag: white pill at 20% — white text / icon with a dark shadow so it reads on any part of the photo */
+.hotspot-label{background:rgba(255,255,255,.2);border-color:transparent;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;
+  color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.85),0 0 10px rgba(0,0,0,.6)}
+.hotspot-label__icon,.hotspot-label__chev{filter:drop-shadow(0 1px 2px rgba(0,0,0,.85))}
+.hotspot-label__chev{stroke:#fff}
+/* the guidebook's tag sits under its marker so it doesn't run over the cover's printed title */
+.hotspot--red .hotspot-label{bottom:auto;top:calc(100% + 14px);transform-origin:50% 0}
 
 /* entry hint */
 .office-hint{position:absolute;left:50%;bottom:clamp(20px,5vh,48px);transform:translateX(-50%);margin:0;padding:7px 16px;border-radius:999px;
   background:rgba(10,14,22,.5);color:rgba(240,244,250,.9);font-size:clamp(12px,1vw,14px);letter-spacing:.04em;white-space:nowrap;
   opacity:0;pointer-events:none;transition:opacity .7s ease}
 .office-hint.is-shown{opacity:1}
+
+/* sidebar menu (top-left): lists every desk object; shown once the office is lit (.is-ready) */
+.office-menu-btn{position:absolute;z-index:6;top:clamp(14px,2.4vh,24px);left:clamp(14px,1.8vw,28px);display:grid;place-items:center;width:46px;height:46px;
+  margin:0;padding:0;border-radius:12px;border:1px solid rgba(255,255,255,.85);background:rgba(255,255,255,.7);color:#16233f;cursor:pointer;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 4px 16px rgba(20,40,80,.18);
+  opacity:0;pointer-events:none;transition:opacity .4s ease,background .2s ease}
+.office-menu-btn svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.office-stage.is-ready .office-menu-btn{opacity:1;pointer-events:auto}
+.office-menu-btn:hover{background:rgba(255,255,255,.92)}
+.office-menu-btn:focus-visible,.office-menu__close:focus-visible,.office-menu__item:focus-visible{outline:3px solid rgb(40,115,255);outline-offset:2px}
+.office-menu-scrim{position:absolute;inset:0;z-index:7;background:rgba(8,12,20,.42);opacity:0;pointer-events:none;transition:opacity .3s ease}
+.office-stage.is-menu-open .office-menu-scrim{opacity:1;pointer-events:auto;cursor:pointer}
+.office-menu{position:absolute;z-index:8;top:0;left:0;bottom:0;width:min(300px,calc(100vw - 56px));box-sizing:border-box;display:flex;flex-direction:column;
+  padding:22px 14px 18px;background:rgba(250,251,253,.94);color:#16233f;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:8px 0 40px rgba(0,0,0,.28);pointer-events:auto;transform:translateX(-102%);transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+.office-menu[hidden]{display:none}
+.office-stage.is-menu-open .office-menu{transform:none}
+.office-menu__head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:0 6px 16px;border-bottom:1px solid rgba(22,35,63,.12)}
+.office-menu__k{margin:0;font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:rgb(40,115,255)}
+.office-menu__t{margin:4px 0 0;font-family:var(--serif);font-size:22px;font-weight:800;letter-spacing:-.01em}
+.office-menu__close{flex:none;display:grid;place-items:center;width:36px;height:36px;margin:0;padding:0;border:0;border-radius:50%;background:rgba(22,35,63,.07);color:#16233f;cursor:pointer}
+.office-menu__close:hover{background:rgba(22,35,63,.14)}
+.office-menu__close svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.office-menu__list{list-style:none;margin:12px 0 0;padding:0;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+/* 나가기: pinned to the bottom of the sidebar */
+.office-menu__foot{flex:none;margin-top:auto;padding-top:10px;border-top:1px solid rgba(22,35,63,.12);overflow:visible}
+.office-menu__item{display:flex;align-items:center;gap:12px;width:100%;margin:0;padding:11px 10px;border:0;border-radius:10px;background:none;color:inherit;
+  font:inherit;font-size:16px;font-weight:600;letter-spacing:-.01em;text-align:left;cursor:pointer;transition:background .15s ease}
+.office-menu__item:hover{background:rgba(40,115,255,.1)}
+.office-menu__icon{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:rgba(40,115,255,.1)}
+.office-menu__icon svg{width:20px;height:20px;fill:rgb(40,115,255)}
+.office-menu__chev{flex:none;width:16px;height:16px;margin-left:auto;fill:none;stroke:#8a93a6;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.office-menu__item--red .office-menu__icon{background:rgba(220,60,50,.1)}
+.office-menu__item--red .office-menu__icon svg{fill:#d23c32}
+@media (prefers-reduced-motion:reduce){.office-menu,.office-menu-scrim{transition:none}}
 
 /* temporary placeholder panel (replace with real content later) */
 .office-panel{position:absolute;right:clamp(16px,3vw,40px);bottom:clamp(16px,5vh,48px);width:min(300px,calc(100vw - 32px));box-sizing:border-box;
@@ -219,8 +264,8 @@
 .office-content--quiz .office-content__screen{overflow:visible;border-radius:0 0 14px 14px}
 .office-content--quiz .office-content__frame{flex:1 1 auto;align-self:flex-start;width:calc(100% + 210px);background:transparent;color-scheme:light}
 .office-content--quiz .office-content__close{top:-10px}
-/* card popup (card news): narrow box sized to one 4:5 card + its controls */
-.office-content--card .office-content__dialog{width:min(94vw,500px);height:min(90vh,760px);height:min(90svh,760px)}
+/* card popup (card news): fills the screen's height; width follows the card (square card + tabs + controls ≈ height - 150px) */
+.office-content--card .office-content__dialog{height:86vh;height:86svh;width:min(92vw,calc(86vh - 150px));width:min(92vw,calc(86svh - 150px))}
 .office-content--card .office-content__frame{background:#f3f6f9;color-scheme:light}
 /* red marker (젠지 표류기 책): same glowing dot, red instead of blue */
 .hotspot--red .hotspot-dot{background:radial-gradient(circle,#fff 0 16%,rgba(255,110,96,.92) 24%,rgba(255,150,138,.72) 50%,rgba(255,150,138,.36) 62%,rgba(255,150,138,.08) 100%);
@@ -234,3 +279,35 @@
 .hotspot--red.is-pulse .hotspot-dot{animation-name:hs-pulse-red}
 @keyframes hs-pulse-red{0%,100%{box-shadow:0 0 12px 3px rgba(255,120,105,.7),0 0 28px 9px rgba(255,120,105,.34)}
   45%{box-shadow:0 0 0 6px rgba(235,70,55,.3),0 0 30px 12px rgba(220,40,30,.8)}}
+/* desktop popup (AI 팀장 시뮬레이션, from the monitor): a computer chat-app window — grey title bar with the three window dots + centred title */
+.office-content--desktop .office-content__dialog{width:min(94vw,1100px);height:min(86vh,780px);height:min(86svh,780px);background:#fff;border-radius:12px}
+.office-content--desktop .office-content__bar{position:relative;justify-content:center;height:40px;padding:0 84px;
+  background:linear-gradient(#f6f7f9,#eceef2);border-bottom:1px solid #dcdfe5;border-radius:12px 12px 0 0}
+.office-content--desktop .office-content__bar::before{content:"";position:absolute;left:16px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;
+  background:#ff5f57;box-shadow:20px 0 0 #febc2e,40px 0 0 #28c840}
+.office-content--desktop .office-content__title{font-size:13px;font-weight:600;color:#4b5563}
+.office-content--desktop .office-content__frame{background:#fff;color-scheme:light}
+/* welcome popup: first time the office lights up — "어떤 부분이 제일 고민되시나요?" + 7 topic buttons */
+.office-welcome{position:absolute;inset:0;z-index:9;display:grid;place-items:center;padding:16px;background:rgba(8,12,20,.5);pointer-events:auto;
+  opacity:0;transition:opacity .3s ease}
+.office-welcome[hidden]{display:none}
+.office-welcome.is-open{opacity:1}
+.office-welcome__box{width:min(560px,100%);max-height:calc(100% - 32px);overflow:auto;box-sizing:border-box;padding:26px 26px 18px;border-radius:18px;
+  background:#fbf9f4;color:#16233f;box-shadow:0 24px 70px rgba(5,10,25,.45);transform:translateY(10px) scale(.98);transition:transform .3s cubic-bezier(.2,.8,.3,1)}
+.office-welcome.is-open .office-welcome__box{transform:none}
+.office-welcome__k{margin:0;font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:rgb(40,115,255)}
+.office-welcome__t{margin:6px 0 4px;font-size:clamp(20px,2vw,26px);font-weight:800;letter-spacing:-.02em}
+.office-welcome__d{margin:0 0 16px;font-size:14px;color:#5b6577}
+.office-welcome__list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.office-welcome__item{display:grid;grid-template-columns:auto 1fr;align-items:center;column-gap:10px;row-gap:1px;margin:0;padding:11px 14px;border:1.5px solid #e1ddd3;
+  border-radius:12px;background:#fff;color:#16233f;font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.office-welcome__item b{grid-row:span 2;display:grid;place-items:center;width:32px;height:32px;border-radius:9px;background:rgba(40,115,255,.1);color:rgb(40,115,255);font-size:13px}
+.office-welcome__item span{font-size:12px;font-weight:500;color:#7a8394}
+.office-welcome__item:last-child{grid-column:span 2}
+.office-welcome__item:hover{border-color:rgb(40,115,255);background:#f2f7ff}
+.office-welcome__item:focus-visible,.office-welcome__skip:focus-visible{outline:3px solid rgb(40,115,255);outline-offset:2px}
+.office-welcome__skip{display:block;margin:14px auto 0;padding:6px 12px;border:0;background:none;color:#5b6577;font:inherit;font-size:14px;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+@media (max-width:520px){.office-welcome__list{grid-template-columns:1fr}.office-welcome__item:last-child{grid-column:auto}}
+@media (prefers-reduced-motion:reduce){.office-welcome,.office-welcome__box{transition:none}}
+.office-welcome__item b{grid-row:auto}   /* buttons: number + one recommended phrase */
+.office-welcome__box{width:min(640px,100%)}

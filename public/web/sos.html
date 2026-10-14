@@ -96,6 +96,15 @@
     .theme-sim .sim__score { border-color: #e5e7eb; background: #f8f9fb; color: #1b2433; }
     .theme-sim .sim__score input { accent-color: #2f7cf6; }
     .theme-sim .sim__ghost { border-color: #d1d5db; color: #374151; }
+    /* 컴퓨터 창(사무실 모니터 팝업)처럼 넓을 때: 첫 화면 · 목록은 가운데 채팅창 폭으로, 대화는 창 전체 폭 + 말풍선은 적당한 길이까지 */
+    @media (min-width: 720px) {
+      .theme-sim .sim > .sim__intro, .theme-sim .sim > .sim__team, .theme-sim .sim > .sim__list,
+      .theme-sim .sim > .sim__cat-bar, .theme-sim .sim > .sim__notice { width: 100%; max-width: 640px; margin-left: auto; margin-right: auto; box-sizing: border-box; }
+      .theme-sim .sim__team { max-height: 300px; }
+      .theme-sim .sim__log .chat__msg { max-width: 62%; }
+      .theme-sim .sim__log { padding-left: 28px; padding-right: 28px; }
+      .theme-sim .chat__form { padding-left: 28px; padding-right: 28px; }
+    }
   </style>
 </head>
 <body>

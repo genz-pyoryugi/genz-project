@@ -3,20 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>신입사원 TOP 3 · 카드뉴스</title>
+  <title>주제별 카드뉴스</title>
   <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="css/cardnews-preview.css" />
   <style>
-    /* 사무실 파일첩 팝업 안: 카드(4:5) + 아래 넘김 버튼이 창 높이에 다 들어오게 */
+    /* 사무실 파일첩 팝업 안: 주제 탭 + 카드 + 아래 넘김 버튼이 창 높이에 다 들어오게 (탭 줄 ≈ 50px) */
     .cardnews-preview { padding: 16px; }
-    .cardnews-preview > .cardnews__deck { width: min(100%, 420px, calc((100svh - 32px - 72px) * 0.8)); }
+    /* 카드는 팝업 크기만큼 크게 (정사각형 카드는 남은 높이 = 너비, 4:5 카드는 그 0.8배) */
+    .cardnews-preview .cardnews__deck { width: min(100%, calc((100svh - 32px - 72px - 50px) * 0.8)); }
+    .cardnews-preview .cardnews__deck:has(.cardnews__card--image) { width: min(100%, calc(100svh - 32px - 72px - 50px)); }
+    .cardnews-preview .cardnews__viewport { width: 100%; }
   </style>
 </head>
 <body>
-  <main class="cardnews-preview" id="cardnews-preview" aria-label="신입사원 치명적 실수 TOP 3 카드뉴스"></main>
+  <main class="cardnews-preview" id="cardnews-preview" aria-label="주제별 카드뉴스"></main>
   <script src="js/components/util.js"></script>
   <script src="js/components/cardnews.js"></script>
   <script src="js/data/articles.js"></script>
+  <script src="js/data/cardnews-topics.js"></script>
   <script src="js/components/cardnews-preview.js"></script>
 </body>
 </html>

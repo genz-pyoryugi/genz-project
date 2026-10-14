@@ -34,6 +34,61 @@ const Simulation = (() => {
     return scenario;
   }
 
+  // --- 첫 화면 안내: steps 의 target 만 밝게 두고 나머지를 어둡게, 옆에 안내 문구 + 다음 버튼 ---
+  // 밝게 하기는 대상 요소 자체에 .sim-tour-target 을 붙여서 한다 (요소가 바깥에 큰 그림자를 드리워 나머지를 어둡게 함 →
+  // 대상 크기 · 위치와 항상 딱 맞음). 대상은 그대로 클릭 · 입력 가능. 건너뛰기 · ESC · 대상이 사라지면 끝나고 onDone 을 부른다.
+  function startTour(steps, onDone) {
+    let i = 0;
+    const text = h("p", { class: "sim-tour__text", id: "sim-tour-text" });
+    const count = h("span", { class: "sim-tour__count" });
+    const next = h("button", { class: "sim-tour__next", type: "button", onClick: () => go(i + 1) });
+    const skip = h("button", { class: "sim-tour__skip", type: "button", onClick: () => end() }, "건너뛰기");
+    const tip = h("div", { class: "sim-tour__tip", role: "dialog", "aria-labelledby": "sim-tour-text" },
+      text, h("div", { class: "sim-tour__row" }, count, skip, next));
+    const layer = h("div", { class: "sim-tour" }, tip);
+
+    function place() {
+      const target = steps[i].target;
+      if (!target?.isConnected) return end();
+      steps.forEach((step) => step.target?.classList.toggle("sim-tour-target", step.target === target));
+      const r = target.getBoundingClientRect(), pad = 12;
+      // 안내 상자: 밝은 칸 아래(자리가 없으면 위), 가로는 칸 가운데에 맞추되 화면 안으로
+      const tw = tip.offsetWidth, th = tip.offsetHeight, gap = 14;
+      const below = r.bottom + pad + gap + th < innerHeight;
+      tip.style.top = `${below ? r.bottom + pad + gap : Math.max(8, r.top - pad - gap - th)}px`;
+      tip.style.left = `${Math.min(innerWidth - tw - 8, Math.max(8, r.left + r.width / 2 - tw / 2))}px`;
+      tip.dataset.side = below ? "below" : "above";
+    }
+    function go(n) {
+      if (n >= steps.length) return end();
+      i = n;
+      text.textContent = steps[i].text;
+      count.textContent = `${i + 1} / ${steps.length}`;
+      next.textContent = steps[i].next;
+      place();
+      next.focus({ preventScroll: true });
+    }
+    const onKey = (e) => { if (e.key === "Escape") end(); };
+    function end() {
+      if (!layer.isConnected) return;
+      layer.remove();
+      steps.forEach((step) => step.target?.classList.remove("sim-tour-target"));
+      watch.disconnect();
+      removeEventListener("resize", place);
+      removeEventListener("keydown", onKey);
+      onDone?.();
+    }
+    // 창 크기가 바뀌거나(팝업이 열리는 중 · 글꼴 로딩) 대상 칸 크기가 바뀌면 다시 맞춘다
+    const watch = new ResizeObserver(() => { if (layer.isConnected) place(); });
+    steps.forEach((step) => step.target && watch.observe(step.target));
+    watch.observe(document.documentElement);
+    document.body.append(layer);
+    addEventListener("resize", place);
+    addEventListener("keydown", onKey);
+    document.fonts?.ready.then(() => { if (layer.isConnected) place(); });
+    go(0);
+  }
+
   function create() {
     const el = h("div", { class: "chat__view sim", role: "tabpanel", hidden: true });
     let scenarios = [];
@@ -42,17 +97,15 @@ const Simulation = (() => {
     const PRESETS = [["calm", "차분한"], ["encouraging", "격려하는"], ["direct", "직설적인"]];
     let personaChosen = false; // 첫 화면에서 팀장 성격을 정했는지
     let personality = "calm"; // 팀장 성격: calm · encouraging · direct. 시작할 때 서버로 보내고, 이후 대화는 서명된 세션이 같은 성격을 유지한다
+    let tourShown = false; // 첫 화면 안내(startTour)를 이미 보여 줬는지
 
     // --- 1) 불러오기 ---
     function load() {
       el.replaceChildren(h("p", { class: "sim__notice" }, "상황을 불러오는 중이에요…"));
       fetchTable("ai_scenarios")
         .then((rows) => {
+          // 상황이 하나도 없어도 첫 화면(팀장 성격 정하기)은 보여 주고, 목차 자리에서 '아직 없어요'를 알린다
           scenarios = rows.map(parseScenario);
-          if (!scenarios.length) {
-            el.replaceChildren(h("p", { class: "sim__notice" }, "등록된 상황이 아직 없어요."));
-            return;
-          }
           showList();
         })
         .catch(() => {
@@ -122,6 +175,14 @@ const Simulation = (() => {
                 onClick: () => { personality = value; customPersonality = ""; customInput.value = ""; choose(); },
               }, label)))));
         syncNext();
+        // 처음 한 번: 입력창 → 예시 버튼 순서로 밝게 비추는 안내 (페이지를 새로 열면 다시 나옴)
+        if (!tourShown) {
+          tourShown = true;
+          requestAnimationFrame(() => startTour([
+            { target: customInput.closest(".sim__custom"), text: "시뮬레이션할 팀장님의 성격을 먼저 입력해주세요!", next: "NEXT" },
+            { target: el.querySelector(".sim__presets"), text: "아래 선택도 가능합니다!", next: "확인" },
+          ], () => customInput.focus({ preventScroll: true })));
+        }
         return;
       }
 
@@ -140,7 +201,9 @@ const Simulation = (() => {
               h("button", { class: "sim__back", type: "button", onClick: () => { category = null; showList(); } }, "← 목차"),
               h("span", { class: "sim__cat-title" }, [chapterNum(category), category].filter(Boolean).join("  ")))
           : "",
-        h("ul", { class: category ? "sim__list" : "sim__list sim__list--toc", "aria-label": category ? "상황" : "카테고리" }, category ? items : toc));
+        names.length
+          ? h("ul", { class: category ? "sim__list" : "sim__list sim__list--toc", "aria-label": category ? "상황" : "카테고리" }, category ? items : toc)
+          : h("p", { class: "sim__notice" }, "등록된 상황이 아직 없어요."));
     }
 
     // --- 3) 역할극 ---

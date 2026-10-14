@@ -110,18 +110,54 @@
         <path class="hotspot-shape" data-object="pen"      d="M1084 655L1104 641L1176 760L1156 778Z"/>
       </svg>
       <!-- data-label: 마우스를 올렸을 때 뜨는 메뉴명 (아이콘은 js/office.js 의 ICONS)
-           data-href: 클릭하면 사무실 위 팝업으로 여는 페이지 (없으면 임시 패널) · data-popup="chat": 채팅창 크기 팝업 · "phone": 손에 든 휴대폰 팝업 (흰 화면) · "phone-plain": 같은 휴대폰 (흰 화면, 상담사 프로필 없음) · "phone-dark": 같은 휴대폰 (남색 화면) · "medium": 중간 크기 팝업 · "sheet": 상자 없이 페이지의 종이(체크리스트)만 팝업처럼 · "fit": 기본 팝업 안에 페이지 속 물건(달력)을 스크롤 없이 다 보이게 맞춤 -->
+           data-href: 클릭하면 사무실 위 팝업으로 여는 페이지 (없으면 임시 패널) · data-popup="chat": 채팅창 크기 팝업 · "phone": 손에 든 휴대폰 팝업 (흰 화면) · "phone-plain": 같은 휴대폰 (흰 화면, 상담사 프로필 없음) · "phone-dark": 같은 휴대폰 (남색 화면) · "medium": 중간 크기 팝업 · "sheet": 상자 없이 페이지의 종이(체크리스트)만 팝업처럼 · "desktop": 컴퓨터 채팅 프로그램 창 (제목 줄 + 창 버튼) · "fit": 기본 팝업 안에 페이지 속 물건(달력)을 스크롤 없이 다 보이게 맞춤 -->
       <button type="button" class="hotspot" data-object="files"    data-label="주제별 가이드 / 카드뉴스" data-title="카드뉴스" data-href="/web/cardnews.html" data-popup="card"></button>
       <button type="button" class="hotspot" data-object="radio"    data-label="보이는 라디오" data-href="/radio/index.html"></button>
       <button type="button" class="hotspot" data-object="postit"   data-label="고민상담소" data-href="/community"></button>
       <button type="button" class="hotspot" data-object="calendar" data-label="근태 가이드" data-href="/calendar" data-popup="fit"></button>
       <button type="button" class="hotspot" data-object="phone"    data-label="SOS" data-href="/web/sos.html?view=chat" data-popup="phone"></button>
-      <button type="button" class="hotspot" data-object="monitor"  data-label="AI 팀장 시뮬레이션" data-href="/web/sos.html?view=sim" data-popup="phone-plain"></button>
+      <button type="button" class="hotspot" data-object="monitor"  data-label="AI 팀장 시뮬레이션" data-href="/web/sos.html?view=sim" data-popup="desktop"></button>
       <button type="button" class="hotspot" data-object="notebook" data-label="체크리스트" data-href="/checklist" data-popup="sheet"></button>
       <button type="button" class="hotspot" data-object="pen"      data-label="퀴즈" data-title="직장생활 퀴즈" data-href="/quiz" data-popup="quiz"></button>
       <button type="button" class="hotspot hotspot--red" data-object="book"     data-label="나가기" data-dot="871,772"></button>
     </div>
     <p class="office-hint" id="officeHint">책상 위 물건을 클릭해보세요.</p>
+    <!-- 사무실이 처음 밝아지면 뜨는 안내 팝업: 7개 주제(버튼에는 주제별 추천 문구, aria-label 에 주제 이름) 중 고민되는 것을 고르면 그 주제의 고민상담소(/community?chapter=)를 엶 (js/office.js) -->
+    <div class="office-welcome" id="officeWelcome" hidden>
+      <div class="office-welcome__box" role="dialog" aria-modal="true" aria-labelledby="officeWelcomeTitle">
+        <p class="office-welcome__k">WELCOME</p>
+        <h2 class="office-welcome__t" id="officeWelcomeTitle">첫 회사생활, 뭐가 제일 걱정되나요?</h2>
+        <p class="office-welcome__d">지금 가장 고민되는 주제부터 골라보세요.</p>
+        <div class="office-welcome__list">
+          <button type="button" class="office-welcome__item" data-chapter="01" aria-label="01 조직이해&amp;적응 · 우리 팀과 내 역할 알아보기"><b>01</b>우리 팀과 내 역할 알아보기</button>
+          <button type="button" class="office-welcome__item" data-chapter="02" aria-label="02 업무 절차&amp;기준 · 일을 어디서부터 어떻게 해야 할지"><b>02</b>일을 어디서부터 어떻게 해야 할지</button>
+          <button type="button" class="office-welcome__item" data-chapter="03" aria-label="03 질문&amp;소통 · 언제, 어떻게 물어봐야 할지"><b>03</b>언제, 어떻게 물어봐야 할지</button>
+          <button type="button" class="office-welcome__item" data-chapter="04" aria-label="04 협업&amp;동료 존중 · 다른 사람과 편하게 일하는 법"><b>04</b>다른 사람과 편하게 일하는 법</button>
+          <button type="button" class="office-welcome__item" data-chapter="05" aria-label="05 직장 내 관계&amp;예절 · 회사 사람들과 선 지키며 지내기"><b>05</b>회사 사람들과 선 지키며 지내기</button>
+          <button type="button" class="office-welcome__item" data-chapter="06" aria-label="06 근무&amp;재택 수칙 · 출퇴근부터 재택까지 기본 지키기"><b>06</b>출퇴근부터 재택까지 기본 지키기</button>
+          <button type="button" class="office-welcome__item" data-chapter="07" aria-label="07 공용 공간 &amp; 비품 관리 · 함께 쓰는 공간, 센스 있게 사용하기"><b>07</b>함께 쓰는 공간, 센스 있게 사용하기</button>
+        </div>
+        <button type="button" class="office-welcome__skip" id="officeWelcomeSkip">먼저 사무실 둘러볼게요</button>
+      </div>
+    </div>
+    <!-- 왼쪽 위 사이드바: 책상 위 물건(.hotspot) 목록을 그대로 메뉴로 보여줌 — 항목은 js/office.js 가 hotspot 에서 만들고, 누르면 그 물건을 클릭한 것과 같음 -->
+    <button type="button" class="office-menu-btn" id="officeMenuBtn" aria-label="전체 메뉴 열기" aria-expanded="false" aria-controls="officeMenu" tabindex="-1">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <div class="office-menu-scrim" id="officeMenuScrim" aria-hidden="true"></div>
+    <nav class="office-menu" id="officeMenu" aria-label="전체 메뉴" hidden>
+      <div class="office-menu__head">
+        <div>
+          <p class="office-menu__k">GEN Z OFFICE GUIDE</p>
+          <p class="office-menu__t">젠지 표류기</p>
+        </div>
+        <button type="button" class="office-menu__close" id="officeMenuClose" aria-label="메뉴 닫기">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <ul class="office-menu__list" id="officeMenuList"></ul>
+      <ul class="office-menu__list office-menu__foot" id="officeMenuFoot"></ul>
+    </nav>
     <!-- 임시 패널: 추후 각 오브제 콘텐츠(모달/메뉴)로 교체 -->
     <div class="office-panel" id="officePanel" role="dialog" aria-modal="false" aria-labelledby="officePanelTitle" hidden>
       <p class="office-panel__k" id="officePanelKey"></p>
@@ -170,93 +206,10 @@
 <script src="js/intro.js" defer></script>
 <script src="js/office.js" defer></script>
 
-<!-- 젠지표류기 본 웹 -->
-<section id="main-web">
-  <iframe
-    id="mainWebFrame"
-    src="/web/home.html"
-    title="젠지표류기 본 웹"
-  ></iframe>
-</section>
 
 <!-- 인트로 → 본 웹 연결: 펼친 페이지의 책갈피가 본 웹 첫 화면 채팅 책의 책갈피로 들어가는 연출 (js/intro.js) -->
 <div class="rib2wrap" aria-hidden="true"><div class="rib2" id="rib2"></div></div>
 
-<script>
-  const mainWebFrame = document.getElementById("mainWebFrame");
-
-  // iframe 안의 100vh 는 iframe 전체 높이(= 본 웹 전체 길이)라서, 첫 화면(.hero)과 채팅 책 위치를
-  // 실제 브라우저 화면 높이에 맞춰 둔다. 그래야 인트로 책갈피가 첫 화면의 채팅 책으로 이어진다.
-  function fitHeroToScreen() {
-    const doc = mainWebFrame.contentDocument;
-    if (!doc || !doc.head) return;
-    let style = doc.getElementById("host-screen-height");
-    if (!style) {
-      style = doc.createElement("style");
-      style.id = "host-screen-height";
-      doc.head.appendChild(style);
-    }
-    const h = window.innerHeight;
-    style.textContent =
-      `.hero{min-height:${h}px}` +
-      `@media (min-width:601px){.hero__book{bottom:${(h * 0.075).toFixed(1)}px}}`;
-  }
-
-  // 본 웹의 헤더·사이드바는 position: fixed 지만 iframe 이 본 웹 전체 길이로 늘어나 있어서 iframe 맨 위에 붙어 버린다.
-  // 본 웹으로 스크롤해 들어가면 그만큼 내려서 항상 지금 보이는 화면에 붙어 있게 하고 (헤더 + data-pin 요소),
-  // 실제 화면 높이를 --host-vh 로 알려 준다 (사이드바 높이).
-  function pinToScreen() {
-    const doc = mainWebFrame.contentDocument;
-    if (!doc || !doc.documentElement) return;
-    const offset = Math.max(0, -mainWebFrame.getBoundingClientRect().top);
-    const value = offset ? `translateY(${offset}px)` : "";
-    doc.querySelectorAll(".header, [data-pin]").forEach((el) => {
-      if (el.style.transform !== value) el.style.transform = value;
-    });
-    const vh = window.innerHeight + "px";
-    if (doc.documentElement.style.getPropertyValue("--host-vh") !== vh) {
-      doc.documentElement.style.setProperty("--host-vh", vh);
-    }
-  }
-
-  function resizeMainWeb() {
-    try {
-      const doc = mainWebFrame.contentDocument;
-      if (!doc) return;
-
-      const height = Math.max(
-        doc.body.scrollHeight,
-        doc.documentElement.scrollHeight
-      );
-
-      if (mainWebFrame.style.height !== height + "px") mainWebFrame.style.height = height + "px";
-    } catch (error) {
-      console.log("iframe 높이 조절 실패", error);
-    }
-  }
-
-  mainWebFrame.addEventListener("load", () => {
-    fitHeroToScreen();
-    resizeMainWeb();
-    pinToScreen();
-
-    const observer = new MutationObserver(resizeMainWeb);
-    // 헤더를 내리는 style 변경(스크롤마다 일어남)은 높이와 상관없으니 class 변경만 본다
-    observer.observe(mainWebFrame.contentDocument.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["class", "hidden", "open"]
-    });
-  });
-
-  window.addEventListener("resize", () => {
-    fitHeroToScreen();
-    resizeMainWeb();
-    pinToScreen();
-  });
-  window.addEventListener("scroll", pinToScreen, { passive: true });
-</script>
 
 </body>
 </html>

@@ -173,6 +173,17 @@ body{margin:0;background:var(--page);color:var(--ink);font-family:var(--sans);li
   .dj-labels{margin-top:8px;font-size:20px}
   .player{padding:8px 0 10px}
 }
+/* 넓은 화면: 스튜디오는 왼쪽, DJ 대화창은 오른쪽 칸에서 세로로 스크롤 */
+@media (min-width:900px){
+  html,body{height:100%}
+  .wrap{max-width:1320px;height:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,400px);grid-template-rows:repeat(6,auto) 1fr;column-gap:24px;align-content:start;position:relative;padding-bottom:20px}
+  .wrap>*:not(.script){grid-column:1}
+  .script{grid-column:2;grid-row:1 / 8;align-self:stretch;min-height:0;margin:0;max-width:none;width:100%;overflow-y:auto;padding:16px 14px;background:var(--card);border:1px solid var(--line);border-radius:22px;scrollbar-width:thin}
+  .row{max-width:92%}
+  .controls{position:static;margin:14px 0 6px}
+  .controls select{width:auto}
+  .tabs{margin-right:0}
+}
 </style>
 </head>
 <body>

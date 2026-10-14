@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { ChapterId, PostItPost, TapeComment, PlacedSticker } from '@/types/community';
 import { CHAPTER_LIST, INITIAL_POSTIT_POSTS } from '@/data/officeData';
 import { PostItNote } from './PostItNote';
@@ -45,24 +45,25 @@ const TOPIC_FILTERS: { id: string; label: string; chapterId?: ChapterId; icon?: 
   { id: '07', label: '공용 공간 & 비품 관리', chapterId: '07' },
 ];
 
+// ?chapter= in the address (client only; the address doesn't change while the page is open)
+const noSubscribe = () => () => {};
+const readChapterParam = () => {
+  const chap = new URLSearchParams(window.location.search).get('chapter');
+  return chap && CHAPTER_LIST.some((c) => c.id === chap) ? chap : null;
+};
+
 export const CommunityView: React.FC<CommunityViewProps> = ({
   initialChapterId,
   onNavigateHome,
   className = '',
 }) => {
   // Selected topic filter ('all' or chapterId '01'~'07')
-  const [selectedTopic, setSelectedTopic] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const chap = params.get('chapter');
-        if (chap && CHAPTER_LIST.some((c) => c.id === chap)) {
-          return chap;
-        }
-      } catch {}
-    }
-    return initialChapterId || 'all';
-  });
+  // ?chapter=01~07 (e.g. from the office welcome popup) picks the starting topic. It is read with
+  // useSyncExternalStore (null on the server) so the server HTML and the first client render match —
+  // reading it inside useState caused a hydration mismatch. A topic the user picks afterwards wins.
+  const urlChapter = useSyncExternalStore(noSubscribe, readChapterParam, () => null);
+  const [pickedTopic, setSelectedTopic] = useState<string | null>(null);
+  const selectedTopic = pickedTopic ?? urlChapter ?? (initialChapterId || 'all');
 
   const [posts, setPosts] = useState<PostItPost[]>(() => {
     try {

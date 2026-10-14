@@ -96,6 +96,75 @@ function articleSlide(article) {
   ];
 }
 
+// --- 완성된 카드 이미지 (images: [{ src, alt }]) — 카드 한 장에 이미지 한 장 ---
+function imageSlides(images) {
+  return images.map(({ src, alt }, i) => {
+    const content = [h("img", {
+      class: "cardnews__image", src, alt, draggable: "false",
+      loading: i === 0 ? "eager" : "lazy", decoding: "async",
+    })];
+    content.image = true;
+    return content;
+  });
+}
+
+// --- 질문 카드 (카드뉴스 앞 · 뒤) ---
+// onAnswer?(i): 답을 고르면 부른다 (results 없는 질문 — 예: 카드뉴스 앞 가운데 팝업)
+// survey: { label, question, options: [5개], scale?: true(1~5 눈금 + 양 끝 이름),
+//           results?: [{ min, title, text, ctas: [{ label, object, href, secondary? }] }] (점수별 안내 + 이동 버튼) }
+// 답을 고르면 앞 질문 카드(results 없음)는 다음 카드로 넘어가고, 뒤 질문 카드는 점수에 맞는 안내와 버튼을 보여준다.
+function surveySlide(survey) {
+  const result = h("div", { class: "survey-card__result", "aria-live": "polite" });
+  const choose = (i, el) => {
+    if (survey.answer != null) return;     // 답은 한 번만 고를 수 있다 (고른 뒤에는 보기가 잠김)
+    survey.answer = i;
+    [...list.children].forEach((option, j) => {
+      option.setAttribute("aria-checked", String(j === i));
+      option.disabled = true;
+    });
+    if (survey.results) {
+      const next = survey.results.find((r) => i + 1 >= r.min);
+      result.replaceChildren(
+        h("p", { class: "survey-card__message-title" }, next.title),
+        h("p", { class: "survey-card__message" }, next.text),
+        h("div", { class: "survey-card__ctas" }, next.ctas.map((cta) => h("a", {
+          class: `survey-card__cta${cta.secondary ? " survey-card__cta--secondary" : ""}`,
+          href: cta.href, onClick: (e) => openFromCard(e, cta),
+        }, cta.label))));
+    } else {
+      // 앞 질문: 잠깐 보여 준 뒤 onAnswer(가운데 팝업 닫기)가 있으면 그것을, 없으면 다음 카드로
+      setTimeout(() => survey.onAnswer
+        ? survey.onAnswer(i)
+        : el.closest(".cardnews__deck")?.querySelector(".cardnews__controls .cardnews__nav:last-child")?.click(), 450);
+    }
+  };
+  const list = h("div", {
+    class: `survey-card__options${survey.scale ? " survey-card__options--scale" : ""}`,
+    role: "radiogroup", "aria-label": survey.question.replace(/\n/g, " "),
+  }, survey.options.map((option, i) => h("button", {
+    class: "survey-card__option", type: "button", role: "radio", "aria-checked": "false",
+    "aria-label": option,
+    onClick: (e) => choose(i, e.currentTarget),
+  }, survey.scale ? h("span", { class: "survey-card__num" }, String(i + 1)) : option)));
+  const content = [
+    survey.label && h("span", { class: "survey-card__label" }, survey.label),
+    h("h3", { class: "survey-card__question" }, survey.question),
+    list,
+    survey.scale && h("div", { class: "survey-card__ends", "aria-hidden": "true" },
+      h("span", null, survey.options[0]), h("span", null, "→"), h("span", null, survey.options[survey.options.length - 1])),
+    result,
+  ];
+  content.survey = true;
+  return content;
+}
+
+// 사무실 팝업 안이면 사무실에 그 물건(퀴즈 · SOS)을 열어 달라고 하고, 따로 열린 페이지면 그냥 링크로 이동
+function openFromCard(e, target) {
+  if (window.parent === window) return;
+  e.preventDefault();
+  window.parent.postMessage({ type: "genz-office:open", object: target.object }, location.origin);
+}
+
 // --- 인스타그램 퍼가기 ---
 // 인스타 embed.js가 blockquote를 실제 게시물 화면(iframe)으로 바꿔준다. 스크립트는 한 번만 불러온다.
 function createInstagram(url) {
@@ -129,7 +198,7 @@ function createDeck(slides) {
 
   const cards = slides.map((content, i) =>
     h("article", {
-      class: `cardnews__card${content.rookie ? " cardnews__card--rookie" : ""}`,
+      class: `cardnews__card${content.rookie ? " cardnews__card--rookie" : ""}${content.image ? " cardnews__card--image" : ""}${content.survey ? " cardnews__card--survey" : ""}`,
       "aria-roledescription": "카드",
       "aria-label": `${i + 1} / ${slides.length}`,
     }, content));

@@ -28,7 +28,7 @@
   const LIGHT = [.2, .78];      // brightness .08 → 1
   const ZOOM = [.16, .86];      // scale 1.03 → 1
   const READY = .8;             // fully lit: hotspots become clickable
-  const HINT_MS = 2600, PULSE_STEP = .14, WAVE_STEP = .6;
+  const HINT_MS = 2600, PULSE_STEP = .14, WAVE_STEP = .6, WELCOME_MS = 1200;
 
   // menu-tag icons per object (24×24, filled with currentColor)
   const ICONS = {
@@ -127,6 +127,7 @@
     content.classList.toggle('office-content--sheet', popup === 'sheet');
     content.classList.toggle('office-content--quiz', popup === 'quiz');
     content.classList.toggle('office-content--card', popup === 'card');
+    content.classList.toggle('office-content--desktop', popup === 'desktop');
     if (popup === 'fit') requestAnimationFrame(fitObject);
     if (phone) {
       const now = new Date();
@@ -212,6 +213,12 @@
   });
   addEventListener('resize', fitObject);
 
+  // messages from the page in the popup (e.g. the card news' last card): open another desk object's popup in its place
+  addEventListener('message', e => {
+    if (e.origin !== location.origin || !e.data || e.data.type !== 'genz-office:open') return;
+    const s = spots.find(o => o.btn.dataset.object === e.data.object);
+    if (s) select(s);
+  });
   // messages from the page in the popup (web/sos.html): close it, or jump to a chapter of the main web below
   addEventListener('message', e => {
     if (e.origin !== location.origin || !e.data || !String(e.data.type).startsWith('genz-sos:')) return;
@@ -259,8 +266,83 @@
     });
     s.reset = () => { over.shape = over.dot = over.focus = false; s.btn.classList.remove('is-hovered'); };
   });
+  // ---- sidebar menu (top-left): one item per hotspot, in markup order; choosing one = clicking that object
+  const menuBtn = document.getElementById('officeMenuBtn'), menu = document.getElementById('officeMenu');
+  const menuList = document.getElementById('officeMenuList'), menuFoot = document.getElementById('officeMenuFoot'), menuScrim = document.getElementById('officeMenuScrim');
+  let menuOpen = false;
+  spots.forEach(s => {
+    const li = document.createElement('li'), item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'office-menu__item' + (s.btn.classList.contains('hotspot--red') ? ' office-menu__item--red' : '');
+    item.innerHTML = `<span class="office-menu__icon"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[s.btn.dataset.object] || ICONS.default}</svg></span>` +
+      '<span class="office-menu__text"></span><svg class="office-menu__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
+    item.querySelector('.office-menu__text').textContent = s.btn.dataset.label;
+    // hovering an item lights up its object on the desk
+    item.addEventListener('pointerenter', () => s.btn.classList.add('is-hovered'));
+    item.addEventListener('pointerleave', () => s.btn.classList.remove('is-hovered'));
+    item.addEventListener('click', () => { s.btn.classList.remove('is-hovered'); closeMenu(false); select(s); });
+    li.appendChild(item);
+    // 나가기(red) sits on its own at the bottom of the sidebar
+    (s.btn.classList.contains('hotspot--red') ? menuFoot : menuList).appendChild(li);
+  });
+  function openMenu() {
+    if (menuOpen) return;
+    menuOpen = true;
+    menu.hidden = false;
+    menuBtn.setAttribute('aria-expanded', 'true');
+    requestAnimationFrame(() => {
+      stage.classList.add('is-menu-open');
+      menuList.querySelector('.office-menu__item')?.focus({ preventScroll: true });
+    });
+  }
+  function closeMenu(refocus = true) {
+    if (!menuOpen) return;
+    menuOpen = false;
+    stage.classList.remove('is-menu-open');
+    menuBtn.setAttribute('aria-expanded', 'false');
+    if (refocus && ready) menuBtn.focus({ preventScroll: true });
+    setTimeout(() => { if (!menuOpen) menu.hidden = true; }, reduce ? 0 : 320);
+  }
+  menuBtn.addEventListener('click', () => (menuOpen ? closeMenu() : openMenu()));
+  document.getElementById('officeMenuClose').addEventListener('click', () => closeMenu());
+  menuScrim.addEventListener('click', () => closeMenu());
+
+  // ---- welcome popup (first time the office lights up): "어떤 부분이 제일 고민되시나요?" + the 7 topics.
+  // Choosing one opens 고민상담소 (the post-it's page) filtered to that topic: /community?chapter=01..07
+  const welcome = document.getElementById('officeWelcome');
+  let welcomeOpen = false;
+  function openWelcome() {
+    if (welcomeOpen || !ready || contentOpen || menuOpen) return;
+    welcomeOpen = true;
+    welcome.hidden = false;
+    requestAnimationFrame(() => {
+      welcome.classList.add('is-open');
+      welcome.querySelector('.office-welcome__item')?.focus({ preventScroll: true });
+    });
+  }
+  function closeWelcome() {
+    if (!welcomeOpen) return;
+    welcomeOpen = false;
+    welcome.classList.remove('is-open');
+    setTimeout(() => { if (!welcomeOpen) welcome.hidden = true; }, reduce ? 0 : 300);
+  }
+  welcome.querySelectorAll('.office-welcome__item').forEach(item => item.addEventListener('click', () => {
+    closeWelcome();
+    const s = spots.find(o => o.btn.dataset.object === 'postit');
+    spots.forEach(o => o.btn.classList.toggle('is-active', o === s));
+    active = s;
+    openContent(`/community?chapter=${item.dataset.chapter}`, s.btn.dataset.title || s.btn.dataset.label, s.btn.dataset.popup);
+  }));
+  document.getElementById('officeWelcomeSkip').addEventListener('click', closeWelcome);
+  welcome.addEventListener('click', e => { if (e.target === welcome) closeWelcome(); });   // click on the dim area
+
   panelClose.addEventListener('click', close);
-  addEventListener('keydown', e => { if (e.key === 'Escape' && active) close(); });
+  addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (welcomeOpen) closeWelcome();
+    else if (menuOpen) closeMenu();
+    else if (active) close();
+  });
   window.genzOffice = { close };
 
   // ---- first entry: one staggered pulse + the hint (once per page load)
@@ -270,12 +352,14 @@
     ready = on;
     stage.classList.toggle('is-ready', on);
     spots.forEach(s => { s.btn.tabIndex = on ? 0 : -1; });
-    if (!on) { spots.forEach(s => s.reset()); close(); return; }
+    menuBtn.tabIndex = on ? 0 : -1;
+    if (!on) { spots.forEach(s => s.reset()); closeMenu(false); closeWelcome(); close(); return; }
     if (entered) return;
     entered = true;
     if (!reduce) spots.forEach(s => s.btn.classList.add('is-pulse'));
     hint.classList.add('is-shown');
     setTimeout(() => hint.classList.remove('is-shown'), HINT_MS);
+    setTimeout(openWelcome, reduce ? 0 : WELCOME_MS);   // after the markers' first pulse
   }
 
   // ---- scroll-driven reveal
