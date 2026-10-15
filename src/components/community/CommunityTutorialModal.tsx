@@ -150,9 +150,36 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
   useLayoutEffect(() => {
     if (!isOpen) return;
 
-    const findTarget = () =>
-      (stepData.altTargetId && document.getElementById(stepData.altTargetId)) ||
-      document.getElementById(stepData.targetId);
+    // 화면에 실제로 보이는지: 요소 안의 몇 지점에서 맨 위에 있는 것이 그 요소(또는 그 안쪽)인지 확인한다.
+    // (다른 창에 가려진 요소를 비추면, 사용자 눈에는 엉뚱한 곳에 빛이 들어온 것처럼 보이기 때문)
+    // 튜토리얼 레이어는 pointer-events-none 이라 확인에 걸리지 않고, 설명 카드에 일부가 가려져도 다른 지점으로 판단한다.
+    const isVisible = (el: HTMLElement) => {
+      const r = el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2) return false;
+      const points: [number, number][] = [
+        [0.5, 0.5],
+        [0.2, 0.2],
+        [0.8, 0.2],
+        [0.2, 0.8],
+        [0.8, 0.8],
+      ];
+      // 화면 밖(스크롤해야 보이는) 지점은 판단에서 빼고, 화면 안 지점이 모두 다른 요소에 가려졌을 때만 "안 보임"
+      const onScreen = points
+        .map(([fx, fy]) => [r.left + r.width * fx, r.top + r.height * fy] as const)
+        .filter(([x, y]) => x >= 0 && y >= 0 && x < window.innerWidth && y < window.innerHeight);
+      if (onScreen.length === 0) return true; // 아직 화면 밖 → 가려진 게 아니라 곧 스크롤되어 보일 대상
+      return onScreen.some(([x, y]) => {
+        const hit = document.elementFromPoint(x, y);
+        return !!hit && (hit === el || el.contains(hit));
+      });
+    };
+
+    // 대체 대상(상세창의 테이프 조언 영역, 열린 스티커함)은 "실제로 보일 때만" 비추고, 아니면 원래 대상으로
+    const findTarget = () => {
+      const alt = stepData.altTargetId ? document.getElementById(stepData.altTargetId) : null;
+      if (alt && isVisible(alt)) return alt;
+      return document.getElementById(stepData.targetId);
+    };
 
     findTarget()?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
 

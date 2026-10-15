@@ -230,8 +230,10 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   // 보이는 라디오 사연: 7대 카테고리별로 공감 스티커 + 테이프 조언을 가장 많이 받은 포스트잇 1개씩
   const radioPosts = useMemo(() => getRadioPosts(posts), [posts]);
   const radioPostIds = useMemo(() => new Set(radioPosts.map((p) => p.id)), [radioPosts]);
+  const [radioAutoPlay, setRadioAutoPlay] = useState(false); // 라디오 창의 토글로 사연을 바꾼 경우 바로 재생
   const openRadio = (p: PostItPost) => {
     setIsRadioHubOpen(false);
+    setRadioAutoPlay(false);
     setRadioPost(p);
   };
 
@@ -618,7 +620,17 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
       )}
 
       {radioPost && (
-        <VisibleRadioModal key={radioPost.id} post={radioPost} onClose={() => setRadioPost(null)} />
+        <VisibleRadioModal
+          key={radioPost.id}
+          post={radioPost}
+          onClose={() => setRadioPost(null)}
+          stories={radioPosts}
+          onSelectStory={(p) => {
+            setRadioAutoPlay(true);
+            setRadioPost(p);
+          }}
+          autoPlay={radioAutoPlay}
+        />
       )}
 
       <PostItWriteModal

@@ -56,7 +56,7 @@ export const OfficeStickerDrawer: React.FC<OfficeStickerDrawerProps> = ({
     <>
       {/* Floating Sticking Banner when active sticker is held */}
       {activeStickerId && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-bounce duration-1000">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[55] animate-bounce duration-1000">
           <div className="flex items-center gap-3 px-5 py-2.5 bg-[#112334] text-white rounded-full shadow-2xl border border-[#2B729E] font-ui text-xs">
             <span className="flex items-center gap-1.5 font-bold text-[#FFDC73]">
               <Sparkles className="w-3.5 h-3.5 animate-spin" />
@@ -78,7 +78,7 @@ export const OfficeStickerDrawer: React.FC<OfficeStickerDrawerProps> = ({
 
       {/* Main Drawer Overlay */}
       {isOpen && (
-        <div className="fixed inset-x-0 bottom-0 z-40 max-w-3xl mx-auto px-4 pb-4 animate-in slide-in-from-bottom duration-200">
+        <div className="fixed inset-x-0 bottom-0 z-[55] max-w-3xl mx-auto px-4 pb-4 animate-in slide-in-from-bottom duration-200">
           <div id="tutorial-target-sticker-drawer" className="bg-[#FAF8F5] rounded-t-2xl rounded-b-xl shadow-2xl border-2 border-[#D2CCC2] overflow-hidden">
             {/* Header */}
             <div className="px-5 py-3.5 bg-[#EAE6DF] border-b border-[#D2CCC2] flex items-center justify-between">

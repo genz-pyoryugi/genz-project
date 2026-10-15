@@ -5,15 +5,27 @@
 // 포스트잇 고민 + 테이프 조언 → /api/radio/generate 로 대본·음성 생성 → 대사 단위로 DJ 강조·말풍선·자막을 음성에 맞춰 보여준다.
 
 import React, { useEffect, useRef, useState } from 'react';
-import { X, RotateCcw, Radio, Loader2, AlertTriangle } from 'lucide-react';
+import { X, RotateCcw, Radio, Loader2, AlertTriangle, ChevronDown } from 'lucide-react';
 import { PostItPost } from '@/types/community';
+import { CHAPTER_LIST } from '@/data/officeData';
 import { RadioEpisode, RadioSegment, RadioSpeaker } from '@/types/radio';
 import { RadioPlayer, lineIndexAt } from './radioPlayer';
 
 interface VisibleRadioModalProps {
   post: PostItPost;
   onClose: () => void;
+  // modal: 고민상담소 위에 뜨는 창 / page: 단독 페이지 (메인 화면 이어폰 → 사무실 팝업 안에 바로 라디오 화면)
+  variant?: 'modal' | 'page';
+  stories?: PostItPost[]; // 있으면 닫기 버튼 왼쪽에 사연 선택 토글을 보여 준다
+  onSelectStory?: (post: PostItPost) => void;
+  autoPlay?: boolean; // 토글로 사연을 바꿨을 때 바로 재생
 }
+
+/** 토글에 보이는 짧은 이름: "01 · 조직 이해&적용" */
+const storyLabel = (p: PostItPost) => {
+  const chapter = CHAPTER_LIST.find((c) => c.id === p.chapterId);
+  return chapter ? `${chapter.number} · ${chapter.title}` : p.title;
+};
 
 const HOSTS: Record<RadioSpeaker, { name: string; role: string; img: string; bg: string }> = {
   senior: { name: '하루', role: '선배 DJ', img: '/radio/dj-cat.png', bg: '#e0f7ff' },
@@ -49,7 +61,15 @@ const fmt = (s: number) => {
   return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
 };
 
-export const VisibleRadioModal: React.FC<VisibleRadioModalProps> = ({ post, onClose }) => {
+export const VisibleRadioModal: React.FC<VisibleRadioModalProps> = ({
+  post,
+  onClose,
+  variant = 'modal',
+  stories,
+  onSelectStory,
+  autoPlay = false,
+}) => {
+  const isPage = variant === 'page';
   const [episode, setEpisode] = useState<RadioEpisode | null>(null);
   const [error, setError] = useState<{ message: string; code?: string } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -112,11 +132,13 @@ export const VisibleRadioModal: React.FC<VisibleRadioModalProps> = ({ post, onCl
       onError: setAudioLoadError,
     });
     playerRef.current = player;
+    // 토글로 다른 사연을 고른 경우 음성이 준비되는 대로 바로 재생 (브라우저가 막으면 재생 버튼을 누르면 됨)
+    if (autoPlay) player.ready.then(() => player.play());
     return () => {
       player.dispose();
       playerRef.current = null;
     };
-  }, [episode]);
+  }, [episode, autoPlay]);
 
   const togglePlay = () => {
     const player = playerRef.current;
@@ -204,8 +226,12 @@ export const VisibleRadioModal: React.FC<VisibleRadioModalProps> = ({ post, onCl
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150"
-      onClick={onClose}
+      className={
+        isPage
+          ? 'min-h-screen flex justify-center p-2 sm:p-4 bg-[#F6F4EC]'
+          : 'fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150'
+      }
+      onClick={isPage ? undefined : onClose}
     >
       {/* DJ 이미지의 검은 배경을 화면에서만 투명하게 (원본 PNG는 그대로) */}
       <svg width="0" height="0" aria-hidden="true" className="absolute">
@@ -217,7 +243,7 @@ export const VisibleRadioModal: React.FC<VisibleRadioModalProps> = ({ post, onCl
       </svg>
 
       <div
-        className="relative w-full max-w-3xl my-auto rounded-[22px] bg-[#F6F4EC] shadow-2xl font-ui text-[#102B46]"
+        className={`relative w-full max-w-3xl rounded-[22px] bg-[#F6F4EC] font-ui text-[#102B46] ${isPage ? 'h-fit shadow-md' : 'my-auto shadow-2xl'}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* ===== 스튜디오 무대 ===== */}
@@ -233,13 +259,40 @@ export const VisibleRadioModal: React.FC<VisibleRadioModalProps> = ({ post, onCl
               </b>
               <span className="block truncate">사연: {post.title}</span>
             </p>
-            <button
-              onClick={onClose}
-              className="shrink-0 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-              aria-label="닫기"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="shrink-0 flex items-center gap-2">
+              {/* 사연 선택 토글: 7대 카테고리 인기 사연 중 하나로 바로 바꿔 듣기 */}
+              {stories && stories.length > 1 && onSelectStory && (
+                <label className="relative">
+                  <span className="sr-only">다른 사연 듣기</span>
+                  <select
+                    value={post.id}
+                    onChange={(e) => {
+                      const next = stories.find((p) => p.id === e.target.value);
+                      if (next) onSelectStory(next);
+                    }}
+                    className="appearance-none max-w-[46vw] sm:max-w-none truncate pl-3.5 pr-8 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs sm:text-[13px] font-bold cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-[#56a5ce]"
+                    title="다른 사연 듣기"
+                  >
+                    {stories.map((p) => (
+                      <option key={p.id} value={p.id} className="text-[#102B46] bg-white">
+                        📻 {storyLabel(p)}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/80" />
+                </label>
+              )}
+              {/* 페이지(사무실 팝업 안)에서는 팝업 자체의 닫기 버튼이 있으므로 숨긴다 → 토글이 그 자리(오른쪽 끝)로 */}
+              {!isPage && (
+                <button
+                  onClick={onClose}
+                  className="shrink-0 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                  aria-label="닫기"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* DJ 패널 */}
