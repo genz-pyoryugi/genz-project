@@ -11,6 +11,8 @@ function createNewsletterCardnews({content=NEWSLETTER_CONTENT,onComplete}={}) {
   const root=h('div',{class:'newsletter-cardnews newsletter-cardnews--lesson',tabindex:'0','aria-label':content.title});
   function render(focus=false) {
     const slide=content.slides[index];
+    const references=index===content.slides.length-1 ? content.references : null;
+    root.classList.toggle('newsletter-cardnews--references',!!references?.length);
     root.dataset.page=String(index+1);
     const sprite=Number.isInteger(slide.image?.spriteIndex);
     const picture=h('div',{class:'newsletter-art-window'+(sprite?' newsletter-art-window--sheet':'')},h('img',{
@@ -43,11 +45,14 @@ function createNewsletterCardnews({content=NEWSLETTER_CONTENT,onComplete}={}) {
       h('div',{class:'newsletter-layout'},
         h('figure',{class:'newsletter-art'},picture),
         h('div',{class:'newsletter-copy'},h('header',null,
-          h('div',{class:'newsletter-heading-row'},h('p',{class:'newsletter-category'},slide.title),
-            content.sourceUrl && index===content.slides.length-1 ? h('a',{
+          h('div',{class:'newsletter-heading-row'},h('p',{class:'newsletter-category'},slide.title)),heading),panel,...rows,
+          h('blockquote',{class:'newsletter-confirm-quote'},h('div',null,h('h4',null,slide.highlight.label),h('p',null,slide.highlight.text))),
+          references?.length ? h('div',{class:'newsletter-source-row'},
+            h('aside',{class:'newsletter-references','aria-label':'출처'},
+              h('strong',null,'출처'),h('div',null,references.map(text=>h('p',null,text)))),
+            content.sourceUrl ? h('a',{
               class:'newsletter-source',href:content.sourceUrl,target:'_blank',rel:'noopener noreferrer',
-            },'원문보기 ↗') : null),heading),panel,...rows,
-          h('blockquote',{class:'newsletter-confirm-quote'},h('div',null,h('h4',null,slide.highlight.label),h('p',null,slide.highlight.text))))),
+            },'원문보기 ↗') : null) : null)),
       h('aside',{class:'newsletter-tip'},createTipBell(),h('strong',null,'핵심 정리'),h('p',null,slide.takeaway)),
       h('nav',{class:'newsletter-navigation','aria-label':'뉴스레터 카드 이동'},
         h('button',{type:'button',disabled:index===0,onClick:()=>move(-1)},'이전'),

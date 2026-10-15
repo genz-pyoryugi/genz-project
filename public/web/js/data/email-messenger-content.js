@@ -6,6 +6,7 @@ const EMAIL_MESSENGER_CONTENT={
     preQuestion:'나는 업무의 긴급성, 기록 필요성, 공유 대상을 고려해 메일과 메신저의 사용 방식을 조율하는 방법을 알고 있다.',
     postQuestion:'나는 업무의 긴급성, 기록 필요성, 공유 대상을 고려해 메일과 메신저의 사용 방식을 조율하는 방법을 설명할 수 있다.'},
   sourceNote:'사용자 제공 인포그래픽과 지정 동아일보 기사에서 출발한 교육용 재구성. 기사는 온라인 게시글을 전한 사례이며 특정 세대 전체의 특성이나 검증된 추세로 일반화하지 않음. 추가 대화와 실천 방법은 학습용 예시.',
+  references:["뉴시스, 「“저 메일 안 쓰는데요”…메신저로 업무 공유해달라는 신입사원」, 동아일보 게재, 2026.06.22."],
   slides:[
     {title:'업무 소통의 엇갈림',message:'편한 도구가 달라도, 업무는 함께 맞춰요',
       panel:{label:'사례의 출발점',text:'메일로 보낸 업무를 상대가 확인하지 않았어요. 한쪽은 빠른 메신저 대화를 원하고, 다른 쪽은 기록과 관계자 공유가 필요하다고 생각해요. 도구의 선호보다 놓친 업무 조건부터 살펴볼까요?'},
@@ -47,7 +48,7 @@ const EMAIL_MESSENGER_CONTENT={
         {label:'공동 이해',text:'누가 확인해야 하고 어떤 행동이 필요한지 맞춰요. 누락이나 혼선이 생기면 채널과 확인 규칙을 조정해요.'}],
       highlight:{label:'실천 방법',text:'다음 업무를 전달하기 전 “얼마나 급한가·무엇을 남길까·누가 확인할까”를 점검하고, 상대와 확인 방식을 맞춰보세요.'},
       takeaway:'좋은 업무 소통은 도구의 승패가 아니라, 필요한 기록과 응답을 함께 확보하는 데서 시작해요.'},
-  ].map((slide,index)=>({...slide,image:{src:'/web/assets/picture/email-messenger-scenes.png',spriteIndex:index,alt:[
+  ].map((slide,index)=>({...slide,image:{src:index===1?'/web/assets/picture/email-messenger-quick-response-v2.png':index===2?'/web/assets/picture/email-messenger-record-sharing-v2.png':'/web/assets/picture/email-messenger-scenes.png',...(index===1||index===2?{}:{spriteIndex:index}),alt:[
     '메일과 메신저 사이에서 업무 확인 방식의 차이를 이야기하는 동료들','메신저로 짧은 질문과 응답 시점을 명확하게 전달하는 장면','업무 결정과 공유 자료를 기록하며 함께 확인하는 동료들','메일 기록과 메신저 알림을 함께 쓰는 방식을 합의하는 장면','긴급성과 기록 필요성을 기준으로 팀의 소통 규칙을 정하는 장면'][index]}})),
 };
 CARDNEWS_CONTENTS.push(EMAIL_MESSENGER_CONTENT);

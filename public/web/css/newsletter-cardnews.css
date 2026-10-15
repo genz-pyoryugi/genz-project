@@ -100,6 +100,16 @@
 .newsletter-confirm-quote>span{font:700 48px/1 Georgia,serif;align-self:center;height:32px;color:#b69b6b}
 .newsletter-confirm-quote p{font-size:16px;font-weight:800;line-height:1.5;margin:0;word-break:keep-all}
 .newsletter-cardnews--lesson .newsletter-copy{gap:6px}
+.newsletter-references{display:flex;gap:6px;margin-top:auto;padding-top:4px;color:#68665f;font-size:11px;line-height:1.45;overflow-wrap:anywhere}
+.newsletter-references>strong{flex-shrink:0;font-weight:700}
+.newsletter-references p{margin:0}
+.newsletter-references p+p{margin-top:2px}
+.newsletter-source-row{display:flex;align-items:flex-end;gap:12px;margin-top:auto;flex-shrink:0}
+.newsletter-source-row .newsletter-references{flex:1;min-width:0;margin-top:0}
+.newsletter-source-row .newsletter-source{position:static;display:flex;align-items:center;justify-content:center;flex:0 0 90px;width:90px;height:34px;box-sizing:border-box;margin:0;padding:6px 10px;font-size:13px;line-height:1.2;white-space:nowrap}
+.newsletter-cardnews--references{height:auto;min-height:675px}
+.newsletter-cardnews--references .newsletter-layout{min-height:523px}
+.cardnews-content[data-content-id="shared-spaces-supplies"] .newsletter-cardnews--references .newsletter-copy{gap:5.5px}
 .newsletter-cardnews--lesson .newsletter-category{margin-bottom:8px}
 .newsletter-heading-row{display:flex;align-items:stretch;justify-content:space-between;gap:16px;margin-bottom:8px}
 .newsletter-cardnews--lesson .newsletter-heading-row .newsletter-category{margin:0}

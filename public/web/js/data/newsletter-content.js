@@ -6,6 +6,7 @@ const NEWSLETTER_CONTENT={
     preQuestion:'나는 문서와 대화로 업무 정보를 정확히 이해·전달하고, 필요한 내용을 확인하는 방법을 알고 있다.',
     postQuestion:'나는 문서와 대화로 업무 정보를 정확히 이해·전달하고, 필요한 내용을 확인하는 방법을 설명할 수 있다.'},
   imageStatus:'generated-from-user-infographic-references',
+  references:["한국산업인력공단, 『직업기초능력 가이드북: 학습자용 — 의사소통능력』, 발행연도 미상."],
   slides:[
     {title:'직장생활의 기본 역량',message:'일을 잘하려면, 서로의 이해부터 맞춰요',
       imageInstruction:'인포그래픽 왼쪽 상단: 문서를 들고 전화하는 직장인과 주변 동료들의 사무실 소통 장면',
