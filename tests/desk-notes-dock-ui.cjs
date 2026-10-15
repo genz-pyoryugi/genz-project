@@ -1,0 +1,58 @@
+const {chromium}=require('../.tools/browser/node_modules/playwright');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const {mockSupabase}=require('./helpers/supabase.cjs');
+const base=process.env.CHECKLIST_TEST_URL||'http://localhost:3002';
+(async()=>{
+ const browser=await chromium.launch();
+ try{
+  const context=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'no-preference'});
+  await mockSupabase(context);
+  const page=await context.newPage();
+  await page.goto(base+'/intro/index.html?desk=1',{waitUntil:'domcontentloaded'});
+  await page.waitForSelector('#officeStage.is-ready');
+  await page.locator('.hotspot[data-object=notebook] .hotspot-dot').click();
+  await page.waitForSelector('#officeContent.is-open');
+  const frame=await (await page.locator('#officeContentFrame').elementHandle()).contentFrame();
+  await frame.waitForSelector('.cute-note input:not(:disabled)');
+  const title=await frame.locator('.cute-note h2').innerText();
+  const before=await page.locator('.office-content__dialog').boundingBox();
+  await frame.getByRole('button',{name:'현재 체크리스트 책상에 붙이기'}).click();
+  await page.waitForFunction(()=>document.querySelector('.office-content__dialog').getAnimations().some(animation=>animation.effect.getTiming().duration===560));
+  await page.waitForFunction(()=>document.querySelector('.office-content__dialog').getAnimations().some(animation=>{
+   const p=animation.effect.getComputedTiming().progress;return animation.effect.getTiming().duration===560&&p>.2&&p<1;
+  }));
+  const shrinking=await page.locator('.office-content__dialog').boundingBox();
+  assert.ok(shrinking.width<before.width-10,'Actual checklist dialog shrinks on pin');
+  await page.locator('#officeContent').waitFor({state:'hidden'});
+  const note=page.locator('.desk-note');
+  assert.ok(await note.evaluate(el=>el.classList.contains('desk-note--floating')));
+  assert.ok(await note.evaluate(el=>el.open));
+  assert.equal(await note.locator('strong').innerText(),title);
+  assert.equal(await note.getByRole('checkbox').count(),5);
+  assert.equal(await note.locator('.desk-note__brand').innerText(),'GEN Z CHECK-LIST');
+  const target=await note.boundingBox();
+  const photo=await page.locator('.office-img').boundingBox();
+  assert.ok(Math.abs(target.x-(photo.x+photo.width*.76-target.width/2))<3,'Lands on the partition next to the monitor');
+  assert.ok(Math.abs(target.y-(photo.y+photo.height*.17))<3);
+  assert.ok(await page.evaluate(()=>Object.keys(JSON.parse(localStorage.getItem('genz-office-desk-note-positions-v1'))).length===1));
+  fs.mkdirSync('.tools/screenshots',{recursive:true});await page.screenshot({path:'.tools/screenshots/checklist-docked-on-partition.png'});
+  await page.reload({waitUntil:'domcontentloaded'});await page.waitForSelector('#officeStage.is-ready');
+  const restored=await page.locator('.desk-note').boundingBox();assert.ok(Math.abs(restored.x-target.x)<3&&Math.abs(restored.y-target.y)<3,'Partition position survives reload');
+  console.log('PASS: real shrink animation, partition landing, miniature checklist, five items, saved position');
+  await context.close();
+  const standalone=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'no-preference'});
+  await mockSupabase(standalone);
+  const direct=await standalone.newPage();
+  await direct.goto(base+'/checklist?preview=1');await direct.waitForSelector('.cute-note input:not(:disabled)');
+  await direct.getByRole('button',{name:'현재 체크리스트 책상에 붙이기'}).click();
+  await direct.waitForURL(url=>url.pathname==='/intro/index.html'&&url.searchParams.get('desk')==='1');
+  await direct.waitForSelector('#officeStage.is-ready');
+  await direct.waitForFunction(()=>document.querySelector('.desk-note')?.getAnimations().some(animation=>animation.effect.getTiming().duration===560));
+  await direct.waitForFunction(()=>document.querySelector('.desk-note')?.getAnimations().length===0);
+  assert.ok(await direct.locator('.desk-note').evaluate(el=>el.classList.contains('desk-note--floating')&&el.open));
+  assert.equal(new URL(direct.url()).searchParams.has('pin'),false,'Reload will not reset a manually moved note');
+  console.log('PASS: standalone checklist also opens the office and shrinks onto the partition');
+  await standalone.close();
+ }finally{await browser.close();}
+})().catch(error=>{console.error(error);process.exitCode=1;});

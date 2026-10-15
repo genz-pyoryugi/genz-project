@@ -97,7 +97,7 @@
   // ---- content popup (e.g. /community) in an iframe over the office; the office page underneath stays as is
   const content = document.getElementById('officeContent'), contentFrame = document.getElementById('officeContentFrame');
   const contentClose = document.getElementById('officeContentClose'), contentTitle = document.getElementById('officeContentTitle');
-  let lockedY = 0, contentOpen = false;
+  let lockedY = 0, contentOpen = false, pinAnimation = null;
   function lockScroll() {
     lockedY = scrollY;
     const bar = innerWidth - document.documentElement.clientWidth;          // keep the layout from shifting when the scrollbar hides
@@ -112,8 +112,10 @@
   // popup = "chat" → a narrow chat-window popup, "phone" → the same inside a phone frame (the page brings its own header + close);
   // otherwise the big content popup with a title bar
   function openContent(href, label, popup) {
+    if(pinAnimation)pinAnimation.cancel();
     if (contentFrame.getAttribute('src') !== href) contentFrame.src = href;   // keep it loaded for quick reopening
     content.classList.toggle('office-content--chat', popup === 'chat');
+    content.classList.toggle('office-content--portrait', popup === 'portrait');
     const phone = popup === 'phone' || popup === 'phone-dark';
     content.classList.toggle('office-content--phone', phone);
     content.classList.toggle('office-content--phone-dark', popup === 'phone-dark');
@@ -128,10 +130,12 @@
     contentOpen = true;
     stage.classList.toggle('is-phone-open', phone);   // hides the photo's own left arm (.office-patch)
     requestAnimationFrame(() => content.classList.add('is-open'));
-    contentClose.focus({ preventScroll: true });
+    if(popup==='portrait')contentFrame.focus({preventScroll:true});
+    else contentClose.focus({ preventScroll: true });
   }
   function closeContent() {
     if (!contentOpen) return;              // closing runs once (it may be called again while the popup fades out)
+    if(pinAnimation)pinAnimation.cancel();
     contentOpen = false;
     content.classList.remove('is-open');
     stage.classList.remove('is-phone-open');
@@ -140,8 +144,40 @@
   }
   contentClose.addEventListener('click', close);
   document.getElementById('officeContentBackdrop').addEventListener('click', close);
+  addEventListener('genz-desk:open', e => {
+    const note=window.genzDeskNotes?.get(e.detail?.id);
+    if(!note)return;
+    const params=new URLSearchParams(note.kind==='completed'?{record:note.recordId||''}:{pinned:note.id});
+    openContent(`/checklist?${params}`,note.title,'portrait');
+  });
+  function pinChecklist(id){
+    if(pinAnimation)return;
+    const target=window.genzDeskNotes.dock(id);
+    if(!target)return;
+    if(reduce||!contentOpen){close();window.genzDeskNotes.focus(id);return;}
+    const dialog=content.querySelector('.office-content__dialog');
+    const from=dialog.getBoundingClientRect();
+    const scale=Math.min(target.width/from.width,target.height/from.height);
+    const animation=dialog.animate([
+      {transform:'translate(0,0) scale(1)',opacity:1,transformOrigin:'top left'},
+      {transform:`translate(${target.left-from.left}px,${target.top-from.top}px) scale(${scale})`,opacity:0,transformOrigin:'top left'},
+    ],{duration:560,easing:'cubic-bezier(.3,.05,.2,1)',fill:'forwards'});
+    const backdrop=content.querySelector('.office-content__backdrop').animate([{opacity:1},{opacity:0}],{duration:560,fill:'forwards'});
+    pinAnimation=animation;
+    animation.oncancel=()=>{backdrop.cancel();if(pinAnimation===animation)pinAnimation=null;};
+    animation.onfinish=()=>{
+      animation.oncancel=null;pinAnimation=null;
+      close();content.hidden=true;animation.cancel();backdrop.cancel();
+      window.genzDeskNotes.focus(id);
+    };
+  }
   // messages from the page in the popup (web/sos.html): close it, or jump to a chapter of the main web below
   addEventListener('message', e => {
+    if(e.origin===location.origin&&e.source===contentFrame.contentWindow&&e.data?.type==='genz-checklist:pinned'&&typeof e.data.id==='string'){
+      if(window.genzDeskNotes?.get(e.data.id))pinChecklist(e.data.id);
+      return;
+    }
+    if (e.origin === location.origin && e.source === contentFrame.contentWindow && e.data?.type === 'genz-checklist:close') { close(); return; }
     if (e.origin !== location.origin || !e.data || !String(e.data.type).startsWith('genz-sos:')) return;
     close();
     if (e.data.type !== 'genz-sos:chapter') return;
@@ -185,7 +221,7 @@
     s.reset = () => { over.shape = over.dot = over.focus = false; s.btn.classList.remove('is-hovered'); };
   });
   panelClose.addEventListener('click', close);
-  addEventListener('keydown', e => { if (e.key === 'Escape' && active) close(); });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && (active||contentOpen)) close(); });
   window.genzOffice = { close };
 
   // ---- first entry: one staggered pulse + the hint (once per page load)

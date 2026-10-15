@@ -131,6 +131,13 @@
 .office-content__close:focus-visible{outline:2px solid rgb(40,115,255);outline-offset:2px}
 .office-content__close svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
 .office-content__frame{flex:1;display:block;width:100%;min-height:0;border:0;background:#f6f3ec}
+/* Checklist: a portrait sheet. Its narrow iframe also stacks checklist items. */
+.office-content--portrait .office-content__dialog{
+  width:min(94vw,580px,74vh);width:min(94vw,580px,74svh);
+  height:min(92vh,720px);height:min(92svh,720px);
+}
+.office-content--portrait .office-content__bar{display:none}
+.office-content--portrait .office-content__dialog,.office-content--portrait .office-content__screen,.office-content--portrait .office-content__frame{background:transparent;box-shadow:none}
 @media (prefers-reduced-motion:reduce){.office-content__backdrop,.office-content__dialog{transition:none}}
 /* chat-window popup (SOS): narrow, dark like the chat, no header bar (the chat page has its own title + close) */
 .office-content--chat .office-content__bar{display:none}
@@ -193,3 +200,30 @@
 .office-content--phone-dark .office-content__status{color:#fff}
 .office-content--phone-dark .office-content__home{background:rgba(255,255,255,.75)}
 .office-content--phone-dark .office-content__agent{display:none}
+
+/* Small notes live beside the desk, outside the full checklist popup. */
+.desk-notes{position:absolute;top:58px;right:18px;width:260px;max-height:calc(100% - 88px);z-index:10;pointer-events:auto;color:#193852;font-family:'IBM Plex Sans KR','Malgun Gothic',sans-serif;opacity:0;visibility:hidden;transform:translateX(12px);transition:opacity .2s,transform .2s}
+.desk-notes{position:fixed;box-sizing:border-box}.desk-notes *{box-sizing:border-box}
+.desk-notes[hidden]{display:none}.office-stage.is-ready .desk-notes{opacity:1;visibility:visible;transform:none}
+.desk-notes__header{display:flex;justify-content:flex-end}.desk-notes__toggle{display:flex;align-items:center;gap:9px;padding:9px 13px;border:1px solid #d2c18b;border-radius:9px;background:#fff5cf;color:#193852;font:700 13px 'IBM Plex Sans KR','Malgun Gothic',sans-serif;box-shadow:0 3px 12px #0002;cursor:pointer}
+.desk-notes__count{min-width:21px;padding:2px 5px;border-radius:50%;background:#2e5975;color:#fff;text-align:center;font-size:11px}
+.desk-notes__list{max-height:calc(100svh - 155px);overflow:auto;overscroll-behavior:contain;padding:10px 4px 8px;scrollbar-width:thin}.desk-notes__list[hidden]{display:none}
+.desk-note{position:relative;margin:7px 0 12px;padding:10px 12px 12px;border:1px solid #dbc988;border-radius:3px 7px 4px 6px;background:#fff3b9;box-shadow:3px 5px 10px #0003;transform:rotate(.7deg)}
+.desk-note:nth-child(even){background:#fffdf0;transform:rotate(-.7deg)}.desk-note::before{content:'';position:absolute;top:-6px;left:37%;width:58px;height:13px;background:#eed79cbb;transform:rotate(-4deg);pointer-events:none}
+.desk-note__summary{display:flex;flex-direction:column;gap:5px;padding:5px 0;cursor:pointer;list-style:none}.desk-note__summary::-webkit-details-marker{display:none}.desk-note__summary strong{font-size:15px;line-height:1.5;overflow-wrap:anywhere}.desk-note__kind{color:#65753f;font-size:10px;font-weight:700}.desk-note__progress{font-size:11px;color:#6d725c}
+.desk-note__category{font-size:11px;margin:6px 0 8px;color:#617286}.desk-note__items{display:grid;gap:4px;list-style:none;margin:0;padding:0}.desk-note__items label{display:flex;align-items:flex-start;gap:7px;min-height:29px;padding:4px 0;font-size:12px;line-height:1.6;cursor:pointer}.desk-note__items input{flex:none;margin:4px 0 0;accent-color:#68983f}.desk-note__items input:checked+span{text-decoration:line-through;color:#6d7c65}.desk-note__items input:disabled{opacity:1}
+.desk-note__actions{display:flex;justify-content:space-between;gap:8px;margin-top:10px;border-top:1px dashed #ccbd8a;padding-top:9px}.desk-note__actions button{min-height:32px;padding:5px 8px;border:1px solid #a9b8b2;border-radius:6px;background:#fffdf0;color:#244b65;font:inherit;font-size:11px;cursor:pointer}.desk-note__remove{border-color:transparent!important;background:transparent!important;color:#7d6c4f!important}
+.desk-notes__status{margin:4px 0;padding:0;background:#fff8dc;color:#9a3e29;font-size:12px;line-height:1.5}.desk-notes__status:empty{display:none}.desk-notes button:focus-visible,.desk-note summary:focus-visible{outline:3px solid #78b3dd;outline-offset:3px}
+@media(max-width:700px){.desk-notes{top:auto;bottom:14px;right:12px;width:min(270px,calc(100% - 24px));max-height:42svh}.desk-notes__list{max-height:calc(42svh - 45px)}}
+@media(prefers-reduced-motion:reduce){.desk-notes{transition:none}}
+.desk-note__summary{position:relative;cursor:grab;touch-action:none;user-select:none}
+.desk-note--floating{position:fixed!important;width:252px;max-width:calc(100vw - 16px);max-height:calc(100svh - 16px);margin:0;overflow:auto;overscroll-behavior:contain;z-index:2}.desk-note.desk-note--floating{transform:none}
+.desk-note--dragging{z-index:4;box-shadow:5px 9px 20px #0005}.desk-note--dragging .desk-note__summary{cursor:grabbing}
+@font-face{font-family:'Desk Jua';src:url('/checklist/fonts/Jua-Regular.ttf') format('truetype');font-display:swap}
+.desk-note--mini{border:2px solid #193852;border-radius:10px;background:#fffdf1!important;padding:9px 10px 10px;color-scheme:light}
+.desk-note--mini.desk-note--floating{width:232px}
+.desk-note__brand{display:block;width:fit-content;max-width:100%;padding:2px 5px;border-radius:30% 8% 20% 10%;background:#6baed4;color:#fffce9;font:16px/1.2 'Desk Jua',sans-serif;letter-spacing:.2px;-webkit-text-stroke:1px #24374b;paint-order:stroke fill;white-space:nowrap}
+.desk-note--mini .desk-note__summary{gap:5px;padding-top:5px;padding-right:0}.desk-note--mini .desk-note__brand{margin-top:0}
+.desk-note--mini .desk-note__summary strong{width:fit-content;max-width:100%;align-self:center;padding:4px 10px;background:#79ad47;color:white;font:15px/1.4 'Desk Jua',sans-serif;clip-path:polygon(3% 0,97% 2%,100% 20%,97% 40%,100% 60%,97% 98%,3% 100%,0 80%,3% 60%,0 40%,3% 20%)}
+.desk-note--mini .desk-note__kind{display:none}.desk-note--mini .desk-note__progress::after{content:'';display:block;height:3px;margin-top:5px;border-radius:3px;background:linear-gradient(to right,#78aa4b var(--desk-progress,0%),#e5dfca var(--desk-progress,0%))}
+.desk-note--mini .desk-note__items label{font-family:'Desk Jua',sans-serif;font-size:12px;line-height:1.4;min-height:24px;padding:3px 0}.desk-note--mini .desk-note__actions button{font-size:10px;padding:4px 6px}
