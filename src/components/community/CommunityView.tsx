@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { sound } from '@/utils/audio';
 
-const LOCAL_STORAGE_KEY = 'genz_office_postits_v7';
+import { loadSavedPosts, savePosts } from '@/lib/community/storage';
 
 export interface CommunityViewProps {
   initialChapterId?: ChapterId;
@@ -70,19 +70,8 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
 
   // 화면이 뜬 뒤 브라우저에 저장된 포스트잇(붙인 스티커 위치, 남긴 조언 등)을 불러온다
   useEffect(() => {
-    try {
-      // Clean up older stale keys if present
-      ['', '_v1', '_v2', '_v3', '_v4', '_v5', '_v6'].forEach((v) => localStorage.removeItem(`genz_office_postits${v}`));
-
-      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      const parsed: PostItPost[] = saved ? JSON.parse(saved) : [];
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        // Always ensure all initial posts exist in the set
-        const parsedIds = new Set(parsed.map((p) => p.id));
-        const missing = INITIAL_POSTIT_POSTS.filter((ip) => !parsedIds.has(ip.id));
-        setPosts([...missing, ...parsed]);
-      }
-    } catch {}
+    const saved = loadSavedPosts();
+    if (saved) setPosts(saved);
   }, []);
 
   const [activeStickerId, setActiveStickerId] = useState<string | null>(null);
@@ -128,9 +117,7 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
       storageSyncReady.current = true;
       return;
     }
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(posts));
-    } catch {}
+    savePosts(posts);
   }, [posts]);
 
   // Handle initial chapter update if prop changes

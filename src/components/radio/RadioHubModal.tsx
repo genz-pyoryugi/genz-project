@@ -11,11 +11,16 @@ import { CHAPTER_LIST } from '@/data/officeData';
 interface RadioHubModalProps {
   posts: PostItPost[]; // 챕터 순서대로 정렬된 챕터별 라디오 사연
   onSelect: (post: PostItPost) => void;
-  onClose: () => void;
+  onClose?: () => void; // 없으면 닫기 버튼을 숨긴다 (페이지로 쓸 때)
+  // modal: 고민상담소 위에 뜨는 창 / page: 단독 페이지 (메인 화면 이어폰 → 사무실 팝업 안에 열림)
+  variant?: 'modal' | 'page';
 }
 
-export const RadioHubModal: React.FC<RadioHubModalProps> = ({ posts, onSelect, onClose }) => {
+export const RadioHubModal: React.FC<RadioHubModalProps> = ({ posts, onSelect, onClose, variant = 'modal' }) => {
+  const isPage = variant === 'page';
+
   useEffect(() => {
+    if (!onClose) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -23,11 +28,17 @@ export const RadioHubModal: React.FC<RadioHubModalProps> = ({ posts, onSelect, o
 
   return (
     <div
-      className="fixed inset-0 z-[55] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150"
+      className={
+        isPage
+          ? 'min-h-screen flex justify-center p-3 sm:p-6 bg-[#F6F4EC]'
+          : 'fixed inset-0 z-[55] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-150'
+      }
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-xl my-auto rounded-[22px] bg-[#F6F4EC] shadow-2xl font-ui text-[#102B46] overflow-hidden"
+        className={`relative w-full max-w-xl rounded-[22px] bg-[#F6F4EC] font-ui text-[#102B46] overflow-hidden ${
+          isPage ? 'h-fit shadow-md' : 'my-auto shadow-2xl'
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* 헤더 */}
@@ -50,13 +61,15 @@ export const RadioHubModal: React.FC<RadioHubModalProps> = ({ posts, onSelect, o
                 </p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="shrink-0 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-              aria-label="닫기"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="shrink-0 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                aria-label="닫기"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
 
