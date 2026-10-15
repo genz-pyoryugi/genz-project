@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { ChapterId, PostItPost, TapeComment, PlacedSticker } from '@/types/community';
 import { CHAPTER_LIST, INITIAL_POSTIT_POSTS } from '@/data/officeData';
 import { PostItNote } from './PostItNote';
@@ -48,21 +48,25 @@ const TOPIC_FILTERS: { id: string; label: string; chapterId?: ChapterId; icon?: 
   { id: '07', label: '공용 공간 & 비품 관리', chapterId: '07' },
 ];
 
+// ?chapter= in the address (client only; the address doesn't change while the page is open)
+const noSubscribe = () => () => {};
+const readChapterParam = () => {
+  const chap = new URLSearchParams(window.location.search).get('chapter');
+  return chap && CHAPTER_LIST.some((c) => c.id === chap) ? chap : null;
+};
+
 export const CommunityView: React.FC<CommunityViewProps> = ({
   initialChapterId,
   onNavigateHome,
   className = '',
 }) => {
   // Selected topic filter ('all' or chapterId '01'~'07')
-  const [selectedTopic, setSelectedTopic] = useState<string>(initialChapterId || 'all');
-
-  // 주소에 ?chapter=01 이 있으면 화면이 뜬 뒤 그 챕터로 (서버에는 주소창 정보가 없어서 첫 화면은 기본값으로 맞춘다)
-  useEffect(() => {
-    try {
-      const chap = new URLSearchParams(window.location.search).get('chapter');
-      if (chap && CHAPTER_LIST.some((c) => c.id === chap)) setSelectedTopic(chap);
-    } catch {}
-  }, []);
+  // ?chapter=01~07 (e.g. from the office welcome popup) picks the starting topic. It is read with
+  // useSyncExternalStore (null on the server) so the server HTML and the first client render match —
+  // reading it inside useState caused a hydration mismatch. A topic the user picks afterwards wins.
+  const urlChapter = useSyncExternalStore(noSubscribe, readChapterParam, () => null);
+  const [pickedTopic, setSelectedTopic] = useState<string | null>(null);
+  const selectedTopic = pickedTopic ?? urlChapter ?? (initialChapterId || 'all');
 
   // 첫 화면은 서버와 똑같이 기본 포스트잇으로 그린다 (서버에는 브라우저 저장소가 없어서
   // 여기서 localStorage를 읽으면 서버 HTML과 브라우저 첫 화면이 달라져 hydration 오류가 난다)
