@@ -26,7 +26,8 @@ function episodeIdFor(post: PostItPost): string {
 }
 
 export async function POST(req: NextRequest) {
-  let body: { post?: PostItPost; regenerate?: boolean };
+  // regenerate: 대본부터 새로 / revoice: 저장된 대본은 그대로 두고 음성만 다시 녹음
+  let body: { post?: PostItPost; regenerate?: boolean; revoice?: boolean; voiceModel?: string };
   try {
     body = await req.json();
   } catch {
@@ -42,16 +43,32 @@ export async function POST(req: NextRequest) {
   const dir = path.join(EPISODES_DIR, episodeId);
   const episodePath = path.join(dir, 'episode.json');
 
+  let saved: RadioEpisode | null = null;
+  try {
+    saved = JSON.parse(await readFile(episodePath, 'utf-8')) as RadioEpisode;
+  } catch {}
+
   // 이미 만든 방송이 있으면 그대로 사용
-  if (!body.regenerate) {
-    try {
-      return NextResponse.json(JSON.parse(await readFile(episodePath, 'utf-8')) as RadioEpisode);
-    } catch {}
-  }
+  if (saved && !body.regenerate && !body.revoice) return NextResponse.json(saved);
 
   try {
-    // 1) 대본 작성
-    const script = await generateRadioScript(RADIO_SYSTEM_PROMPT, buildRadioUserPrompt(post));
+    // 1) 대본: 음성만 다시 녹음할 때는 저장된 대본을 그대로 쓰고, 아니면 새로 작성
+    const script =
+      body.revoice && saved
+        ? {
+            title: saved.title,
+            script: saved.lines.map(({ speaker, segment, line, caption, basis }) => ({
+              speaker,
+              segment,
+              line,
+              ...(caption ? { caption } : {}),
+              ...(basis ? { basis } : {}),
+            })),
+            practice_line: saved.practice_line,
+            sources: saved.sources,
+            safety_flag: saved.safety_flag,
+          }
+        : await generateRadioScript(RADIO_SYSTEM_PROMPT, buildRadioUserPrompt(post));
     await mkdir(dir, { recursive: true });
 
     // 2) 대화 전체 녹음 + 대사별 시간 찾기 (실패하면 음성 없이 대사 길이로 진행)
@@ -60,9 +77,14 @@ export async function POST(req: NextRequest) {
     let audioUrl: string | null = null;
     let alignMethod: RadioEpisode['alignMethod'];
     let audioError: string | undefined;
+    let voiceModel: string | undefined;
 
     try {
-      const { wav } = await synthesizeDialogue(script.script);
+      const { wav, model } = await synthesizeDialogue(
+        script.script,
+        body.voiceModel ? [body.voiceModel] : undefined // 지정하면 그 모델로만 녹음
+      );
+      voiceModel = model;
       await writeFile(path.join(dir, 'episode.wav'), wav);
       const aligned = alignLines(wav, script.script);
       lines = script.script.map((l, i) => ({ ...l, ...aligned.timings[i] }));
@@ -94,6 +116,7 @@ export async function POST(req: NextRequest) {
       audioUrl,
       hasAudio: audioUrl !== null,
       ...(alignMethod ? { alignMethod } : {}),
+      ...(voiceModel ? { voiceModel } : {}),
       ...(audioError ? { audioError } : {}),
       createdAt: new Date().toISOString(),
     };

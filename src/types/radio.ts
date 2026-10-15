@@ -32,6 +32,7 @@ export interface RadioEpisode {
   audioUrl: string | null; // 두 DJ 대화 전체 음성 (null이면 음성 없이 대사 길이로 계산한 시간에 맞춰 진행)
   hasAudio: boolean;
   alignMethod?: 'speaker' | 'length'; // 대사 시간을 찾은 방법 (speaker = 목소리 높낮이로 화자 구분)
+  voiceModel?: string; // 녹음에 쓴 Gemini 음성 모델
   audioError?: string;
   createdAt: string;
 }

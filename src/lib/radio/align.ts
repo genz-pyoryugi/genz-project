@@ -2,6 +2,7 @@
 //
 // 1) 쉼 구간 찾기: 소리가 0.16초 이상 작아지는 곳 = 문장 또는 대사가 끝나는 후보
 // 2) 화자 구분: 쉼과 쉼 사이 구간의 음높이(피치)를 재서 낮은 목소리(하루) / 높은 목소리(새봄)로 나눈다
+//    음높이가 애매한 짧은 감탄사("자," "맞아요.")는 판단하지 않고, 그 근처의 가장 긴 쉼에서 화자를 바꾼다
 //    → 화자가 바뀌는 지점 = 대사 경계 (가장 확실한 기준)
 // 3) 같은 DJ가 연달아 말한 대사들은 글자 수 비율로 예상한 위치에서 가장 가까운 쉼으로 나눈다
 // 화자 구분 결과가 대본과 맞지 않으면, 전체를 글자 수 비율 + 쉼 위치로 나누는 방식으로 대신한다.
@@ -25,6 +26,8 @@ interface Gap {
 
 const FRAME = 0.02; // 소리 크기 측정 단위(초)
 const MIN_GAP = 0.16; // 이 이상 조용하면 쉼으로 본다
+const LONG_CHUNK = 20; // 목소리 프레임(0.04초)이 이만큼 이상이면 음높이를 믿을 만한 긴 구간
+const AMBIGUOUS = 0.45; // 짧은 구간의 음높이가 두 목소리 기준의 가운데 근처(±45%)면 판단 보류
 
 export function readWavPcm(wav: Buffer): Pcm {
   let offset = 12;
@@ -74,7 +77,7 @@ function findGaps({ samples, sampleRate }: Pcm): { gaps: Gap[]; speechStart: num
 }
 
 /** 구간의 대표 음높이(Hz). 목소리가 거의 없으면 0 */
-function medianPitch({ samples, sampleRate }: Pcm, from: number, to: number): { pitch: number; voiced: number } {
+function chunkVoice({ samples, sampleRate }: Pcm, from: number, to: number): { pitch: number; voiced: number } {
   const F = Math.round(sampleRate * 0.04);
   const minLag = Math.floor(sampleRate / 400);
   const maxLag = Math.floor(sampleRate / 70);
@@ -164,30 +167,36 @@ export function alignLines(
   const edges = [speechStart, ...gaps.flatMap((g) => [g.start, g.end]), speechEnd];
   const chunks: { from: number; to: number; pitch: number; voiced: number }[] = [];
   for (let i = 0; i < edges.length; i += 2) {
-    const { pitch, voiced } = medianPitch(pcm, edges[i], edges[i + 1]);
-    chunks.push({ from: edges[i], to: edges[i + 1], pitch, voiced });
+    chunks.push({ from: edges[i], to: edges[i + 1], ...chunkVoice(pcm, edges[i], edges[i + 1]) });
   }
-  const voicedPitches = chunks.filter((c) => c.voiced >= 5).map((c) => c.pitch);
 
-  if (turns.length > 1 && voicedPitches.length >= 2) {
-    // 두 목소리의 기준 음높이를 2-평균 군집으로 구한다
-    let lo = Math.min(...voicedPitches);
-    let hi = Math.max(...voicedPitches);
+  // 두 목소리의 기준 음높이: 목소리가 충분히 긴 구간들만으로 2-평균 군집 (로그 스케일)
+  const logPitch = chunks.map((c) => (c.voiced >= 3 ? Math.log(c.pitch) : 0));
+  const reliable = chunks.map((c, i) => (c.voiced >= LONG_CHUNK ? logPitch[i] : null)).filter((v): v is number => v !== null);
+
+  if (turns.length > 1 && reliable.length >= 2) {
+    let lo = Math.min(...reliable);
+    let hi = Math.max(...reliable);
     for (let iter = 0; iter < 10; iter++) {
       const mid = (lo + hi) / 2;
-      const a = voicedPitches.filter((p) => p < mid);
-      const b = voicedPitches.filter((p) => p >= mid);
+      const a = reliable.filter((p) => p < mid);
+      const b = reliable.filter((p) => p >= mid);
       if (!a.length || !b.length) break;
       lo = a.reduce((s, p) => s + p, 0) / a.length;
       hi = b.reduce((s, p) => s + p, 0) / b.length;
     }
     const threshold = (lo + hi) / 2;
 
-    if (hi - lo > 40 && chunks.length >= turns.length) {
-      // 구간마다 "높은 목소리일수록 +, 낮은 목소리일수록 -" 점수 (목소리가 많은 구간일수록 비중 큼)
-      const highScore = chunks.map((c) =>
-        c.voiced < 3 ? 0 : Math.min(c.voiced, 40) * Math.max(-1, Math.min(1, ((c.pitch - threshold) / (hi - lo)) * 2))
-      );
+    if (hi - lo > Math.log(1.25) && chunks.length >= turns.length) {
+      // 구간마다 "높은 목소리일수록 +, 낮은 목소리일수록 -" 점수 (목소리가 많은 구간일수록 비중 큼).
+      // 대사 첫머리의 "자," "맞아요." 같은 짧은 감탄사는 억양 때문에 음높이가 애매하게 나오므로
+      // 판단하지 않고(0점) 아래의 "쉼 길이" 기준에 맡긴다.
+      const highScore = chunks.map((c, i) => {
+        if (c.voiced < 3) return 0;
+        const t = Math.max(-1, Math.min(1, ((logPitch[i] - threshold) / (hi - lo)) * 2));
+        if (c.voiced < LONG_CHUNK && Math.abs(t) < AMBIGUOUS) return 0;
+        return Math.min(c.voiced, 40) * t;
+      });
       const isHigh = (sp: RadioSpeaker) => (seniorIsLower ? sp === 'junior' : sp === 'senior');
 
       // 글자 수 비율로 본 각 차례의 예상 길이(초)
@@ -196,11 +205,14 @@ export function alignLines(
       const totalChars = turns.reduce((s, t) => s + charsOf(t), 0);
       const expectedLen = turns.map((t) => ((speechEnd - speechStart) * charsOf(t)) / totalChars);
 
-      // 동적 계획법: 구간들을 대본의 화자 차례 수만큼 연속으로 나눠, 화자 점수 합이 가장 큰 나눔을 고른다.
-      // 음높이를 한두 구간 잘못 읽어도(인사말의 높은 억양 등) 전체 흐름으로 바로잡힌다.
+      // 동적 계획법: 구간들을 대본의 화자 차례 수만큼 연속으로 나눠 점수 합이 가장 큰 나눔을 고른다.
+      // - 화자 점수: 음높이를 한두 구간 잘못 읽어도 전체 흐름으로 바로잡힌다
+      // - 쉼 보너스: 화자가 바뀔 때는 보통 쉼이 길다 → 애매한 구간에서는 가장 긴 쉼에서 화자를 바꾼다
+      // - 길이 감점: 대본 글자 수로 예상한 길이에서 크게 벗어나지 않게 한다
       const n = chunks.length;
       const K = turns.length;
-      const LENGTH_WEIGHT = 3; // 예상 길이에서 1초 벗어날 때마다 감점
+      const LENGTH_WEIGHT = 1.5;
+      const GAP_WEIGHT = 30;
       const dp: number[][] = Array.from({ length: K + 1 }, () => new Array(n + 1).fill(-Infinity));
       const back: number[][] = Array.from({ length: K + 1 }, () => new Array(n + 1).fill(-1));
       dp[0][0] = 0;
@@ -212,7 +224,8 @@ export function alignLines(
             seg += sign * highScore[i];
             if (dp[k - 1][i] === -Infinity) continue;
             const len = chunks[j - 1].to - chunks[i].from;
-            const score = dp[k - 1][i] + seg - LENGTH_WEIGHT * Math.abs(len - expectedLen[k - 1]);
+            const gapBonus = i > 0 ? GAP_WEIGHT * (chunks[i].from - chunks[i - 1].to) : 0;
+            const score = dp[k - 1][i] + seg + gapBonus - LENGTH_WEIGHT * Math.abs(len - expectedLen[k - 1]);
             if (score > dp[k][j]) {
               dp[k][j] = score;
               back[k][j] = i;

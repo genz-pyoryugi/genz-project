@@ -64,15 +64,15 @@
       "caption": "목표와 역할을 콕 집어 질문하세요",
       "basis": "[사수] 생존전문가의 테이프 조언",
       "start": 54.120000000000005,
-      "duration": 7.780000000000001
+      "duration": 7.089999999999996
     },
     {
       "speaker": "junior",
       "segment": "practice",
       "line": "자, 오늘 배운 대화법을 소리 내어 연습해 볼까요?",
       "caption": "따라 해 봅시다!",
-      "start": 61.900000000000006,
-      "duration": 3.6299999999999955
+      "start": 61.21,
+      "duration": 4.32
     },
     {
       "speaker": "junior",

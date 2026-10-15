@@ -56,11 +56,12 @@ const SWITCHABLE = new Set([404, 429, 500, 503]);
 async function callGeminiWithFallback(
   models: string[],
   body: unknown | ((model: string) => unknown) // 모델마다 요청 형식이 다르면 함수로 넘긴다
-): Promise<GeminiResponse> {
+): Promise<GeminiResponse & { model: string }> {
   const failures: string[] = [];
   for (const model of models) {
     try {
-      return await callGemini(model, typeof body === 'function' ? body(model) : body);
+      const data = await callGemini(model, typeof body === 'function' ? body(model) : body);
+      return { ...data, model }; // 실제로 응답한 모델 이름도 함께
     } catch (e) {
       if (!(e instanceof GeminiError) || !SWITCHABLE.has(e.status)) throw e;
       failures.push(`${model}(${e.status})`);
@@ -176,13 +177,17 @@ export async function generateRadioScript(systemPrompt: string, userPrompt: stri
 export interface SpeechResult {
   wav: Buffer;
   duration: number; // 초
+  model?: string; // 녹음에 쓴 음성 모델
 }
 
 // 다중 화자 음성에서 쓰는 화자 이름
 const TTS_SPEAKER_NAME: Record<RadioSpeaker, string> = { senior: '하루', junior: '새봄' };
 
-export async function synthesizeDialogue(lines: { speaker: RadioSpeaker; line: string }[]): Promise<SpeechResult> {
-  const data = await callGeminiWithFallback(TTS_MODELS, (model: string) => ({
+export async function synthesizeDialogue(
+  lines: { speaker: RadioSpeaker; line: string }[],
+  models: string[] = TTS_MODELS // 목소리를 통일하려면 모델 하나만 지정 (대체 모델로 넘어가지 않음)
+): Promise<SpeechResult> {
+  const data = await callGeminiWithFallback(models, (model: string) => ({
     contents: [
       {
         role: 'user',
@@ -209,7 +214,7 @@ export async function synthesizeDialogue(lines: { speaker: RadioSpeaker; line: s
   const inline = data.candidates?.[0]?.content?.parts?.find((p) => p.inlineData?.data)?.inlineData;
   if (!inline?.data) throw new GeminiError('음성 데이터가 비어 있어요.', 502, 'BAD_RESPONSE');
 
-  return toWav(Buffer.from(inline.data, 'base64'), inline.mimeType);
+  return { ...toWav(Buffer.from(inline.data, 'base64'), inline.mimeType), model: data.model };
 }
 
 /** Gemini 음성은 WAV(RIFF) 또는 헤더 없는 PCM(audio/L16)으로 온다 → 항상 WAV로 맞추고 길이를 계산한다. */

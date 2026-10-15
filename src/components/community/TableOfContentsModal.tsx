@@ -27,7 +27,7 @@ export const TableOfContentsModal: React.FC<TableOfContentsModalProps> = ({
           <div className="flex items-center gap-2">
             <BookOpen className="w-4 h-4 text-[#2B729E]" />
             <h3 className="font-ui font-bold text-sm text-[#112334]">
-              젠지 표류기 · 직장생활 7대 히어로 목차
+              젠지 표류기 · 직장생활 7대 카테고리 목차
             </h3>
           </div>
           <button

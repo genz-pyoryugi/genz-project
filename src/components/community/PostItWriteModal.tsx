@@ -277,7 +277,7 @@ export const PostItWriteModal: React.FC<PostItWriteModalProps> = ({
                 className="px-5 py-2 text-xs font-ui font-bold text-white bg-[#112334] hover:bg-[#203548] rounded-lg shadow-sm transition-all flex items-center gap-1.5"
               >
                 <PenTool className="w-3.5 h-3.5" />
-                책 위에 포스트잇 붙이기
+                포스트잇 붙이기
               </button>
             </div>
           </form>
@@ -321,7 +321,7 @@ export const PostItWriteModal: React.FC<PostItWriteModalProps> = ({
                 </h4>
 
                 <div className="font-dakkuda text-base text-black/80 leading-relaxed line-clamp-5">
-                  {content || '사무실에서 겪은 당황스러웠던 질문과 경험담이 아날로그 포스트잇 메모로 책 위에 부착됩니다.'}
+                  {content || '사무실에서 겪은 당황스러웠던 질문과 경험담이 아날로그 포스트잇 메모로 부착됩니다.'}
                 </div>
               </div>
             </div>

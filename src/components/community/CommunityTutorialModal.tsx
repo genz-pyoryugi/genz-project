@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { 
   X, 
   ChevronLeft, 
@@ -68,7 +68,7 @@ const TOUR_STEPS: TourStep[] = [
     step: 3,
     targetId: 'tutorial-target-postit',
     badge: '3단계 · 솔루션 나누기',
-    title: '마스킹테이프 조언',
+    title: '고민 포스트잇 & 마스킹테이프 조언',
     subtitle: '포스트잇을 클릭해 열고, 마스킹테이프로 따뜻한 조언과 위로를 붙여주세요.',
     description: '궁금한 포스트잇을 클릭하면 상세 화면이 열립니다. 하단에 마스킹테이프 댓글을 붙여 현실적인 경험담과 따뜻한 해법을 전해주세요.',
     tip: '💡 팁: 아래 [실제 포스트잇 상세창 열어보기]를 눌러 조언이 달리는 화면을 확인해보세요!',
@@ -142,39 +142,40 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
   const isFirst = activeStep === 0;
   const isLast = activeStep === TOUR_STEPS.length - 1;
 
+  // 단계가 바뀐 직후 잠깐만 스포트라이트가 새 대상으로 미끄러지듯 이동 (평소엔 대상에 딱 붙어서 따라감)
+  const [gliding, setGliding] = useState(false);
+
   // 스포트라이트 홀을 뚫어주기 위해 실제 타겟 요소의 위치 측정
-  useEffect(() => {
+  // useLayoutEffect: 단계가 바뀌면 화면을 그리기 "전에" 새 대상 위치를 재서, 이전 단계 위치가 한 프레임도 비치지 않게 한다
+  useLayoutEffect(() => {
     if (!isOpen) return;
 
     const findTarget = () =>
       (stepData.altTargetId && document.getElementById(stepData.altTargetId)) ||
       document.getElementById(stepData.targetId);
 
-    const measureTarget = () => {
-      const el = findTarget();
-      setTargetRect(el ? el.getBoundingClientRect() : null);
-    };
+    findTarget()?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
 
-    const scrollAndMeasure = () => {
-      const el = findTarget();
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    // 매 프레임 위치를 재서 바뀐 경우에만 반영 → 부드러운 스크롤, 상세창·스티커함이 열리는 애니메이션에도 그대로 따라붙는다
+    let raf = 0;
+    let last = '';
+    const track = () => {
+      const r = findTarget()?.getBoundingClientRect() ?? null;
+      const key = r ? `${r.top}|${r.left}|${r.width}|${r.height}` : 'none';
+      if (key !== last) {
+        last = key;
+        setTargetRect(r);
       }
-      measureTarget();
+      raf = requestAnimationFrame(track);
     };
+    track();
 
-    const timer = setTimeout(scrollAndMeasure, 80);
-    // 부드러운 스크롤이 끝난 뒤 최종 위치로 한 번 더 보정
-    const settleTimer = setTimeout(measureTarget, 500);
-    window.addEventListener('resize', measureTarget);
-    // capture: true → 상세창 내부(overflow 영역) 스크롤도 감지
-    window.addEventListener('scroll', measureTarget, true);
+    setGliding(true);
+    const glideTimer = setTimeout(() => setGliding(false), 450);
 
     return () => {
-      clearTimeout(timer);
-      clearTimeout(settleTimer);
-      window.removeEventListener('resize', measureTarget);
-      window.removeEventListener('scroll', measureTarget, true);
+      cancelAnimationFrame(raf);
+      clearTimeout(glideTimer);
     };
   }, [isOpen, activeStep, stepData.targetId, stepData.altTargetId, isInspectOpen, isStickerDrawerOpen]);
 
@@ -287,7 +288,12 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
       {/* 1. 배경 블랙 암전 & 해당 버튼만 불이 들어오는 스포트라이트 홀 */}
       {targetRect ? (
         <div
-          className={`fixed pointer-events-none transition-all duration-300 rounded-xl ${stepData.ringClass}`}
+          className={`fixed pointer-events-none rounded-xl ${stepData.ringClass} ${
+            // 단계 전환 순간에만 위치가 부드럽게 이동, 그 외엔 스크롤에 지연 없이 딱 붙어서 따라감
+            gliding
+              ? 'transition-[top,left,width,height,box-shadow] duration-[400ms] ease-out'
+              : 'transition-[box-shadow] duration-300'
+          }`}
           style={{
             top: `${Math.max(0, targetRect.top - 6)}px`,
             left: `${Math.max(0, targetRect.left - 6)}px`,
@@ -308,7 +314,7 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
       {/* 2. 타겟 버튼 옆에 뜨는 플로팅 설명 카드 */}
       <div
         ref={cardRef}
-        style={cardStyle}
+        style={{ ...cardStyle, transition: gliding ? 'top 400ms ease-out, left 400ms ease-out' : undefined }}
         className="pointer-events-auto bg-[#FAF8F5] rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] border-2 border-[#E5DFD4] p-5 sm:p-6 text-[#112334] flex flex-col gap-3.5 animate-in fade-in zoom-in-95 duration-200"
       >
         <div className="flex items-center justify-between gap-2">

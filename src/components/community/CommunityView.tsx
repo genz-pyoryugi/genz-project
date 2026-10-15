@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ChapterId, PostItPost, TapeComment, PlacedSticker } from '@/types/community';
 import { CHAPTER_LIST, INITIAL_POSTIT_POSTS } from '@/data/officeData';
 import { PostItNote } from './PostItNote';
@@ -54,66 +54,35 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
   className = '',
 }) => {
   // Selected topic filter ('all' or chapterId '01'~'07')
-  const [selectedTopic, setSelectedTopic] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const chap = params.get('chapter');
-        if (chap && CHAPTER_LIST.some((c) => c.id === chap)) {
-          return chap;
-        }
-      } catch {}
-    }
-    return initialChapterId || 'all';
-  });
+  const [selectedTopic, setSelectedTopic] = useState<string>(initialChapterId || 'all');
 
-  const [posts, setPosts] = useState<PostItPost[]>(() => {
+  // 주소에 ?chapter=01 이 있으면 화면이 뜬 뒤 그 챕터로 (서버에는 주소창 정보가 없어서 첫 화면은 기본값으로 맞춘다)
+  useEffect(() => {
+    try {
+      const chap = new URLSearchParams(window.location.search).get('chapter');
+      if (chap && CHAPTER_LIST.some((c) => c.id === chap)) setSelectedTopic(chap);
+    } catch {}
+  }, []);
+
+  // 첫 화면은 서버와 똑같이 기본 포스트잇으로 그린다 (서버에는 브라우저 저장소가 없어서
+  // 여기서 localStorage를 읽으면 서버 HTML과 브라우저 첫 화면이 달라져 hydration 오류가 난다)
+  const [posts, setPosts] = useState<PostItPost[]>(INITIAL_POSTIT_POSTS);
+
+  // 화면이 뜬 뒤 브라우저에 저장된 포스트잇(붙인 스티커 위치, 남긴 조언 등)을 불러온다
+  useEffect(() => {
     try {
       // Clean up older stale keys if present
-      localStorage.removeItem('genz_office_postits');
-      localStorage.removeItem('genz_office_postits_v1');
-      localStorage.removeItem('genz_office_postits_v2');
-      localStorage.removeItem('genz_office_postits_v3');
-      localStorage.removeItem('genz_office_postits_v4');
-      localStorage.removeItem('genz_office_postits_v5');
-      localStorage.removeItem('genz_office_postits_v6');
+      ['', '_v1', '_v2', '_v3', '_v4', '_v5', '_v6'].forEach((v) => localStorage.removeItem(`genz_office_postits${v}`));
 
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (saved) {
-        const parsed: PostItPost[] = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // Always ensure all initial posts exist in the set
-          const parsedIds = new Set(parsed.map((p) => p.id));
-          const missing = INITIAL_POSTIT_POSTS.filter((ip) => !parsedIds.has(ip.id));
-          if (missing.length > 0) {
-            const combined = [...missing, ...parsed];
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(combined));
-            return combined;
-          }
-          return parsed;
-        }
+      const parsed: PostItPost[] = saved ? JSON.parse(saved) : [];
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // Always ensure all initial posts exist in the set
+        const parsedIds = new Set(parsed.map((p) => p.id));
+        const missing = INITIAL_POSTIT_POSTS.filter((ip) => !parsedIds.has(ip.id));
+        setPosts([...missing, ...parsed]);
       }
     } catch {}
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(INITIAL_POSTIT_POSTS));
-    } catch {}
-    return INITIAL_POSTIT_POSTS;
-  });
-
-  // Backup effect on mount: guarantee all INITIAL_POSTIT_POSTS are included
-  useEffect(() => {
-    setPosts((current) => {
-      const currentIds = new Set(current.map((p) => p.id));
-      const missing = INITIAL_POSTIT_POSTS.filter((ip) => !currentIds.has(ip.id));
-      if (missing.length > 0) {
-        const merged = [...missing, ...current];
-        try {
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(merged));
-        } catch {}
-        return merged;
-      }
-      return current;
-    });
   }, []);
 
   const [activeStickerId, setActiveStickerId] = useState<string | null>(null);
@@ -152,7 +121,13 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
     : null;
 
   // Sync with localStorage
+  // (첫 실행은 건너뜀: 저장본을 불러오기 전의 기본 포스트잇으로 저장본을 덮어쓰지 않도록)
+  const storageSyncReady = useRef(false);
   useEffect(() => {
+    if (!storageSyncReady.current) {
+      storageSyncReady.current = true;
+      return;
+    }
     try {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(posts));
     } catch {}
@@ -299,8 +274,11 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   return (
     <div className={`min-h-screen bg-[#EAE6DF] text-[#112334] font-sans flex flex-col ${className}`}>
       {/* 1. Independent Community Top Bar */}
-      <header className="sticky top-0 z-30 bg-[#FAF8F5]/90 backdrop-blur-md border-b border-[#D8D2C6] px-4 sm:px-8 py-3">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+      {/* 좌우 여백을 아래 데스크 창과 똑같이 맞춤: 바깥 여백(px-3 / sm:px-6) + 창 테두리 1px + 창 제목줄 여백(px-4 / sm:px-6)
+          → '젠지 표류기'는 '오피스 고민상담소 | 젠지 표류기 데스크'와, '보이는 라디오'는 '고민·조언·스티커'와 같은 세로선에 놓인다 */}
+      <header className="sticky top-0 z-30 bg-[#FAF8F5]/90 backdrop-blur-md border-b border-[#D8D2C6] py-3">
+        <div className="max-w-6xl w-full mx-auto px-3 sm:px-6">
+        <div className="px-[17px] sm:px-[25px] flex items-center justify-between gap-4">
           {/* Brand Logo & Back to Guide */}
           <div className="flex items-center gap-3">
             {onNavigateHome && (
@@ -323,32 +301,21 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
             </div>
           </div>
 
-          {/* Quick Header Actions */}
+          {/* Quick Header Actions: 보이는 라디오 입구 (인기 사연을 DJ 하루 & 새봄의 방송으로 듣기) */}
           <div className="flex items-center gap-2 font-ui">
             <button
               onClick={() => {
-                sound.playPeelSound();
-                setIsStickerDrawerOpen((prev) => !prev);
+                sound.playPageFlipSound();
+                setIsRadioHubOpen(true);
               }}
-              className="px-3.5 py-1.5 rounded-full text-xs font-semibold border border-[#D5CFC5] bg-white text-[#112334] hover:bg-[#F2EFEB] flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+              className="px-4 py-1.5 rounded-full bg-[#112334] hover:bg-[#203548] text-white text-xs font-bold tracking-wide flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
+              title="공감과 조언을 가장 많이 받은 인기 사연을 보이는 라디오로 듣기"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#2B729E]" />
-              <span className="hidden sm:inline">스티커 보관함</span>
-              <span className="sm:hidden">스티커</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#2B729E]/10 text-[#2B729E] font-bold">16</span>
-            </button>
-
-            <button
-              onClick={() => {
-                sound.playStickSound();
-                setIsWriteModalOpen(true);
-              }}
-              className="px-4 py-1.5 rounded-full bg-[#112334] hover:bg-[#203548] text-white text-xs font-bold tracking-wide flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>포스트잇 붙이기</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#E4572E] animate-pulse" />
+              <span>📻 보이는 라디오</span>
             </button>
           </div>
+        </div>
         </div>
       </header>
 
@@ -389,19 +356,6 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
                 <span className="text-[10px] bg-[#2B729E]/10 text-[#2B729E] font-extrabold px-1.5 py-0.2 rounded-full">
                   가이드
                 </span>
-              </button>
-
-              {/* 보이는 라디오 입구: 인기 사연을 DJ 하루 & 새봄의 방송으로 듣기 */}
-              <button
-                onClick={() => {
-                  sound.playPageFlipSound();
-                  setIsRadioHubOpen(true);
-                }}
-                className="group ml-2 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#102B46] hover:bg-[#1b3b5c] text-white border border-[#102B46] shadow-2xs hover:shadow-xs transition-all text-xs font-bold tracking-tight cursor-pointer"
-                title="공감과 조언을 가장 많이 받은 인기 사연을 보이는 라디오로 듣기"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#E4572E] animate-pulse" />
-                <span>📻 보이는 라디오</span>
               </button>
             </div>
 
@@ -558,11 +512,7 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
                   <div
                     key={post.id}
                     id={idx === 0 ? "tutorial-target-postit" : undefined}
-                    className={`transition-all duration-300 rounded-sm ${
-                      isTutorialOpen && tutorialStep === 2 && idx === 0
-                        ? 'ring-4 ring-emerald-400 ring-offset-4 ring-offset-[#FAF8F5] shadow-[0_0_35px_rgba(52,211,153,0.95)] scale-[1.02] z-20'
-                        : ''
-                    }`}
+                    className="rounded-sm"
                   >
                     <PostItNote
                       post={post}
