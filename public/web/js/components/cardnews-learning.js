@@ -18,7 +18,6 @@ function createLearningFlow(content, makeSlides) {
   const key = 'genz:cardnews-learning:v1:' + content.id;
   let record;
   let lessonView;
-  let quizView;
   const save = () => {
     CARDNEWS_LEARNING_MEMORY.set(content.id, record);
     try { localStorage.setItem(key,JSON.stringify(record)); return true; }
@@ -37,6 +36,7 @@ function createLearningFlow(content, makeSlides) {
         class:'cardnews__nav learning-post-prev',type:'button','aria-label':'이전 카드',
         onClick:()=>{
           lesson();
+          if(content.type==='newsletterTest'){lessonView.showLast();return;}
           const dots=lessonView.querySelectorAll('.cardnews__dot');
           dots[Math.max(0,dots.length-2)].click();
           lessonView.querySelector('.cardnews__viewport').focus();
@@ -92,20 +92,21 @@ function createLearningFlow(content, makeSlides) {
         record={...record,postResponse:value,completedAt:now};storageNote(save());
         stage('complete',h('section',{class:'learning-panel learning-complete'},
           createProgress(),
+          content.type==='newsletterTest' ? h('img',{class:'newsletter-complete-art',src:'/web/assets/picture/learning-complete-check.svg',alt:'','aria-hidden':'true',width:'160',height:'136'}) : null,
           h('p',{class:'learning-step'},'학습 완료'),
-          h('h3',{class:'learning-heading',tabindex:'-1'},'학습을 완료했어요. 배운 내용을 실제 업무에서 활용해보세요.'),
+          h('h3',{class:'learning-heading',tabindex:'-1'},...(content.type==='newsletterTest'
+            ? ['학습을 완료했어요.',h('br'), '배운 내용을 실제 업무에서 활용해보세요.']
+            : ['학습을 완료했어요. 배운 내용을 실제 업무에서 활용해보세요.'])),
           h('button',{class:'learning-primary learning-quiz',type:'button',onClick:()=>{
             const request=new CustomEvent('cardnews:quiz-request',{bubbles:true,cancelable:true,detail:{contentId:content.id}});
-            if(!root.dispatchEvent(request))return;
-            if(content.quiz){openQuiz();return;}
-            if(config.quizUrl){window.location.assign(config.quizUrl);return;}
-            notice.textContent='퀴즈를 준비하고 있어요. 준비가 완료되면 여기에서 시작할 수 있어요.';
+            root.dispatchEvent(request);
           }},'퀴즈 풀러 가기')));
       }
     });
     stage(phase,form,!initial);
   }
   function buildLesson() {
+    if(content.type==='newsletterTest')return createNewsletterCardnews({content,onComplete:()=>assessment('after')});
     const slides=makeSlides();
     if(content.type==='communicationGuide') {
       slides[slides.length-1][0].querySelector('.communication-body').append(
@@ -140,16 +141,6 @@ function createLearningFlow(content, makeSlides) {
     view.inert=false;
     view.removeAttribute('aria-hidden');
     stage('lesson',view);
-  }
-  function openQuiz() {
-    if(!quizView) quizView=createCardnewsQuiz(content,{onReview:index=>{
-      const deck=createDeck(makeSlides());
-      stage('quiz-review',h('section',{class:'quiz-card-review'},
-        h('button',{class:'quiz-secondary quiz-back-results',type:'button',onClick:()=>stage('quiz',quizView)},'퀴즈 결과로 돌아가기'),deck));
-      deck.querySelectorAll('.cardnews__dot')[index].click();
-      deck.querySelector('.cardnews__viewport').focus();
-    }});
-    stage('quiz',quizView);
   }
   assessment('before',true);
   return root;

@@ -33,10 +33,10 @@ Components.cardnewsCollection = (contents = CARDNEWS_CONTENTS) => {
           ? rookieMistakeSlides(article)
           : content.type === 'firstDayGuide' && article
             ? firstDaySlides(content, article)
-            : content.type === 'communicationGuide'
-              ? communicationSlides(content)
+            : content.type === 'communicationGuide' || content.type === 'newsletterTest'
+              ? communicationSlides(content.type === 'newsletterTest' ? COMMUNICATION_CONTENT : content)
               : content.slides || (article ? [articleSlide(article)] : []));
-      return h('section', { class: 'cardnews-content', 'data-content-id': content.id, 'aria-label': article?.title || content.title || '카드뉴스' }, deck);
+      return h('section', { class: 'cardnews-content'+(content.type==='newsletterTest'?' cardnews-content--newsletter':''), 'data-content-id': content.id, 'aria-label': article?.title || content.title || '카드뉴스' }, deck);
     }));
     status.textContent = visible.length ? visible.length + '개의 카드뉴스' : '이 카테고리의 카드뉴스를 준비하고 있어요.';
     status.classList.toggle('cardnews-filter-status--empty', visible.length === 0);

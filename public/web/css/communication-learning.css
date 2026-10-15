@@ -36,27 +36,3 @@
 .communication-sources p{margin:0 0 3px}
 .communication-sources a{color:#175487;text-underline-offset:2px}
 .communication-more{position:absolute;left:24px;right:24px;bottom:60.7px;width:calc(100% - 48px);height:40px;border:0;cursor:pointer;margin:0}
-.quiz-panel{background:#fffdf8;border:4px solid #193f68;border-radius:16px;padding:20px;min-height:525px;color:#13233a;display:flex;flex-direction:column;gap:14px}
-.quiz-panel h3{font-size:21px;line-height:1.4;margin:0}
-.quiz-help{font-size:12px;line-height:1.5;color:#66788d;margin:0}
-.quiz-options{padding:0;margin:0;border:0;min-width:0}
-.quiz-options legend{font-size:15px;line-height:1.6;font-weight:700;padding:0;margin:0 0 14px}
-.quiz-option{display:flex;gap:10px;align-items:flex-start;padding:12px;margin:0 0 8px;border:1px solid #cbd7e5;background:#fff;border-radius:10px;font-size:13px;line-height:1.55;cursor:pointer}
-.quiz-option input{margin:4px 0 0;accent-color:#086bce;flex-shrink:0}
-.quiz-option:has(input:checked){border-color:#086bce;background:#eaf1f8;box-shadow:inset 0 0 0 1px #086bce}
-.quiz-option:has(input:focus-visible){outline:2px solid #13233a;outline-offset:2px}
-.quiz-actions{display:flex;gap:12px;margin-top:auto;align-items:center}
-.quiz-actions .learning-primary{width:auto;flex:1;margin:0}
-.quiz-secondary{border:1px solid #b5c5d7;border-radius:9px;background:transparent;color:#175487;padding:10px 12px;font:600 13px Pretendard,sans-serif;cursor:pointer}
-.quiz-secondary:disabled{opacity:.4;cursor:default}
-.quiz-secondary:focus-visible,.quiz-review summary:focus-visible{outline:2px solid #13233a;outline-offset:3px}
-.quiz-review{border:1px solid #cbd7e5;border-radius:10px;padding:12px;font-size:13px;line-height:1.5}
-.quiz-review summary{cursor:pointer;font-weight:700;color:#175487}
-.quiz-review[data-correct=false]{border-left:4px solid #b46d35}
-.quiz-review-question{font-weight:600}
-.quiz-explanations{padding-left:20px}
-.quiz-explanations li{padding:8px 0;border-bottom:1px solid #e6eaf0}
-.quiz-explanations p{margin:4px 0}
-.quiz-explanation--correct{color:#175487}
-.quiz-card-review{display:flex;flex-direction:column;gap:14px}
-.quiz-back-results{align-self:center}
