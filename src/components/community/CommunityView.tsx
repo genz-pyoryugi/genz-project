@@ -81,6 +81,15 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
   const [activeStickerId, setActiveStickerId] = useState<string | null>(null);
   const [isStickerDrawerOpen, setIsStickerDrawerOpen] = useState(false);
   const [inspectPostId, setInspectPostId] = useState<string | null>(null);
+
+  // ?post=<포스트잇 id> (보이는 라디오의 [고민상담소로 바로가기]) → 화면이 뜬 뒤 그 포스트잇 상세창을 연다
+  useEffect(() => {
+    try {
+      // (사용자가 쓴 포스트잇도 저장본을 불러온 뒤 같은 id로 찾아진다)
+      const postId = new URLSearchParams(window.location.search).get('post');
+      if (postId) setInspectPostId(postId);
+    } catch {}
+  }, []);
   const [radioPost, setRadioPost] = useState<PostItPost | null>(null); // 보이는 라디오로 듣는 사연
   const [isRadioHubOpen, setIsRadioHubOpen] = useState(false); // 보이는 라디오 입구(인기 사연 목록)
   const [commentPost, setCommentPost] = useState<PostItPost | null>(null);
@@ -630,6 +639,11 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
             setRadioPost(p);
           }}
           autoPlay={radioAutoPlay}
+          onGoToPost={(p) => {
+            // 이미 고민상담소 안이므로 라디오를 닫고 그 포스트잇 상세창을 바로 연다
+            setRadioPost(null);
+            setInspectPostId(p.id);
+          }}
         />
       )}
 

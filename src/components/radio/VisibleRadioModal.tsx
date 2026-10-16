@@ -19,7 +19,80 @@ interface VisibleRadioModalProps {
   stories?: PostItPost[]; // 있으면 닫기 버튼 왼쪽에 사연 선택 토글을 보여 준다
   onSelectStory?: (post: PostItPost) => void;
   autoPlay?: boolean; // 토글로 사연을 바꿨을 때 바로 재생
+  // [고민상담소로 바로가기]: 고민상담소 안에서 연 경우 그 포스트잇 상세창을 바로 연다. 없으면 고민상담소 페이지로 이동
+  onGoToPost?: (post: PostItPost) => void;
 }
+
+/** 라디오 아래에 붙는 실제 사연 카드 (고민상담소의 포스트잇 모습 그대로) */
+const StoryPostCard: React.FC<{ post: PostItPost; isPage: boolean; onGoToPost?: (post: PostItPost) => void }> = ({
+  post,
+  onGoToPost,
+}) => {
+  const href = `/community?chapter=${post.chapterId}&post=${encodeURIComponent(post.id)}`;
+  const parts = post.highlightedText ? post.content.split(post.highlightedText) : [post.content];
+
+  return (
+    <article className="relative flex flex-col md:flex-1 md:min-h-0 mx-1 sm:mx-2 mt-2 px-5 sm:px-6 pt-6 pb-4 bg-[#FFF6BA] border border-[#EFE295] text-[#342A0D] rounded-sm shadow-[0_10px_24px_rgba(0,0,0,.12)] -rotate-[0.6deg]">
+      {/* 위쪽 마스킹테이프 */}
+      <span
+        aria-hidden="true"
+        className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-white/70 border border-black/5 shadow-xs rotate-[1.5deg]"
+      />
+      <div className="shrink-0 flex items-start justify-between gap-3 text-[11px] mb-2">
+        <div className="min-w-0">
+          <p className="font-bold text-[#7A5B12]">📘 실제 사연 · 고민상담소</p>
+          <p className="font-semibold text-[#2B729E] truncate">#{post.categoryTag}</p>
+        </div>
+        <div className="shrink-0 text-right text-black/55">
+          <p className="font-semibold">
+            {post.author.companyType ?? '회사'} <span className="text-[#2B729E]">[{post.author.role}]</span>
+          </p>
+          <p>{post.createdAt}</p>
+        </div>
+      </div>
+
+      <h4 className="shrink-0 font-extrabold text-[15px] sm:text-base text-[#112334] leading-snug break-keep mb-2 line-clamp-2">{post.title}</h4>
+      {/* 본문: 남는 높이만큼만 보여 주고 넘치면 아래를 흐리게 (버튼은 항상 보이도록) */}
+      <div className="relative min-h-0 md:flex-1 overflow-hidden">
+      <p className="font-dakkuda text-lg text-black/85 leading-relaxed break-keep line-clamp-3 md:line-clamp-none">
+        {parts.map((part, i) => (
+          <React.Fragment key={i}>
+            {part}
+            {i < parts.length - 1 && (
+              <mark className="bg-[#2B729E]/20 px-1 rounded text-[#112334] underline decoration-[#2B729E] decoration-wavy decoration-1">
+                {post.highlightedText}
+              </mark>
+            )}
+          </React.Fragment>
+        ))}
+      </p>
+        <span aria-hidden="true" className="hidden md:block pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#FFF6BA] to-transparent" />
+      </div>
+
+      <div className="shrink-0 mt-3 pt-3 border-t border-black/10 flex items-center justify-between gap-3">
+        <p className="text-[11px] text-black/55 truncate">
+          {post.author.nickname} · 테이프 조언 {post.comments.length}개
+        </p>
+        {onGoToPost ? (
+          <button
+            type="button"
+            onClick={() => onGoToPost(post)}
+            className="shrink-0 px-3.5 py-1.5 rounded-lg bg-[#102B46] hover:bg-[#1b3b5c] text-white text-xs font-bold transition-colors"
+          >
+            고민상담소로 바로가기 →
+          </button>
+        ) : (
+          <a
+            href={href}
+            className="shrink-0 px-3.5 py-1.5 rounded-lg bg-[#102B46] hover:bg-[#1b3b5c] text-white text-xs font-bold transition-colors"
+          >
+            고민상담소로 바로가기 →
+          </a>
+        )}
+      </div>
+    </article>
+  );
+};
 
 /** 토글에 보이는 짧은 이름: "01 · 조직 이해&적용" */
 const storyLabel = (p: PostItPost) => {
@@ -68,6 +141,7 @@ export const VisibleRadioModal: React.FC<VisibleRadioModalProps> = ({
   stories,
   onSelectStory,
   autoPlay = false,
+  onGoToPost,
 }) => {
   const isPage = variant === 'page';
   const [episode, setEpisode] = useState<RadioEpisode | null>(null);
@@ -243,187 +317,200 @@ export const VisibleRadioModal: React.FC<VisibleRadioModalProps> = ({
       </svg>
 
       <div
-        className={`relative w-full max-w-3xl rounded-[22px] bg-[#F6F4EC] font-ui text-[#102B46] ${isPage ? 'h-fit shadow-md' : 'my-auto shadow-2xl'}`}
+        className={`relative w-full max-w-6xl font-ui text-[#102B46] grid gap-4 items-start md:grid-cols-[minmax(0,1.12fr)_minmax(0,1fr)] ${
+          isPage ? 'h-fit' : 'my-auto'
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ===== 스튜디오 무대 ===== */}
-        <section className="rounded-t-[22px] bg-[#102B46] text-[#F6F4EC] px-4 sm:px-6 pt-5 overflow-hidden" aria-live="polite">
-          <div className="flex items-start justify-between gap-3 mb-4">
-            <p className="text-[13px] text-[#A9C4CF] leading-snug min-w-0">
-              <span className="inline-flex items-center gap-1.5 font-bold text-[#E4572E]">
-                <span className={`w-2 h-2 rounded-full bg-[#E4572E] ${playing ? 'animate-pulse' : ''}`} />
-                ON AIR · 오피스 라디오
-              </span>
-              <b className="block text-[#F6F4EC] text-lg sm:text-[19px] tracking-tight break-keep">
-                {episode?.title ?? '사연을 방송으로 만드는 중'}
-              </b>
-              <span className="block truncate">사연: {post.title}</span>
-            </p>
-            <div className="shrink-0 flex items-center gap-2">
-              {/* 사연 선택 토글: 7대 카테고리 인기 사연 중 하나로 바로 바꿔 듣기 */}
-              {stories && stories.length > 1 && onSelectStory && (
-                <label className="relative">
-                  <span className="sr-only">다른 사연 듣기</span>
-                  <select
-                    value={post.id}
-                    onChange={(e) => {
-                      const next = stories.find((p) => p.id === e.target.value);
-                      if (next) onSelectStory(next);
-                    }}
-                    className="appearance-none max-w-[46vw] sm:max-w-none truncate pl-3.5 pr-8 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs sm:text-[13px] font-bold cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-[#56a5ce]"
-                    title="다른 사연 듣기"
-                  >
-                    {stories.map((p) => (
-                      <option key={p.id} value={p.id} className="text-[#102B46] bg-white">
-                        📻 {storyLabel(p)}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/80" />
-                </label>
-              )}
-              {/* 페이지(사무실 팝업 안)에서는 팝업 자체의 닫기 버튼이 있으므로 숨긴다 → 토글이 그 자리(오른쪽 끝)로 */}
-              {!isPage && (
-                <button
-                  onClick={onClose}
-                  className="shrink-0 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-                  aria-label="닫기"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* DJ 패널 */}
-          <div
-            className="relative px-3 sm:px-9 pt-5 sm:pt-7 pb-4 rounded-[36px] sm:rounded-[60px] border-[6px] sm:border-[9px] border-[#aeb1b3]"
-            style={{
-              backgroundColor: '#131516',
-              backgroundImage:
-                'linear-gradient(135deg,#ffffff12 25%,transparent 25%),linear-gradient(225deg,#ffffff0d 25%,transparent 25%),linear-gradient(45deg,#0009 25%,transparent 25%),linear-gradient(315deg,#0008 25%,#17191b 25%)',
-              backgroundSize: '22px 22px',
-              boxShadow: 'inset 0 0 0 3px #424648, inset 0 0 35px 18px #0009, 0 0 0 2px #e2e4e5, 0 8px 20px #0003',
-            }}
-          >
-            <div className="grid grid-cols-[1fr_1.1fr_1fr] sm:grid-cols-[1fr_1.35fr_1fr] gap-2.5 sm:gap-4 items-center min-h-[150px] sm:min-h-[220px]">
-              {(['senior', 'junior'] as RadioSpeaker[]).map((sp) => {
-                const live = playing && current?.speaker === sp;
-                return (
-                  <div key={sp} className={`flex justify-center min-w-0 ${sp === 'junior' ? 'col-start-3' : ''}`}>
-                    <div
-                      className={`w-full max-w-[190px] aspect-square rounded-full grid place-items-center border-2 sm:border-[3px] transition-all duration-300 ${
-                        live ? 'scale-105' : 'opacity-80'
-                      }`}
-                      style={{
-                        background: HOSTS[sp].bg,
-                        borderColor: sp === 'senior' ? '#eafaff' : '#fffaf0',
-                        boxShadow: live
-                          ? sp === 'senior'
-                            ? '0 0 0 4px #3caaff88, 0 0 32px #239fff90'
-                            : '0 0 0 4px #ffd36f88, 0 0 32px #ffcf5a90'
-                          : '0 8px 22px #0006',
+        {/* ===== 왼쪽: 스튜디오 + 실제 사연(고민상담소 포스트잇) ===== */}
+        <div
+          className={`min-w-0 flex flex-col gap-5 ${isPage ? 'md:h-[calc(100svh-2rem)]' : 'md:h-[min(88vh,860px)]'}`}
+        >
+          {/* ===== 스튜디오 무대 ===== */}
+          <section className="shrink-0 rounded-[22px] bg-[#102B46] shadow-md text-[#F6F4EC] px-4 sm:px-6 pt-5 overflow-hidden" aria-live="polite">
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <p className="text-[13px] text-[#A9C4CF] leading-snug min-w-0">
+                <span className="inline-flex items-center gap-1.5 font-bold text-[#E4572E]">
+                  <span className={`w-2 h-2 rounded-full bg-[#E4572E] ${playing ? 'animate-pulse' : ''}`} />
+                  ON AIR · 오피스 라디오
+                </span>
+                <b className="block text-[#F6F4EC] text-lg sm:text-[19px] tracking-tight break-keep">
+                  {episode?.title ?? '사연을 방송으로 만드는 중'}
+                </b>
+                <span className="block truncate">사연: {post.title}</span>
+              </p>
+              <div className="shrink-0 flex items-center gap-2">
+                {/* 사연 선택 토글: 7대 카테고리 인기 사연 중 하나로 바로 바꿔 듣기 */}
+                {stories && stories.length > 1 && onSelectStory && (
+                  <label className="relative">
+                    <span className="sr-only">다른 사연 듣기</span>
+                    <select
+                      value={post.id}
+                      onChange={(e) => {
+                        const next = stories.find((p) => p.id === e.target.value);
+                        if (next) onSelectStory(next);
                       }}
+                      className="appearance-none max-w-[46vw] sm:max-w-none truncate pl-3.5 pr-8 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs sm:text-[13px] font-bold cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-[#56a5ce]"
+                      title="다른 사연 듣기"
                     >
-                      {/* 입 모양 3장을 겹쳐 두고 목소리 크기에 맞춰 보이는 장만 바꾼다 (미리 불러와 깜빡임 없음) */}
-                      <div className="relative w-[92%] h-[92%]">
-                        {MOUTH_FRAMES[sp].map((src, frame) => (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            key={src}
-                            src={src}
-                            alt={frame === 0 ? `${HOSTS[sp].role} ${HOSTS[sp].name}` : ''}
-                            aria-hidden={frame !== 0}
-                            className="absolute inset-0 w-full h-full object-contain"
-                            style={{
-                              filter: 'url(#portrait-cutout)',
-                              opacity: frame === 0 || (live && mouth === frame) ? 1 : 0,
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* 가운데: 지금 말하는 대사 */}
-              <div className="col-start-2 row-start-1 min-w-0 text-center">
-                {current && started ? (
-                  <>
-                    <p className="text-[11px] font-bold text-[#BCE3E4] mb-1">
-                      {SEGMENT_LABEL[current.segment]} · {HOSTS[current.speaker].name}
-                    </p>
-                    <p className="text-[13px] sm:text-[15px] leading-relaxed text-white/95 break-keep line-clamp-5">
-                      {current.line}
-                    </p>
-                  </>
-                ) : (
-                  <img src="/radio/studio-microphone.svg" alt="" className="mx-auto w-14 sm:w-20 opacity-80" />
+                      {stories.map((p) => (
+                        <option key={p.id} value={p.id} className="text-[#102B46] bg-white">
+                          📻 {storyLabel(p)}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/80" />
+                  </label>
+                )}
+                {/* 페이지(사무실 팝업 안)에서는 팝업 자체의 닫기 버튼이 있으므로 숨긴다 → 토글이 그 자리(오른쪽 끝)로 */}
+                {!isPage && (
+                  <button
+                    onClick={onClose}
+                    className="shrink-0 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                    aria-label="닫기"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 )}
               </div>
             </div>
-          </div>
-
-          <div className="grid grid-cols-[1fr_1.1fr_1fr] sm:grid-cols-[1fr_1.35fr_1fr] gap-2.5 sm:gap-4 text-center mt-3 text-base sm:text-xl font-bold tracking-tight">
-            <span>
-              선배 DJ <span className="text-[#7cc4ff]">하루</span>
-            </span>
-            <span className="col-start-3">
-              신입 DJ <span className="text-[#ffd36f]">새봄</span>
-            </span>
-          </div>
-
-          {/* 플레이어 */}
-          <div className="flex items-center gap-3 sm:gap-4 py-5">
-            <button
-              type="button"
-              onClick={togglePlay}
-              disabled={!episode || readyFor !== episode.id}
-              aria-label={playing ? '일시정지' : '재생'}
-              className="relative shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#172941] border border-white/15 text-white disabled:opacity-40 hover:bg-[#21395a] transition-colors grid place-items-center"
+  
+            {/* DJ 패널 */}
+            <div
+              className="relative px-3 sm:px-9 pt-5 sm:pt-7 [@media(max-height:860px)]:sm:pt-4 pb-4 [@media(max-height:860px)]:pb-3 rounded-[36px] sm:rounded-[60px] border-[6px] sm:border-[9px] border-[#aeb1b3]"
+              style={{
+                backgroundColor: '#131516',
+                backgroundImage:
+                  'linear-gradient(135deg,#ffffff12 25%,transparent 25%),linear-gradient(225deg,#ffffff0d 25%,transparent 25%),linear-gradient(45deg,#0009 25%,transparent 25%),linear-gradient(315deg,#0008 25%,#17191b 25%)',
+                backgroundSize: '22px 22px',
+                boxShadow: 'inset 0 0 0 3px #424648, inset 0 0 35px 18px #0009, 0 0 0 2px #e2e4e5, 0 8px 20px #0003',
+              }}
             >
-              {playing ? (
-                <span className="flex gap-1">
-                  <span className="w-1 h-4 bg-white rounded-sm" />
-                  <span className="w-1 h-4 bg-white rounded-sm" />
-                </span>
-              ) : (
-                <span className="ml-1 w-0 h-0 border-y-[8px] border-y-transparent border-l-[13px] border-l-white" />
-              )}
-            </button>
-            <input
-              type="range"
-              min={0}
-              max={episode?.totalDuration ?? 1}
-              step={0.1}
-              value={time}
-              disabled={!episode || readyFor !== episode.id}
-              onChange={(e) => seek(Number(e.target.value))}
-              aria-label="방송 위치"
-              className="flex-1 min-w-0 h-1.5 rounded-full appearance-none cursor-pointer disabled:cursor-default accent-[#56a5ce]"
-              style={{ background: `linear-gradient(to right,#56a5ce 0 ${progress}%,#ffffff35 ${progress}% 100%)` }}
-            />
-            <span className="text-xs text-[#A9C4CF] tabular-nums whitespace-nowrap">
-              {fmt(time)} / {fmt(episode?.totalDuration ?? 0)}
-            </span>
-          </div>
-
-          {/* 하단 자막 (lower third) */}
-          {current?.caption && started && (
-            <div className="-mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-[#397C9B] flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-4 animate-in fade-in slide-in-from-bottom-1 duration-200">
-              <span className="font-bold text-[15px] sm:text-[17px] text-white break-keep">{current.caption}</span>
-              {current.basis && (
-                <span className="text-[11px] sm:text-xs text-[#DCEFF2] sm:ml-auto sm:text-right break-keep">
-                  근거: {current.basis}
-                </span>
-              )}
+              <div className="grid grid-cols-[1fr_1.1fr_1fr] sm:grid-cols-[1fr_1.35fr_1fr] gap-2.5 sm:gap-4 items-center min-h-[150px] sm:min-h-[220px] [@media(max-height:860px)]:sm:min-h-[160px]">
+                {(['senior', 'junior'] as RadioSpeaker[]).map((sp) => {
+                  const live = playing && current?.speaker === sp;
+                  return (
+                    <div key={sp} className={`flex justify-center min-w-0 ${sp === 'junior' ? 'col-start-3' : ''}`}>
+                      <div
+                        className={`w-full max-w-[190px] [@media(max-height:860px)]:max-w-[140px] aspect-square rounded-full grid place-items-center border-2 sm:border-[3px] transition-all duration-300 ${
+                          live ? 'scale-105' : 'opacity-80'
+                        }`}
+                        style={{
+                          background: HOSTS[sp].bg,
+                          borderColor: sp === 'senior' ? '#eafaff' : '#fffaf0',
+                          boxShadow: live
+                            ? sp === 'senior'
+                              ? '0 0 0 4px #3caaff88, 0 0 32px #239fff90'
+                              : '0 0 0 4px #ffd36f88, 0 0 32px #ffcf5a90'
+                            : '0 8px 22px #0006',
+                        }}
+                      >
+                        {/* 입 모양 3장을 겹쳐 두고 목소리 크기에 맞춰 보이는 장만 바꾼다 (미리 불러와 깜빡임 없음) */}
+                        <div className="relative w-[92%] h-[92%]">
+                          {MOUTH_FRAMES[sp].map((src, frame) => (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              key={src}
+                              src={src}
+                              alt={frame === 0 ? `${HOSTS[sp].role} ${HOSTS[sp].name}` : ''}
+                              aria-hidden={frame !== 0}
+                              className="absolute inset-0 w-full h-full object-contain"
+                              style={{
+                                filter: 'url(#portrait-cutout)',
+                                opacity: frame === 0 || (live && mouth === frame) ? 1 : 0,
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+  
+                {/* 가운데: 지금 말하는 대사 */}
+                <div className="col-start-2 row-start-1 min-w-0 text-center">
+                  {current && started ? (
+                    <>
+                      <p className="text-[11px] font-bold text-[#BCE3E4] mb-1">
+                        {SEGMENT_LABEL[current.segment]} · {HOSTS[current.speaker].name}
+                      </p>
+                      <p className="text-[13px] sm:text-[15px] leading-relaxed text-white/95 break-keep line-clamp-5">
+                        {current.line}
+                      </p>
+                    </>
+                  ) : (
+                    <img src="/radio/studio-microphone.svg" alt="" className="mx-auto w-14 sm:w-20 opacity-80" />
+                  )}
+                </div>
+              </div>
             </div>
-          )}
-        </section>
+  
+            <div className="grid grid-cols-[1fr_1.1fr_1fr] sm:grid-cols-[1fr_1.35fr_1fr] gap-2.5 sm:gap-4 text-center mt-3 text-base sm:text-xl font-bold tracking-tight">
+              <span>
+                선배 DJ <span className="text-[#7cc4ff]">하루</span>
+              </span>
+              <span className="col-start-3">
+                신입 DJ <span className="text-[#ffd36f]">새봄</span>
+              </span>
+            </div>
+  
+            {/* 플레이어 */}
+            <div className="flex items-center gap-3 sm:gap-4 py-5 [@media(max-height:860px)]:py-3">
+              <button
+                type="button"
+                onClick={togglePlay}
+                disabled={!episode || readyFor !== episode.id}
+                aria-label={playing ? '일시정지' : '재생'}
+                className="relative shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#172941] border border-white/15 text-white disabled:opacity-40 hover:bg-[#21395a] transition-colors grid place-items-center"
+              >
+                {playing ? (
+                  <span className="flex gap-1">
+                    <span className="w-1 h-4 bg-white rounded-sm" />
+                    <span className="w-1 h-4 bg-white rounded-sm" />
+                  </span>
+                ) : (
+                  <span className="ml-1 w-0 h-0 border-y-[8px] border-y-transparent border-l-[13px] border-l-white" />
+                )}
+              </button>
+              <input
+                type="range"
+                min={0}
+                max={episode?.totalDuration ?? 1}
+                step={0.1}
+                value={time}
+                disabled={!episode || readyFor !== episode.id}
+                onChange={(e) => seek(Number(e.target.value))}
+                aria-label="방송 위치"
+                className="flex-1 min-w-0 h-1.5 rounded-full appearance-none cursor-pointer disabled:cursor-default accent-[#56a5ce]"
+                style={{ background: `linear-gradient(to right,#56a5ce 0 ${progress}%,#ffffff35 ${progress}% 100%)` }}
+              />
+              <span className="text-xs text-[#A9C4CF] tabular-nums whitespace-nowrap">
+                {fmt(time)} / {fmt(episode?.totalDuration ?? 0)}
+              </span>
+            </div>
+  
+            {/* 하단 자막 (lower third) */}
+            {current?.caption && started && (
+              <div className="-mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-[#397C9B] flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-4 animate-in fade-in slide-in-from-bottom-1 duration-200">
+                <span className="font-bold text-[15px] sm:text-[17px] text-white break-keep">{current.caption}</span>
+                {current.basis && (
+                  <span className="text-[11px] sm:text-xs text-[#DCEFF2] sm:ml-auto sm:text-right break-keep">
+                    근거: {current.basis}
+                  </span>
+                )}
+              </div>
+            )}
+          </section>
+  
+          <StoryPostCard post={post} isPage={isPage} onGoToPost={onGoToPost} />
+        </div>
 
-        {/* ===== 상태 / 대화 ===== */}
-        <div className="px-4 sm:px-6 py-5">
+        {/* ===== 상태 / DJ 대화 (오른쪽 패널: 패널 높이를 다 쓰고 대화만 따로 스크롤) ===== */}
+        <div
+          className={`min-w-0 flex flex-col rounded-[22px] bg-[#FBFAF6] border border-[#E5E0D5] shadow-md px-4 sm:px-5 py-4 ${
+            isPage ? 'md:sticky md:top-4 md:h-[calc(100svh-2rem)]' : 'md:h-[min(88vh,860px)]'
+          }`}
+        >
           {loading && (
             <div className="py-10 flex flex-col items-center gap-3 text-center">
               <Loader2 className="w-7 h-7 text-[#397C9B] animate-spin" />
@@ -489,7 +576,7 @@ export const VisibleRadioModal: React.FC<VisibleRadioModalProps> = ({
                 </p>
               )}
 
-              <div ref={chatRef} className="relative flex flex-col gap-4 max-h-[42vh] overflow-y-auto pr-1 scroll-smooth">
+              <div ref={chatRef} className="relative flex flex-col gap-4 max-h-[60vh] md:max-h-none md:flex-1 md:min-h-0 overflow-y-auto pr-1 scroll-smooth">
                 {started &&
                   episode.lines.slice(0, visibleCount).map((l, i) => {
                     const isJunior = l.speaker === 'junior';
