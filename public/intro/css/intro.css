@@ -1,0 +1,125 @@
+/* =========================================================
+   젠지 표류기 — scroll intro
+   Layers inside .stage (bottom → top):
+   canvas#sea · #world (book) · overlays (captions, hints)
+   Outside the stage: #main-web (the real site) and .rib2wrap (hand-off bookmark, fixed on top)
+   ========================================================= */
+:root{
+  color-scheme: dark;
+  --abyss:#072436; --sea:#0d4566; --shallow:#46c6cf; --sand:#e6cf9f;
+  --ribbon:#efe3c6; --navy:#15294a; --paper:#ebe7e0; --ink:#2b2519; --ink-soft:#5d5442; --signal:#c7362f; --bookmark:#4694a9;
+  --serif:"Nanum Myeongjo","Batang","AppleMyungjo",serif;
+  --sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+html,body{background:var(--abyss);color:var(--ribbon)}
+body{font-family:var(--sans);margin:0;word-break:keep-all;overflow-wrap:break-word}
+#intro{position:relative;height:1720vh}
+.stage{position:sticky;top:env(safe-area-inset-top,0px);height:100vh;height:100svh;overflow:hidden;background:var(--abyss)}
+#sea{position:absolute;inset:0;width:100%;height:100%;display:block}
+#world{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;pointer-events:none}
+
+/* book, in world units */
+.book{position:absolute;width:760px;height:1000px;perspective:3200px}
+.thick{position:absolute;inset:0;transform:translate(12px,14px);border-radius:3px 10px 10px 3px;
+  background:linear-gradient(90deg,#cdbf9f,#e4d8bb 40%,#d6c9aa);box-shadow:40px 50px 70px rgba(40,24,6,.5)}
+.pages{position:absolute;inset:0;background:var(--paper);border-radius:2px 8px 8px 2px;overflow:hidden;
+  background:linear-gradient(90deg,#e0dcd3 0,var(--paper) 50px);color:var(--ink)}
+.pages::after{content:"";position:absolute;inset:0;background:rgba(10,20,40,var(--shade,0));pointer-events:none}
+.cover{position:absolute;inset:-8px -12px -8px 0;transform-origin:left center;transform-style:preserve-3d}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:3px 12px 12px 3px}
+.front{color:var(--ribbon);display:flex;flex-direction:column;justify-content:space-between;padding:110px 80px 90px 120px;box-sizing:border-box;
+  background:
+    repeating-linear-gradient(0deg,rgba(255,255,255,.028) 0 1px,transparent 1px 3px),
+    repeating-linear-gradient(90deg,rgba(0,0,0,.06) 0 1px,transparent 1px 3px),
+    linear-gradient(140deg,#1d3a66,#13274a 55%,#0e1f3c);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),inset -6px 0 12px rgba(0,0,0,.3)}
+.front::before{content:"";position:absolute;left:0;top:0;bottom:0;width:58px;border-radius:3px 0 0 3px;
+  background:linear-gradient(90deg,rgba(0,0,0,.38),rgba(0,0,0,.12) 70%,rgba(255,255,255,.06));}
+.front::after{content:"";position:absolute;inset:40px 40px 40px 88px;border:2px solid rgba(239,227,198,.35);border-radius:4px}
+/* cover artwork image: the book area of cover.png fills the face (slightly squashed + trimmed top/bottom to fit 772×1016) */
+.front.cover-art{padding:0;overflow:hidden;background:#13274a;box-shadow:inset -6px 0 12px rgba(0,0,0,.25)}
+.front.cover-art::before,.front.cover-art::after{content:none}
+.cover-img{position:absolute;left:-8.244%;top:-6.004%;width:116.06%;height:113.33%;max-width:none;display:block;pointer-events:none;user-select:none}
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.front .eyebrow{font-family:var(--mono);font-size:22px;letter-spacing:.32em;opacity:.8}
+.front h1{font-family:var(--serif);font-weight:800;font-size:128px;line-height:1.05;margin:0;letter-spacing:-.02em}
+.front .sub{font-family:var(--serif);font-size:30px;line-height:1.5;opacity:.85}
+.front .vol{font-family:var(--mono);font-size:20px;letter-spacing:.2em;opacity:.6}
+.back{transform:rotateY(180deg);background:#e4e0d8;color:var(--ink);padding:120px 90px 90px 110px;box-sizing:border-box;
+  background:linear-gradient(90deg,#e4e0d8 0,#e4e0d8 calc(100% - 40px),#d3cec4 100%)}
+.label{font-family:var(--mono);font-size:18px;letter-spacing:.28em;color:var(--ink-soft)}
+.toc{list-style:none;margin:48px 0 0;padding:0;display:grid;gap:26px}
+.toc li{display:flex;gap:28px;align-items:baseline;font-family:var(--serif);font-size:34px;font-weight:700;border-bottom:1px solid rgba(43,37,25,.18);padding-bottom:20px}
+.toc li span{font-family:var(--mono);font-size:18px;color:var(--signal);font-weight:500}
+.page-r{position:absolute;inset:0;padding:120px 0 90px 90px;box-sizing:border-box}
+.page-r .col{position:absolute;left:90px;top:360px;transform:translateY(-50%);transform-origin:left center;width:400px;display:flex;flex-direction:column;gap:56px}
+.page-r h2{font-family:var(--serif);font-weight:800;font-size:66px;line-height:1.2;margin:0;text-wrap:balance}
+.page-r p{font-size:26px;line-height:1.7;margin:0;color:var(--ink)}
+.page-r p.lead{font-size:32px;line-height:1.6;white-space:nowrap} /* opening + closing lines read larger */
+.go{position:absolute;left:45%;bottom:clamp(28px,7vh,72px);/* left: centred under the page text (js layoutPlatform) */transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:clamp(10px,1.8vh,18px);
+  font-size:clamp(14px,1.3vw,17px);letter-spacing:.08em;color:var(--signal);white-space:nowrap;opacity:0;pointer-events:none}
+.go span:first-child{font-family:var(--mono);font-size:clamp(16px,1.6vw,21px);letter-spacing:.3em;margin-right:-.3em}
+.go span[aria-hidden]{font-size:clamp(30px,3vw,40px);line-height:1;animation:go-drift 1.6s cubic-bezier(.45,0,.3,1) infinite}
+/* arrow: slides down while fading in, then fades out at the bottom — loops gently */
+@keyframes go-drift{0%{transform:translateY(-6px);opacity:0}35%{opacity:1}70%{transform:translateY(6px);opacity:1}100%{transform:translateY(10px);opacity:0}}
+.strip{position:absolute;left:516px;top:0;bottom:-6px;width:30px;background:var(--bookmark);
+  box-shadow:4px 0 8px rgba(60,40,10,.25);display:flex;align-items:flex-end;justify-content:center;padding-bottom:60px;box-sizing:border-box}
+.strip b{writing-mode:vertical-rl;font-family:var(--mono);font-size:17px;letter-spacing:.3em;color:var(--paper)}
+.folio{position:absolute;right:60px;bottom:50px;font-family:var(--mono);font-size:18px;color:var(--ink-soft)}
+
+.tail{position:absolute;top:calc(100% - 2px);/* 2px overlap hides the hairline seam under the page */ left:-772px;width:1532px;height:2600px;opacity:0;pointer-events:none;background:linear-gradient(90deg,#e4e0d8 0,#e4e0d8 732px,#d3cec4 772px,#e0dcd3 772px,var(--paper) 822px,var(--paper) 100%)}
+.tail i{position:absolute;left:1288px;top:-6px;bottom:0;width:30px;background:var(--bookmark);box-shadow:4px 0 8px rgba(60,40,10,.25)}
+
+/* ===== hand-off: after the intro the page bookmark glides into the chat book on the main web (js: hq) ===== */
+.rib2wrap{position:fixed;inset:0;z-index:5;pointer-events:none;filter:drop-shadow(4px 0 5px rgba(60,40,10,.25))}
+.rib2{position:absolute;top:0;width:0;height:0;background:var(--bookmark);opacity:0;
+  clip-path:polygon(0 0,50% var(--notch,0px),100% 0,100% 100%,0 calc(100% - var(--slant,0px)))}
+
+/* ===== dusk: after the open page the screen darkens and the welcome lines appear (js: dusk) ===== */
+.dusk{position:absolute;inset:0;pointer-events:none}
+.dusk-bg{position:absolute;inset:0;background:#0b0e15;opacity:0}
+.dusk-copy{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(var(--dusk-w,760px),calc(100vw - 32px));
+  display:flex;flex-direction:column;align-items:center;gap:clamp(22px,4vh,44px);text-align:center}
+.dusk-copy p{margin:0;opacity:0;will-change:opacity,transform}
+.dusk-t{font-family:var(--serif);font-weight:700;font-size:clamp(22px,2.5vw,36px);line-height:1.55;color:#f4efe4;text-wrap:balance}
+.dusk-s{font-size:clamp(16px,1.75vw,25px);line-height:1.75;color:rgba(235,231,224,.75);text-wrap:balance}
+
+/* overlays */
+.caps{position:absolute;left:clamp(16px,5vw,64px);bottom:clamp(88px,14vh,140px);right:16px;pointer-events:none}
+.cap{position:absolute;left:0;bottom:0;max-width:22ch;margin:0;font-family:var(--serif);font-weight:700;
+  font-size:clamp(22px,3.2vw,38px);line-height:1.45;color:#f6efe0;text-wrap:balance;opacity:0;
+  text-shadow:0 2px 18px rgba(3,18,30,.65)}
+/* last caption: looks traced into the sand with a finger (dark groove on top, light rim below) */
+.cap.cap--sand{font-family:"Nanum Pen Script",var(--serif);font-weight:400;font-size:clamp(34px,4.6vw,58px);line-height:1.2;max-width:none;
+  color:rgba(132,98,56,.78);letter-spacing:.02em;transform:rotate(-2deg);transform-origin:left bottom;
+  text-shadow:0 -1px 1px rgba(80,55,25,.55),0 1.5px 0 rgba(255,244,218,.75),0 0 6px rgba(170,135,85,.35)}
+.opener{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;pointer-events:none;padding-inline:16px}
+.opener .k{font-family:var(--mono);font-size:12px;letter-spacing:.4em;color:rgba(239,227,198,.75)}
+.opener .t{font-family:var(--serif);font-weight:800;font-size:clamp(40px,7vw,76px);color:var(--ribbon);letter-spacing:-.01em;text-shadow:0 4px 30px rgba(0,0,0,.35)}
+.hint{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);font-family:var(--mono);font-size:12px;letter-spacing:.3em;color:rgba(239,227,198,.8);display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none}
+.hint i{width:1px;height:34px;background:linear-gradient(var(--ribbon),transparent);animation:drip 1.8s ease-in-out infinite}
+@keyframes drip{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+@media (max-width:640px){
+  .caps{bottom:84px}
+  .hint{bottom:70px}
+}
+
+@media (prefers-reduced-motion:reduce){.hint i,.go span[aria-hidden]{animation:none}}
+
+/* ===== handoff: the real site continues right after the intro ===== */
+#site{position:relative;background:var(--paper);color:var(--ink)}
+#site:empty{display:none}
+#main-web {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#mainWebFrame {
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+  border: 0;
+  overflow: hidden;
+}
