@@ -121,6 +121,7 @@
   function openContent(href, label, popup) {
     if (contentFrame.getAttribute('src') !== href) contentFrame.src = href;   // keep it loaded for quick reopening
     content.classList.toggle('office-content--chat', popup === 'chat');
+    content.classList.toggle('office-content--quiz', popup === 'quiz');
     const phone = popup === 'phone' || popup === 'phone-dark';
     content.classList.toggle('office-content--phone', phone);
     content.classList.toggle('office-content--phone-dark', popup === 'phone-dark');
@@ -135,7 +136,7 @@
     contentOpen = true;
     stage.classList.toggle('is-phone-open', phone);   // hides the photo's own left arm (.office-patch)
     requestAnimationFrame(() => content.classList.add('is-open'));
-    contentClose.focus({ preventScroll: true });
+    (popup === 'quiz' ? contentFrame : contentClose).focus({ preventScroll: true });
   }
   function closeContent() {
     if (!contentOpen) return;              // closing runs once (it may be called again while the popup fades out)
@@ -149,6 +150,12 @@
   document.getElementById('officeContentBackdrop').addEventListener('click', close);
   // messages from the page in the popup (web/sos.html): close it, or jump to a chapter of the main web below
   addEventListener('message', e => {
+    if (e.origin === location.origin && e.source === contentFrame.contentWindow && e.data?.type === 'genz-quiz:resize') {
+      if (content.classList.contains('office-content--quiz') && Number.isFinite(e.data.height) && e.data.height > 0) {
+        content.style.setProperty('--quiz-height', Math.ceil(e.data.height) + 'px');
+      }
+      return;
+    }
     if (e.origin !== location.origin || !e.data || !String(e.data.type).startsWith('genz-sos:')) return;
     close();
     if (e.data.type !== 'genz-sos:chapter') return;

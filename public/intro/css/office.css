@@ -131,6 +131,10 @@
 .office-content__close:focus-visible{outline:2px solid rgb(40,115,255);outline-offset:2px}
 .office-content__close svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
 .office-content__frame{flex:1;display:block;width:100%;min-height:0;border:0;background:#f6f3ec}
+/* The quiz brings its own card and close button. */
+.office-content--quiz .office-content__bar{display:none}
+.office-content--quiz .office-content__dialog{width:min(94vw,880px);height:var(--quiz-height,720px);max-height:calc(100svh - 32px);background:transparent;border-radius:22px;box-shadow:none}
+.office-content--quiz .office-content__frame{background:transparent}
 @media (prefers-reduced-motion:reduce){.office-content__backdrop,.office-content__dialog{transition:none}}
 /* chat-window popup (SOS): narrow, dark like the chat, no header bar (the chat page has its own title + close) */
 .office-content--chat .office-content__bar{display:none}
