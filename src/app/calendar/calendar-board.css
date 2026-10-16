@@ -1,0 +1,174 @@
+/* Reference board: cream paper, four binding rings and sky-blue chapter tabs. */
+@font-face{
+  font-family:'Calendar Handwriting';
+  src:url('/calendar/fonts/Jua-Regular.ttf') format('truetype');
+  font-style:normal;
+  font-weight:400;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Calendar Title';
+  src:url('/calendar/fonts/BalsamiqSans-Bold.ttf') format('truetype');
+  font-style:normal;
+  font-weight:700;
+  font-display:swap;
+}
+html:has(.calendar-scene),body:has(.calendar-scene){background:var(--background,#fff)}
+.calendar-scene{
+  --ink:#082f59;
+  padding:44px 2.7vw 28px;
+  color:var(--ink);
+  background:transparent;
+  font-family:'Calendar Handwriting','Malgun Gothic',sans-serif;
+  font-weight:400;
+  font-synthesis:none;
+}
+.calendar-scene :is(button,input,select,textarea){font-family:inherit}
+.calendar-object{max-width:1440px;perspective:none}
+.calendar-object[hidden]{display:none}
+.calendar-paper{
+  padding:20px 28px 18px;
+  border:4px solid #145575;
+  border-radius:36px;
+  background:radial-gradient(ellipse at 30% 20%,#fffef9,#fdfcf5 85%);
+  box-shadow:0 12px 38px #102b3940,inset 0 0 25px #fff;
+}
+.bindings{inset:-29px 13% auto;height:64px;display:block;pointer-events:none}
+.bindings span{
+  position:absolute;top:0;width:17px;height:61px;border:4px solid #0e3d59;
+  border-radius:48% 48% 42% 42%;background:#ffedaa;transform:rotate(1deg);
+  box-shadow:inset 3px 0 #fffced,inset -3px 0 #b99956;z-index:2;
+}
+.bindings span:nth-child(1){left:0}.bindings span:nth-child(2){left:9%}
+.bindings span:nth-child(3){right:9%}.bindings span:nth-child(4){right:0}
+.bindings span:after{width:27px;height:24px;left:-9px;bottom:-10px;background:#063452;border-radius:50%;z-index:-1}
+.calendar-heading{position:relative;min-height:68px;display:flex;align-items:center;justify-content:center;margin-bottom:15px}
+.calendar-heading h1{
+  position:relative;isolation:isolate;margin:0;padding:0 22px 6px;
+  background:transparent;color:#fffef9;
+  font-family:'Calendar Title','Arial Rounded MT Bold',sans-serif;
+  font-size:clamp(32px,4.1vw,62px);font-weight:700;font-synthesis:none;letter-spacing:1px;line-height:1.1;
+  -webkit-text-stroke:3px #103d60;paint-order:stroke fill;text-shadow:0 2px #183c6b55;
+}
+.calendar-heading h1::before{
+  content:'';position:absolute;inset:-4px 0;z-index:-1;pointer-events:none;
+  background:linear-gradient(110deg,#42c5ef,#54cef7 60%,#39c1ef);
+  border-radius:24% 17% 18% 14% / 30% 18% 26% 20%;
+  transform:rotate(-1deg) skewX(-4deg);
+}
+.calendar-heading h1::after{content:'✦';position:absolute;right:-22px;top:3px;color:#ff8e23;font-size:.5em;line-height:1;-webkit-text-stroke:0;text-shadow:none;transform:rotate(13deg);pointer-events:none}
+.calendar-help,.calendar-close{position:absolute;color:var(--ink);cursor:pointer;background:none}
+.calendar-help{left:0;top:5px;width:52px;height:52px;border:3px solid #0c3d5b;border-radius:50%;font-size:35px;line-height:1;font-weight:500;background:#fffcf0}
+.calendar-close{right:2px;top:9px;width:46px;height:46px;border:0}
+.calendar-close span{position:absolute;left:2px;top:22px;width:44px;height:4px;border-radius:5px;background:var(--ink);transform:rotate(45deg)}
+.calendar-close span:last-child{transform:rotate(-45deg)}
+.calendar-records{position:absolute;right:67px;top:15px;display:flex;align-items:center;gap:7px;padding:9px 13px;border:1px solid #bdd7e6;border-radius:22px;background:#e9f7ff;color:#174b70;font-size:17px;line-height:1.2;white-space:nowrap;cursor:pointer}
+.calendar-records svg{width:20px;height:20px}
+.calendar-records:hover{background:#d8f0ff;border-color:#77b1d4}
+.calendar-tabs{max-width:620px;gap:10px;margin:0 auto}
+.calendar-tabs button,.calendar-tabs .blue,.calendar-tabs .mint,.calendar-tabs .peach{
+  min-height:56px;padding:8px 14px;border:1.5px solid #d3d3d3;border-radius:14px;
+  background:#fffefa;box-shadow:inset 0 0 14px #ffffffcc;display:flex;align-items:center;justify-content:center;gap:10px;
+  font-size:22px;font-weight:800;color:var(--ink);white-space:nowrap;
+}
+.calendar-tabs svg{width:32px;height:32px;flex-shrink:0}
+.calendar-tabs .active,.calendar-tabs .mint.active,.calendar-tabs .peach.active{
+  background:linear-gradient(115deg,#acf0f8,#88def3);border-color:#5787ca;color:var(--ink);box-shadow:inset 0 0 15px #f2ffff66;
+}
+.calendar-tabs button:hover{border-color:#538eb8;background-color:#ebfaff}
+.calendar-intro{position:relative;justify-content:center;min-height:80px;margin:0;gap:0}
+.calendar-intro p{position:relative;font-size:clamp(19px,2.1vw,31px);font-weight:800;letter-spacing:-1px;line-height:1.4}
+.calendar-intro .tiny-note{position:absolute;right:18px;bottom:19px;display:block;font-size:clamp(10px,1vw,15px);color:#929294;font-weight:600;letter-spacing:-.6px}
+.calendar-intro p .intro-rays{display:block;position:absolute;right:-4px;top:-20px;width:22px;height:28px;margin:0;transform:rotate(-35deg) scale(.8);transform-origin:center;pointer-events:none}
+.intro-rays i{position:absolute;width:3px;height:11px;border-radius:4px;background:#ff8b23;left:4px;top:0;transform:rotate(20deg)}
+.intro-rays i:nth-child(2){left:14px;top:9px;transform:rotate(62deg);height:10px}
+.intro-rays i:nth-child(3){left:16px;top:21px;transform:rotate(95deg);height:8px}
+.calendar-leaf{border:1.5px solid #cecfca;border-radius:18px;background:#fffdf833;animation:turn-page .35s ease}
+.weekdays span{padding:12px 0;border-color:#cecfca;font-size:25px;line-height:1.4}
+.date-grid{grid-template-rows:repeat(3,clamp(112px,9.8vw,146px)) clamp(92px,7.4vw,110px)}
+.date-cell{height:auto;min-height:0;padding:10px 16px;border-color:#cecfca}
+.date-number{font-size:23px;line-height:1.2;font-weight:600}
+.sun{color:#ff493b}.sat{color:#0875ff}
+.sticker{inset:8px 5px 5px;transform:none;justify-content:flex-end;gap:0}
+.sticker img{width:128px;height:103px;filter:drop-shadow(0 1px 1px #fff);object-fit:contain}
+.sticker span{margin-top:-7px;padding:6px 20px;border:0;border-radius:50px;background:#ffc4b5;color:#132b36;font-size:20px;line-height:1.1;box-shadow:none;font-weight:800}
+.sticker-break span,.sticker-holiday span,.sticker-care span{background:#dcefd7}
+.sticker-night span,.sticker-departure span,.sticker-pension span{background:#ffe49a}
+.sticker:hover,.sticker:focus-visible{transform:translateY(-4px) rotate(-2deg) scale(1.04);filter:drop-shadow(0 5px 4px #56718722)}
+.sticker .sticker-viewed{position:absolute;right:5px;top:0;display:grid;place-items:center;width:28px;height:28px;background:#8bc348;color:#fff;border:2px solid #fff;border-radius:50%;font-size:22px;line-height:1;font-style:normal;font-weight:bold}
+.calendar-footer{gap:18px;margin-top:16px;min-height:68px}
+.page-controls{gap:24px;font-size:20px;color:var(--ink);font-weight:700}
+.page-controls button{width:59px;height:59px;background:#fffdf6;border:1.5px solid #d3d4ce;color:#034775;font-size:44px;line-height:1}
+.page-controls button:disabled{color:#6687a1;background:#fffdf6;opacity:.85}
+.sticker-hint{padding:13px 28px;border-radius:40px;background:linear-gradient(100deg,#dcf1ff,#d5edff);color:#06437a;font-size:18px;white-space:nowrap}
+.sticker-hint>span{padding-left:6px}
+.calendar-footer .quiz-start{min-width:290px;padding:14px 28px;font-size:27px;border:2px solid #0c4b6c;background:radial-gradient(ellipse at 50% 0,#1b6b94,#104d70 85%);box-shadow:0 3px 4px #173e5622}
+.quiz-start:disabled{cursor:wait;opacity:.65}
+.source-note{max-width:1440px;margin:20px auto 0;color:#fffef6;text-shadow:0 1px 2px #1b354a66}
+.quiz-account{max-width:1440px;background:#fffdf6f5;border:2px solid #235878;border-radius:20px}
+.calendar-reopen{max-width:1440px;margin:50px auto;text-align:center;padding:45px;background:#fffdf6;border:3px solid #145575;border-radius:30px}
+.calendar-reopen p{font-weight:900;font-size:28px;margin-bottom:25px}
+@media(min-width:1500px){.calendar-scene{padding-top:44px}}
+@media(max-width:1100px){
+  .calendar-paper{padding:20px 22px 16px}.calendar-paper .calendar-tabs button{min-height:56px;gap:10px;padding:8px 14px}
+  .calendar-intro{min-height:83px;align-items:flex-start;padding-top:15px}.calendar-intro .tiny-note{bottom:9px;right:0;left:0;text-align:center}
+  .calendar-footer .quiz-start{min-width:215px;font-size:20px}.sticker-hint{font-size:13px;padding:13px 17px}.page-controls{font-size:16px;gap:15px}
+  .page-controls button{width:45px;height:45px;font-size:35px}.sticker img{width:103px;height:88px}.sticker span{font-size:16px;padding:5px 12px}
+}
+@media(max-width:850px){
+  .calendar-scene{padding:40px 18px 24px}.bindings span:nth-child(2n){display:block}.calendar-paper{padding:18px 15px 14px;border-radius:26px}
+  .calendar-heading{min-height:58px;margin-bottom:12px}.calendar-heading h1{font-size:40px;padding:0 15px 6px;-webkit-text-stroke:2.4px #103d60;letter-spacing:.8px}
+  .calendar-help{width:38px;height:38px;font-size:26px;border-width:2px;top:8px}.calendar-close{width:35px;height:35px;top:10px}.calendar-close span{width:31px;height:3px;top:16px}
+  .calendar-heading{min-height:100px;align-items:flex-start;padding-top:6px}.calendar-records{right:2px;top:61px;padding:7px 12px;font-size:15px}
+  .calendar-tabs{gap:7px}.calendar-paper .calendar-tabs button{min-height:52px;padding:8px;font-size:19px;gap:8px;border-radius:12px}.calendar-tabs svg{width:30px;height:30px}
+  .weekdays span{padding:10px 0;font-size:20px}.date-cell{padding:9px}.date-number{font-size:19px}.date-grid{grid-template-rows:repeat(3,114px) 90px}
+  .sticker{inset:20px 1px 4px}.sticker img{width:91px;height:79px}.sticker span{font-size:13px;padding:5px 9px}.sticker .sticker-viewed{width:21px;height:21px;right:0;top:-15px;font-size:16px}
+  .calendar-footer{flex-wrap:wrap;min-height:0;row-gap:12px}.sticker-hint{order:3;flex-basis:100%;text-align:center;margin:0;font-size:14px;padding:10px}
+  .calendar-footer .quiz-start{min-width:200px;font-size:18px;padding:11px 20px}.source-note{margin-top:20px}.source-note span{max-width:none}
+}
+@media(max-width:560px){
+  .calendar-scene{padding:33px 9px 20px}.calendar-paper{padding:14px 7px 12px;border-width:3px;border-radius:22px}
+  .bindings{top:-24px;left:15%;right:15%;height:45px}.bindings span{width:11px;height:42px;border-width:2.5px}.bindings span:after{width:19px;height:17px;left:-6px;bottom:-7px}
+  .calendar-heading{min-height:47px;margin-bottom:10px}.calendar-heading h1{font-size:clamp(19px,5.1vw,28px);padding:1px 10px 5px;letter-spacing:.5px;-webkit-text-stroke:1.7px #103d60}.calendar-heading h1::after{right:-12px}
+  .calendar-help{left:2px;top:10px;width:27px;height:27px;font-size:20px}.calendar-close{right:2px;top:10px;width:26px;height:26px}.calendar-close span{width:25px;height:2.5px;top:12px;left:0}
+  .calendar-heading{min-height:81px}.calendar-records{top:47px;padding:6px 10px;font-size:13px;gap:5px}.calendar-records svg{width:17px;height:17px}
+  .calendar-tabs{gap:5px}.calendar-paper .calendar-tabs button{min-height:48px;flex-direction:row;gap:5px;padding:7px 4px;font-size:13px;border-radius:10px}.calendar-tabs svg{width:22px;height:22px}
+  .calendar-intro{min-height:77px;padding-top:15px;flex-wrap:nowrap}.calendar-intro p{font-size:17px;letter-spacing:-.8px;white-space:nowrap}.calendar-intro .tiny-note{font-size:10px;bottom:10px;letter-spacing:-.3px}
+  .calendar-intro p .intro-rays{right:-6px;top:-19px;transform:rotate(-35deg) scale(.65);transform-origin:center}
+  .calendar-leaf{border-radius:11px}.weekdays span{font-size:17px;padding:8px 0}.date-grid{grid-template-rows:repeat(3,94px) 77px}.date-cell{padding:7px 6px}.date-number{font-size:15px}
+  .sticker{inset:21px 0 5px}.sticker img{width:60px;height:54px;max-width:none}.sticker span{font-size:10px;letter-spacing:-.6px;padding:4px 4px;margin-top:-5px}
+  .sticker .sticker-viewed{width:17px;height:17px;right:1px;top:-16px;border-width:1.5px;font-size:12px}
+  .calendar-footer{margin-top:12px;gap:12px}.page-controls{gap:10px;font-size:13px}.page-controls button{width:34px;height:34px;font-size:29px}
+  .calendar-footer .quiz-start{min-width:0;padding:10px 14px;font-size:14px}.quiz-start span{padding-left:6px}.sticker-hint{font-size:11px;padding:10px 4px}
+  .source-note{font-size:10px;gap:10px}.source-note span{max-width:190px}.quiz-account{margin-top:16px;border-radius:16px}
+}
+/* Fit the desktop board to the available browser height, including the footer. */
+@media(min-width:851px) and (min-height:680px){
+  .calendar-scene{padding:32px 24px 18px}
+  .calendar-object{max-width:1200px}
+  .calendar-paper{display:flex;flex-direction:column;height:min(850px,calc(100svh - 50px));padding:16px 24px 14px;border-radius:30px}
+  .calendar-heading{flex-shrink:0;min-height:56px;margin-bottom:12px}
+  .calendar-heading h1{font-size:clamp(32px,3.2vw,48px)}
+  .calendar-help{width:43px;height:43px;font-size:29px;top:5px}
+  .calendar-close{top:5px;width:38px;height:38px}.calendar-close span{width:34px;top:18px;height:3px}
+  .calendar-records{top:61px;right:4px;font-size:15px;padding:8px 12px}
+  .calendar-tabs{width:100%;flex-shrink:0}
+  .calendar-paper .calendar-tabs button{min-height:48px;padding:6px 12px;font-size:20px}
+  .calendar-tabs svg{width:28px;height:28px}
+  .calendar-intro{flex-shrink:0;min-height:70px;align-items:center;padding-top:0}
+  .calendar-intro p{font-size:clamp(20px,1.8vw,26px)}
+  .calendar-intro .tiny-note{font-size:11px;bottom:3px;right:0;left:auto}
+  .calendar-leaf{display:flex;flex-direction:column;flex:1;min-height:0}
+  .weekdays{flex-shrink:0}.weekdays span{font-size:21px;padding:8px 0}
+  .date-grid{flex:1;min-height:0;grid-template-rows:repeat(4,minmax(0,1fr))}
+  .date-cell{padding:7px 10px}.date-number{font-size:19px}
+  .sticker{inset:14px 3px 3px}
+  .sticker img{width:104px;height:80px;max-height:calc(100% - 22px);min-height:0;flex-shrink:1}
+  .sticker span{flex-shrink:0;font-size:16px;padding:4px 12px;margin-top:-4px}
+  .sticker .sticker-viewed{width:23px;height:23px;font-size:18px;top:-9px}
+  .calendar-footer{flex-shrink:0;min-height:56px;margin-top:12px;gap:14px}
+  .page-controls{font-size:16px;gap:16px}.page-controls button{width:44px;height:44px;font-size:35px}
+  .sticker-hint{font-size:14px;padding:10px 18px}
+  .calendar-footer .quiz-start{min-width:220px;font-size:20px;padding:11px 22px}
+}
+@media(prefers-reduced-motion:reduce){.calendar-leaf{animation:none}.sticker{transition:none}}

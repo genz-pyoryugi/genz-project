@@ -1,0 +1,14 @@
+.quiz-account{position:relative;max-width:1180px;margin:24px auto 0;padding:22px;border:1px solid #c8d7e4;border-radius:16px;background:#fffaf0;color:#18314c;overflow-wrap:anywhere}
+.quiz-account h2{font-size:19px;font-weight:700;margin-bottom:12px}
+.quiz-account p{font-size:14px;line-height:1.7;margin:8px 0}
+.quiz-account form{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.quiz-account form p{flex-basis:100%}
+.quiz-account input{min-width:0;max-width:100%;padding:10px;border:1px solid #8eabc4;border-radius:8px;background:white;color:#18314c}
+.quiz-account button{padding:9px 13px;border-radius:8px;background:#183e69;color:white;cursor:pointer}
+.quiz-account button:disabled,.quiz-result button:disabled{opacity:.6;cursor:wait}
+.quiz-account summary{cursor:pointer;padding:10px 0;font-size:14px}
+.quiz-account li{margin:8px 0;padding:8px;border-top:1px solid #d8e0e8}
+.quiz-account ol{padding-left:20px;list-style:decimal}
+.quiz-storage-note{font-size:12px;line-height:1.7;color:#486078;margin-top:12px}
+.quiz-result button{margin:6px}
+@media(max-width:560px){.quiz-account{padding:16px}.quiz-account input{width:100%}.quiz-account label{flex-basis:100%}}
