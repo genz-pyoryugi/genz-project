@@ -77,6 +77,13 @@
   function select(s) {
     const { object, label, href } = s.btn.dataset;
     console.log(`${object} clicked`);
+    // learning record: first pressed button + which area was used (quiz_opened is sent by the quiz page itself)
+    const T = window.genzTracker;
+    if (T) {
+      T.choose(object);
+      if (object === 'files') T.record('cardnews_opened', { object });
+      else if (object !== 'pen') T.record('office_object_opened', { object });
+    }
     spots.forEach(o => o !== s && o.btn.classList.remove('is-active'));
     s.btn.classList.add('is-active');
     s.btn.classList.remove('is-flash'); void s.btn.offsetWidth; s.btn.classList.add('is-flash');
@@ -187,6 +194,15 @@
   panelClose.addEventListener('click', close);
   addEventListener('keydown', e => { if (e.key === 'Escape' && active) close(); });
   window.genzOffice = { close };
+  // learning record: the office was actually reached (once per page load)
+  if ('IntersectionObserver' in window) {
+    const seen = new IntersectionObserver(entries => {
+      if (entries.some(e => e.isIntersecting) && window.genzTracker) {
+        window.genzTracker.record('office_entered'); seen.disconnect();
+      }
+    }, { threshold: 0.3 });
+    seen.observe(office);
+  }
 
   // ---- first entry: one staggered pulse + the hint (once per page load)
   let entered = false, ready = false;
