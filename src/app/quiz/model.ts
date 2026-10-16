@@ -1,24 +1,21 @@
-export const topics = ['첫인상 & 대면', '업무 커뮤니케이션', '회의 & 응대', '오피스 룰', '근태 & 이직·퇴사', '경조사', '업무 보고 & 실수 대처'];
-export type QuizRow = {
-  id: string | number; category: string | null; question: string | null;
-  option1: string | null; option2: string | null; option3: string | null; option4: string | null; option5: string | null;
-  answer: string | null; explanation: string | null;
+// Shape returned by public.lt_catalog(): the latest published revision of every quiz.
+export type Choice = { id: string; text: string };
+export type Question = {
+  id: string; questionKey: string; revision: number; question: string;
+  kind: 'single_choice' | 'multi_choice'; options: Choice[]; correctOption: string | null; correctOptions: string[] | null;
+  hint: string | null; feedback: Record<string, string> | null; explanation: string; points: number;
 };
-export type Question = { id: string | number; question: string; options: { text: string; originalIndex: number }[]; answer: number; explanation: string };
-const normalize = (value: string | null) => String(value || '').replace(/\s/g, '');
-export function parseRows(value: unknown): QuizRow[] {
-  if (!Array.isArray(value) || !value.every(row => row && (typeof row.id === 'string' || typeof row.id === 'number') &&
-    ['category', 'question', 'option1', 'option2', 'option3', 'option4', 'option5', 'answer', 'explanation'].every(field => row[field] === null || typeof row[field] === 'string'))) throw new Error('Invalid quiz response');
-  return value;
-}
-// Same original-slot answer mapping and invalid-row filtering as frontend quiz.js.
-export function questionsFor(rows: QuizRow[], category: string): Question[] {
-  return rows.filter(row => normalize(row.category) === normalize(category)).flatMap(row => {
-    const options = [row.option1, row.option2, row.option3, row.option4, row.option5]
-      .flatMap((text, originalIndex) => typeof text === 'string' && text.trim() ? [{ text, originalIndex }] : []);
-    const match = String(row.answer || '').trim().match(/^선택지\s*([1-5])$/);
-    const answer = match ? options.findIndex(option => option.originalIndex === Number(match[1]) - 1) : -1;
-    return typeof row.question === 'string' && row.question.trim() && options.length >= 2 && answer >= 0
-      ? [{ id: row.id, question: row.question, options, answer, explanation: row.explanation || '' }] : [];
+export type Quiz = { id: string; title: string; isTest: boolean; revision: number; questions: Question[] };
+
+export function parseCatalog(value: unknown): Quiz[] {
+  if (!Array.isArray(value)) throw new Error('Invalid quiz catalog');
+  return value.flatMap(raw => {
+    const quiz = raw as Record<string, unknown>;
+    const questions = Array.isArray(quiz.questions) ? quiz.questions : [];
+    const valid = questions.filter((q): q is Question => !!q && typeof q.id === 'string' && typeof q.question === 'string' &&
+      Array.isArray(q.options) && q.options.length >= 2 &&
+      (typeof q.correctOption === 'string' || (Array.isArray(q.correctOptions) && q.correctOptions.length > 0)));
+    return typeof quiz.id === 'string' && typeof quiz.title === 'string' && valid.length
+      ? [{ id: quiz.id, title: quiz.title, isTest: quiz.isTest === true, revision: Number(quiz.revision), questions: valid }] : [];
   });
 }
