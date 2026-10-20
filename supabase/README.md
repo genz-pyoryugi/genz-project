@@ -1,5 +1,9 @@
 # 학습 기록(익명 이용 기록 · 퀴즈 결과) 설정 안내
 
+**파트별 이어 풀기:** [진행 상태 저장·동기화 안내](../docs/quiz-progress.md). 기존 학습 기록 SQL 다음에 `migrations/202610200002_quiz_progress.sql`을 한 번 적용합니다.
+
+**새 내 학습 기록·운영자 화면:** [설정·운영자 지정·계산 기준·검증 안내](../docs/learning-history-setup.md)를 따르세요. 기존 두 SQL 다음에 `migrations/202610200001_learning_history.sql`을 한 번 적용해야 합니다.
+
 기존 `quizzes` 테이블과 데이터는 건드리지 않습니다. 새 테이블은 모두 `lt_` 로 시작합니다.
 
 ## 1. 한 번만 하는 설정 (Supabase 관리 화면)

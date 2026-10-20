@@ -137,6 +137,7 @@
     stage.classList.toggle('is-phone-open', phone);   // hides the photo's own left arm (.office-patch)
     requestAnimationFrame(() => content.classList.add('is-open'));
     (popup === 'quiz' ? contentFrame : contentClose).focus({ preventScroll: true });
+    if (popup === 'quiz') contentFrame.contentWindow.postMessage({ type: 'genz-quiz:opened' }, location.origin);
   }
   function closeContent() {
     if (!contentOpen) return;              // closing runs once (it may be called again while the popup fades out)
@@ -150,6 +151,11 @@
   document.getElementById('officeContentBackdrop').addEventListener('click', close);
   // messages from the page in the popup (web/sos.html): close it, or jump to a chapter of the main web below
   addEventListener('message', e => {
+    if (e.origin === location.origin && e.source === contentFrame.contentWindow && e.data?.type === 'genz-quiz:simulation') {
+      const monitor = spots.find(s => s.btn.dataset.object === 'monitor');
+      if (monitor) select(monitor);
+      return;
+    }
     if (e.origin === location.origin && e.source === contentFrame.contentWindow && e.data?.type === 'genz-quiz:resize') {
       if (content.classList.contains('office-content--quiz') && Number.isFinite(e.data.height) && e.data.height > 0) {
         content.style.setProperty('--quiz-height', Math.ceil(e.data.height) + 'px');

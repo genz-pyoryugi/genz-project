@@ -1,0 +1,46 @@
+    /* ===== AI 팀장 시뮬레이션 흰 테마 (사무실 모니터, ?view=sim): 흰 바탕 · 진한 글자 · 연회색 카드 · 파란 강조 ===== */
+    html.theme-sim, .theme-sim body { background: #fff; }
+    .theme-sim .chat { background: #fff; color: #1b2433; }
+    .theme-sim .chat__head { border-bottom-color: #eef0f3; }
+    .theme-sim .chat__title { color: #111827; }
+    .theme-sim .chat__sub, .theme-sim .sim__lead, .theme-sim .sim__notice { color: #6b7280; }
+    .theme-sim .chat__sim-badge { border-color: #c9dbfa; color: #2f6fd8; background: #f4f8ff; }
+    .theme-sim .sim__custom-label { color: #111827; }
+    .theme-sim .sim__custom-input, .theme-sim .chat__input { background: #f3f4f6; border-color: transparent; color: #111827; }
+    .theme-sim .sim__custom-input:focus, .theme-sim .chat__input:focus { border-color: #9cc0fb; background: #fff; }
+    .theme-sim .sim__custom-input::placeholder, .theme-sim .chat__input::placeholder { color: #9aa3b2; }
+    .theme-sim .chat__send { background: #2f7cf6; color: #fff; }
+    .theme-sim .chat__chip { border-color: #d5e3fb; background: #f4f8ff; color: #2f6fd8; }
+    .theme-sim .chat__chip:hover { background: #e8f0fe; }
+    .theme-sim .chat__chip[aria-pressed="true"] { border-color: #2f7cf6; background: #2f7cf6; color: #fff; }
+    .theme-sim .sim__persona-label, .theme-sim .sim__toc-count { color: #6b7280; }
+    .theme-sim .sim__persona-name, .theme-sim .sim__cat-title { color: #111827; }
+    .theme-sim .sim__back { border-color: #d1d5db; color: #374151; }
+    .theme-sim .sim__back:hover { background: #f3f4f6; }
+    .theme-sim .sim__item { border-color: #e5e7eb; background: #f8f9fb; color: #111827; }
+    .theme-sim .sim__item:hover { border-color: #9cc0fb; background: #eef4ff; }
+    .theme-sim .sim__item-desc { color: #6b7280; }
+    .theme-sim .sim__level { background: #eef0f3; color: #4b5563; }
+    .theme-sim .sim__level[data-level="쉬움"] { background: #e3f6ea; color: #1f8a4c; }
+    .theme-sim .sim__level[data-level="보통"] { background: #e6efff; color: #2f6fd8; }
+    .theme-sim .sim__level[data-level="어려움"] { background: #fdecea; color: #c2410c; }
+    .theme-sim .sim__bar, .theme-sim .chat__form { border-color: #eef0f3; }
+    .theme-sim .sim__bar-title { color: #111827; }
+    .theme-sim .sim__context { background: #f4f8ff; border-left-color: #2f7cf6; color: #1b2433; }
+    .theme-sim .sim__context-label, .theme-sim .sim__speaker, .theme-sim .sim__count { color: #2f6fd8; }
+    .theme-sim .chat__bubble { background: #eceef1; color: #1b2433; }
+    .theme-sim .chat__msg--user .chat__bubble { background: #2f7cf6; color: #fff; }
+    .theme-sim .chat__msg.is-typing .chat__bubble { color: #8a93a3; }
+    .theme-sim .chat__link { background: #e8f0fe; color: #1f5fd1; }
+    .theme-sim .sim__score { border-color: #e5e7eb; background: #f8f9fb; color: #1b2433; }
+    .theme-sim .sim__score input { accent-color: #2f7cf6; }
+    .theme-sim .sim__ghost { border-color: #d1d5db; color: #374151; }
+    /* 컴퓨터 창(사무실 모니터 팝업)처럼 넓을 때: 첫 화면 · 목록은 가운데 채팅창 폭으로, 대화는 창 전체 폭 + 말풍선은 적당한 길이까지 */
+    @media (min-width: 720px) {
+      .theme-sim .sim > .sim__intro, .theme-sim .sim > .sim__team, .theme-sim .sim > .sim__list,
+      .theme-sim .sim > .sim__cat-bar, .theme-sim .sim > .sim__notice { width: 100%; max-width: 640px; margin-left: auto; margin-right: auto; box-sizing: border-box; }
+      .theme-sim .sim__team { max-height: 300px; }
+      .theme-sim .sim__log .chat__msg { max-width: 62%; }
+      .theme-sim .sim__log { padding-left: 28px; padding-right: 28px; }
+      .theme-sim .chat__form { padding-left: 28px; padding-right: 28px; }
+    }
