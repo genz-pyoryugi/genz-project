@@ -8,10 +8,32 @@ import { useCompletionHistory } from './use-completion-history';
 import { ChecklistIcon, topicIcons } from './icons';
 import { deskNoteRow, readDeskNotes, saveDeskNote, type DeskNote } from './desk-notes';
 import './cute.css';
+import { usePersonalChecklists } from './use-personal-checklists';
+import { PersonalEditor, PersonalHistory, type PersonalRequest } from './personal-editor';
+import type { PersonalChecklist } from './personal-store';
 
 const completionDate = new Intl.DateTimeFormat('ko-KR', { timeZone:'Asia/Seoul', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
 export default function ChecklistPage() {
   const router = useRouter();
+  const personal = usePersonalChecklists();
+  const [personalRequest, setPersonalRequest] = useState<PersonalRequest | null>(null);
+  const personalOpened = useRef(false);
+  function openPersonal(id: string | null) {
+    historyDialog.current?.close();
+    setPersonalRequest({ id, nonce: Date.now() });
+  }
+  function pinPersonal(entry: PersonalChecklist) {
+    const id = `personal:${entry.id}`;
+    if (window.parent !== window) window.parent.postMessage({ type: 'genz-checklist:personal-pinned', id }, window.location.origin);
+    else router.push(`/intro/index.html?desk=1&pin=${encodeURIComponent(id)}`);
+  }
+  useEffect(() => {
+    const id = new URL(window.location.href).searchParams.get('personal');
+    if (id && personal.connection === 'ready' && !personalOpened.current) {
+      personalOpened.current = true;
+      setPersonalRequest({ id, nonce: Date.now() });
+    }
+  }, [personal.connection]);
   const [topics,setTopics] = useState(defaults);
   const [topic,setTopic] = useState(0);
   const [rows,setRows] = useState<Row[]>([]);
@@ -178,8 +200,9 @@ export default function ChecklistPage() {
       <div className="cute-evidence-row"><button className="cute-evidence-button" disabled={status!=='ready'||!groups.length} onClick={()=>evidenceDialog.current?.showModal()} aria-haspopup="dialog"><ChecklistIcon name="info"/>근거 보기</button></div>
       <footer className="cute-footer">
         <button className={`cute-finish${recorded?' is-finished':''}`} disabled={!complete||status!=='ready'||!storageReady||cloud.busy||cloud.connection!=='ready'} onClick={finish}>{cloud.busy?'처리 중…':celebrate&&celebrationOwner===cloud.userId&&celebrationRecord===currentId?'오늘도 해냈다! ✓':recorded?'저장 완료 ✓':'완료 기록 저장 ✓'}</button>
-        <button className="cute-history-button" onClick={()=>{historyDialog.current?.showModal();void cloud.refresh();}} aria-label={`완료 기록 보기, ${history.length}개`} title={`완료 기록 ${history.length}개 보기`} aria-haspopup="dialog"><ChecklistIcon name="history"/><span className="cute-history-badge" aria-hidden="true">{history.length}</span></button>
+        <button className="cute-history-button" onClick={()=>{historyDialog.current?.showModal();void cloud.refresh();void personal.refresh();}} aria-label={`완료 기록 보기, ${history.length}개${personal.entries.length?`, 내 체크리스트 ${personal.entries.length}개`:''}`} title="내 기록 보기" aria-haspopup="dialog"><ChecklistIcon name="history"/><span className="cute-history-badge" aria-hidden="true">{history.length+personal.entries.length}</span></button>
         <button className="cute-desk-pin" disabled={status!=='ready'||!groups.length||!storageReady} onClick={()=>pinToDesk()} aria-label="현재 체크리스트 책상에 붙이기"><ChecklistIcon name="pin"/><span>책상에 붙이기</span></button>
+        <button className="cute-personal-button" onClick={() => openPersonal(null)} aria-label="만들기" aria-haspopup="dialog"><span className="personal-create-content"><svg className="personal-create-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg><span className="personal-create-label">만들기</span></span></button>
       </footer>
       <div className="cute-sr-only" role="status">{celebrate&&celebrationOwner===cloud.userId&&celebrationRecord===currentId?'완료한 미션을 서버에 저장했어요.':recorded?'이미 저장된 완료 기록이 있어요.':''}</div>
       {historyError&&<p className="cute-save-error" role="alert">{historyError}{cloud.connection==='error'&&<button className="cute-cloud-retry" onClick={()=>void cloud.refresh()}>다시 연결</button>}</p>}
@@ -187,6 +210,7 @@ export default function ChecklistPage() {
       </div>
     </section>
 
+    {personalRequest&&<PersonalEditor key={`${personalRequest.nonce}:${personal.identityVersion}`} store={personal} request={personalRequest} onClose={() => setPersonalRequest(null)} onPin={pinPersonal}/>}
     <dialog className="cute-dialog" ref={evidenceDialog} aria-labelledby="cute-evidence-title" onKeyDown={dialogKeys} onClick={backdropClick}>
       <header className="cute-dialog-heading"><h2 id="cute-evidence-title">자료와 근거</h2><button onClick={()=>evidenceDialog.current?.close()} aria-label="근거 팝업 닫기" autoFocus>×</button></header>
       {groups.map(group=><section className="cute-evidence-detail" key={group.id}><h3>{group.title}</h3>
@@ -197,6 +221,8 @@ export default function ChecklistPage() {
     <dialog className="cute-dialog" ref={historyDialog} aria-labelledby="cute-history-title" onKeyDown={dialogKeys} onClick={backdropClick}>
       <header className="cute-dialog-heading"><h2 id="cute-history-title">나의 완료 기록 <small>{history.length}개</small></h2><button onClick={()=>historyDialog.current?.close()} aria-label="기록 팝업 닫기" autoFocus>×</button></header>
       <p className="cute-account-notice">이 브라우저의 익명 사용자 기록이에요. 브라우저 데이터를 삭제하거나 기기를 바꾸면 다시 접근할 수 없어요.</p>
+      <PersonalHistory store={personal} open={openPersonal}/>
+      <h3 className="personal-default-heading">기본 체크리스트 완료 기록</h3>
       {cloud.connection==='loading'&&<p role="status">서버에서 완료 기록을 가져오는 중이에요.</p>}
       {cloud.legacyCount>0&&<section className="cute-legacy-import" aria-label="기존 브라우저 기록 이전"><p>이 브라우저에 남아 있는 기존 기록 {cloud.legacyCount}개를 현재 사용자에게 이전할 수 있어요. 원본은 그대로 유지해요.</p><button disabled={cloud.busy||cloud.connection!=='ready'} onClick={()=>void cloud.migrate()}>기존 기록 서버로 이전</button></section>}
       {cloud.legacyError&&<p className="cute-save-error" role="alert">{cloud.legacyError}</p>}

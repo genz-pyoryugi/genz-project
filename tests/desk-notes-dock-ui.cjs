@@ -38,7 +38,7 @@ const base=process.env.CHECKLIST_TEST_URL||'http://localhost:3002';
   assert.ok(await page.evaluate(()=>Object.keys(JSON.parse(localStorage.getItem('genz-office-desk-note-positions-v1'))).length===1));
   fs.mkdirSync('.tools/screenshots',{recursive:true});await page.screenshot({path:'.tools/screenshots/checklist-docked-on-partition.png'});
   await page.reload({waitUntil:'domcontentloaded'});await page.waitForSelector('#officeStage.is-ready');
-  const restored=await page.locator('.desk-note').boundingBox();assert.ok(Math.abs(restored.x-target.x)<3&&Math.abs(restored.y-target.y)<3,'Partition position survives reload');
+  const restored=await page.locator('.desk-note').boundingBox();assert.ok(Math.abs(restored.x-target.x)<3&&Math.abs(restored.y-target.y)<3,'Partition position survives reload '+JSON.stringify({target,restored,positions:await page.evaluate(()=>JSON.parse(localStorage.getItem('genz-office-desk-note-positions-v1')))}));
   console.log('PASS: real shrink animation, partition landing, miniature checklist, five items, saved position');
   await context.close();
   const standalone=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'no-preference'});

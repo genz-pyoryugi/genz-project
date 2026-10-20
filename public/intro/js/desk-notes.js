@@ -11,6 +11,30 @@
     }catch{return {};}
   }
   let positions=readPositions(),dragging=false,refreshPending=false;
+  let personalNotes=[],personalBusy=false,personalError='',pendingPin=null;
+  const bridge=document.createElement('iframe');
+  bridge.hidden=true;bridge.title='개인 체크리스트 저장 연결';bridge.src='/checklist/desk-sync';stage.append(bridge);
+  function personalAction(note,action,extra={}){
+    bridge.contentWindow?.postMessage({type:'genz-personal:action',id:note.personalId,action,...extra},location.origin);
+  }
+  function readAllNotes(){return [...readNotes(),...personalNotes];}
+  window.addEventListener('message',event=>{
+    if(event.origin!==location.origin||event.source!==bridge.contentWindow||event.data?.type!=='genz-personal:state')return;
+    personalBusy=event.data.busy||event.data.connection!=='ready';personalError=event.data.error||'';
+    personalNotes=(event.data.entries||[]).filter(entry=>entry.pinned&&!entry.deleted_at).map(entry=>({
+      id:`personal:${entry.id}`,personalId:entry.id,kind:'personal',title:entry.title,category:'내 체크리스트',
+      items:entry.items.map(item=>({key:item.id,text:item.text,checked:item.checked})),position:entry.position,
+    }));
+    if(!event.data.busy){
+      for(const id of Object.keys(positions))if(id.startsWith('personal:'))delete positions[id];
+      for(const note of personalNotes)if(note.position)positions[note.id]=note.position;
+    }
+    render();
+    if(pendingPin&&personalNotes.some(note=>note.id===pendingPin.id)){
+      const pin=pendingPin;pendingPin=null;pin.ready();
+    }
+    attachEntryPin();
+  });
   function readNotes(){
     const notes=JSON.parse(localStorage.getItem(notesKey)||'[]');
     if(!Array.isArray(notes)||!notes.every(note=>note&&typeof note.id==='string'&&
@@ -48,7 +72,9 @@
     const bounds=card.getBoundingClientRect();
     const point={x:bounds.left/innerWidth,y:bounds.top/innerHeight};
     positions={...positions,[card.dataset.noteId]:point};
-    try{positions={...readPositions(),[card.dataset.noteId]:point};localStorage.setItem(positionsKey,JSON.stringify(positions));status.textContent='';}
+    const personal=personalNotes.find(note=>note.id===card.dataset.noteId);
+    if(personal){personalAction(personal,'position',{position:point});return;}
+    try{const saved={...readPositions(),[card.dataset.noteId]:point};positions={...positions,...saved};localStorage.setItem(positionsKey,JSON.stringify(saved));status.textContent=personalError;}
     catch{status.textContent='메모는 옮겼지만 위치를 저장하지 못했어요.';}
   }
   function makeDraggable(card,summary){
@@ -89,9 +115,9 @@
     if(dragging){refreshPending=true;return;}
     const open=new Set([...list.querySelectorAll('details[open]')].map(card=>card.dataset.noteId));
     let notes,checks;
-    try{notes=readNotes();checks=readChecks();status.textContent='';}
+    try{notes=readAllNotes();checks=readChecks();status.textContent=personalError;}
     catch{shelf.hidden=false;status.textContent='메모를 불러오지 못했어요. 브라우저 저장 설정을 확인해 주세요.';return;}
-    count.textContent=String(notes.length);shelf.hidden=notes.length===0;list.replaceChildren();
+    count.textContent=String(notes.length);shelf.hidden=notes.length===0&&!personalError;list.replaceChildren();
     for(const note of notes){
       const card=element('details','desk-note desk-note--mini');card.dataset.noteId=note.id;card.open=open.has(note.id);
       const summary=element('summary','desk-note__summary');
@@ -99,7 +125,8 @@
       const kind=element('span','desk-note__kind',note.kind==='completed'?'완료한 미션':'나의 체크리스트');
       const brand=element('span','desk-note__brand','GEN Z CHECK-LIST');
       const title=element('strong','',note.title);
-      const completed=note.kind==='completed'?note.items.length:note.items.filter(item=>checks[item.key]===true).length;
+      if(note.kind==='personal')kind.textContent='내 체크리스트';
+      const completed=note.kind==='completed'?note.items.length:note.items.filter(item=>note.kind==='personal'?item.checked:checks[item.key]===true).length;
       const progress=element('span','desk-note__progress',`${completed} / ${note.items.length} 체크`);
       progress.style.setProperty('--desk-progress',`${Math.round(completed/note.items.length*100)}%`);
       summary.append(brand,kind,title,progress);card.append(summary);
@@ -107,8 +134,9 @@
       const items=element('ul','desk-note__items');
       for(const item of note.items){
         const li=element('li'),label=element('label'),input=element('input');input.type='checkbox';
-        input.checked=note.kind==='completed'||checks[item.key]===true;input.disabled=note.kind==='completed';
+        input.checked=note.kind==='completed'||(note.kind==='personal'?item.checked:checks[item.key]===true);input.disabled=note.kind==='completed'||(note.kind==='personal'&&personalBusy);
         input.addEventListener('change',()=>{
+          if(note.kind==='personal'){personalAction(note,'toggle',{itemId:item.key,checked:input.checked});return;}
           try{
             const next=readChecks();if(input.checked)next[item.key]=true;else delete next[item.key];
             localStorage.setItem(checksKey,JSON.stringify(next));render();
@@ -122,20 +150,28 @@
       openButton.addEventListener('click',()=>window.dispatchEvent(new CustomEvent('genz-desk:open',{detail:{id:note.id}})));
       const remove=element('button','desk-note__remove','붙이기 해제');remove.type='button';remove.setAttribute('aria-label',`${note.title} 붙이기 해제`);
       remove.addEventListener('click',()=>{
+        if(note.kind==='personal'){personalAction(note,'unpin');return;}
         try{localStorage.setItem(notesKey,JSON.stringify(readNotes().filter(saved=>saved.id!==note.id)));render();toggle.focus();}
         catch{status.textContent='메모를 떼지 못했어요. 다시 시도해 주세요.';}
       });
+      if(note.kind==='personal'){
+        openButton.textContent='열기 · 편집';remove.textContent='책상에서 떼기';remove.setAttribute('aria-label',`${note.title} 책상에서 떼기`);remove.disabled=personalBusy;
+      }
       actions.append(openButton,remove);card.append(actions);list.append(card);makeDraggable(card,summary);restorePosition(card);
     }
   }
   window.genzDeskNotes={
     refresh:render,
-    get:id=>{try{return readNotes().find(note=>note.id===id);}catch{return undefined;}},
+    get:id=>{try{return readAllNotes().find(note=>note.id===id);}catch{return undefined;}},
+    pinPersonal:(id,ready)=>{
+      pendingPin={id,ready};bridge.contentWindow?.postMessage({type:'genz-personal:refresh'},location.origin);
+    },
     dock:id=>{
       render();list.hidden=false;toggle.setAttribute('aria-expanded','true');
       const card=[...list.children].find(el=>el.dataset.noteId===id);
       if(!card)return null;
       card.open=true;card.classList.add('desk-note--floating');
+      if(positions[id]){restorePosition(card);return card.getBoundingClientRect();}
       const picture=document.querySelector('.office-img').getBoundingClientRect();
       const slot=[...list.children].indexOf(card)%4;
       const bounds=card.getBoundingClientRect();
@@ -145,7 +181,7 @@
     },
     focus:id=>{render();list.hidden=false;toggle.setAttribute('aria-expanded','true');const card=[...list.children].find(el=>el.dataset.noteId===id);if(card){card.open=true;card.querySelector('summary').focus({preventScroll:true});list.scrollTop=card.offsetTop-list.offsetTop;}},
   };
-  window.addEventListener('storage',event=>{if(!event.key||event.key===positionsKey)positions=readPositions();if(!event.key||[notesKey,checksKey,positionsKey].includes(event.key))render();});
+  window.addEventListener('storage',event=>{if(!event.key||event.key===positionsKey){positions={...readPositions(),...Object.fromEntries(personalNotes.filter(note=>note.position).map(note=>[note.id,note.position]))};}if(!event.key||[notesKey,checksKey,positionsKey].includes(event.key))render();});
   window.addEventListener('resize',()=>{for(const card of list.children)restorePosition(card);});
   render();
   // A standalone checklist's pin button brings the user back to the visible desk.
@@ -154,7 +190,10 @@
     const office=document.getElementById('office');window.scrollTo(0,scrollY+office.getBoundingClientRect().top+(office.offsetHeight-innerHeight)*.9);
   });
   const entryPin=entryUrl.searchParams.get('pin');
-  if(entryPin&&window.genzDeskNotes.get(entryPin)){
+  let entryAttached=false;
+  function attachEntryPin(){
+    if(!entryPin||entryAttached||!window.genzDeskNotes?.get(entryPin))return;
+    entryAttached=true;
     const attach=()=>{
       if(!stage.classList.contains('is-ready'))return;
       observer.disconnect();window.genzDeskNotes.dock(entryPin);window.genzDeskNotes.focus(entryPin);
@@ -170,4 +209,5 @@
     };
     const observer=new MutationObserver(attach);observer.observe(stage,{attributes:true,attributeFilter:['class']});attach();
   }
+  attachEntryPin();
 })();

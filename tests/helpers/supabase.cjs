@@ -43,6 +43,14 @@ async function mockSupabase(context,initial=[]) {
   if(single&&!rows.length)return route.fulfill({status:406,json:{code:'PGRST116',message:'No rows'}});
   await route.fulfill({json:single?rows[0]:rows});
  });
+ // Keep all browser tests independent of production tables and outbound network access.
+ await require('./personal-supabase.cjs').mockPersonal(context,state);
+ const fs=require('node:fs'),ts=require('typescript'),material={exports:{}};
+ new Function('exports',ts.transpileModule(fs.readFileSync('src/lib/pdf-checklists.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText)(material.exports);
+ const rows=material.exports.materialChecklists.map(list=>({id:`pdf:${list.id}`,category:list.category,title:list.title,
+  ...Object.fromEntries(list.items.map((text,index)=>[`item${index+1}`,text])),source_url:'https://example.test/source.pdf',source_title:'PDF source',source_pages:list.pages,source_evidence:list.evidence}));
+ await context.route('**/api/checklists',route=>route.fulfill({json:rows}));
+ await context.route('**/api/checklist-topics',route=>route.fulfill({json:[...new Set(rows.map(row=>row.category))]}));
  return state;
 }
 module.exports={mockSupabase};

@@ -202,7 +202,8 @@
 .office-content--phone-dark .office-content__agent{display:none}
 
 /* Small notes live beside the desk, outside the full checklist popup. */
-.desk-notes{position:absolute;top:58px;right:18px;width:260px;max-height:calc(100% - 88px);z-index:10;pointer-events:auto;color:#193852;font-family:'IBM Plex Sans KR','Malgun Gothic',sans-serif;opacity:0;visibility:hidden;transform:translateX(12px);transition:opacity .2s,transform .2s}
+/* An untransformed shelf keeps fixed notes anchored to viewport coordinates during reveal. */
+.desk-notes{position:absolute;top:58px;right:18px;width:260px;max-height:calc(100% - 88px);z-index:10;pointer-events:auto;color:#193852;font-family:'IBM Plex Sans KR','Malgun Gothic',sans-serif;opacity:0;visibility:hidden;transition:opacity .2s}
 .desk-notes{position:fixed;box-sizing:border-box}.desk-notes *{box-sizing:border-box}
 .desk-notes[hidden]{display:none}.office-stage.is-ready .desk-notes{opacity:1;visibility:visible;transform:none}
 .desk-notes__header{display:flex;justify-content:flex-end}.desk-notes__toggle{display:flex;align-items:center;gap:9px;padding:9px 13px;border:1px solid #d2c18b;border-radius:9px;background:#fff5cf;color:#193852;font:700 13px 'IBM Plex Sans KR','Malgun Gothic',sans-serif;box-shadow:0 3px 12px #0002;cursor:pointer}

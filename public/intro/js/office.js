@@ -88,6 +88,7 @@
     window.dispatchEvent(new CustomEvent('genz-office:select', { detail: { object, label, href } }));
   }
   function close() {
+    if(contentOpen&&checklistEditorOpen){contentFrame.contentWindow?.postMessage({type:'genz-checklist:request-close'},location.origin);return;}
     if (active) active.btn.classList.remove('is-active', 'is-flash');
     active = null; panel.hidden = true;
     closeContent();
@@ -97,7 +98,7 @@
   // ---- content popup (e.g. /community) in an iframe over the office; the office page underneath stays as is
   const content = document.getElementById('officeContent'), contentFrame = document.getElementById('officeContentFrame');
   const contentClose = document.getElementById('officeContentClose'), contentTitle = document.getElementById('officeContentTitle');
-  let lockedY = 0, contentOpen = false, pinAnimation = null;
+  let lockedY = 0, contentOpen = false, pinAnimation = null, checklistEditorOpen = false;
   function lockScroll() {
     lockedY = scrollY;
     const bar = innerWidth - document.documentElement.clientWidth;          // keep the layout from shifting when the scrollbar hides
@@ -113,7 +114,7 @@
   // otherwise the big content popup with a title bar
   function openContent(href, label, popup) {
     if(pinAnimation)pinAnimation.cancel();
-    if (contentFrame.getAttribute('src') !== href) contentFrame.src = href;   // keep it loaded for quick reopening
+    if (contentFrame.getAttribute('src') !== href) { checklistEditorOpen=false; contentFrame.src = href; }   // keep it loaded for quick reopening
     content.classList.toggle('office-content--chat', popup === 'chat');
     content.classList.toggle('office-content--portrait', popup === 'portrait');
     const phone = popup === 'phone' || popup === 'phone-dark';
@@ -147,7 +148,7 @@
   addEventListener('genz-desk:open', e => {
     const note=window.genzDeskNotes?.get(e.detail?.id);
     if(!note)return;
-    const params=new URLSearchParams(note.kind==='completed'?{record:note.recordId||''}:{pinned:note.id});
+    const params=new URLSearchParams(note.kind==='personal'?{personal:note.personalId}:note.kind==='completed'?{record:note.recordId||''}:{pinned:note.id});
     openContent(`/checklist?${params}`,note.title,'portrait');
   });
   function pinChecklist(id){
@@ -173,6 +174,17 @@
   }
   // messages from the page in the popup (web/sos.html): close it, or jump to a chapter of the main web below
   addEventListener('message', e => {
+    if(e.origin===location.origin&&e.source===contentFrame.contentWindow&&e.data?.type==='genz-checklist:editor-open'){
+      checklistEditorOpen=e.data.open===true;return;
+    }
+    if(e.origin===location.origin&&e.source===contentFrame.contentWindow&&e.data?.type==='genz-checklist:close-confirmed'){
+      checklistEditorOpen=false;close();return;
+    }
+    if(e.origin===location.origin&&e.source===contentFrame.contentWindow&&e.data?.type==='genz-checklist:personal-pinned'&&typeof e.data.id==='string'){
+      checklistEditorOpen=false;
+      window.genzDeskNotes?.pinPersonal(e.data.id,()=>pinChecklist(e.data.id));
+      return;
+    }
     if(e.origin===location.origin&&e.source===contentFrame.contentWindow&&e.data?.type==='genz-checklist:pinned'&&typeof e.data.id==='string'){
       if(window.genzDeskNotes?.get(e.data.id))pinChecklist(e.data.id);
       return;
