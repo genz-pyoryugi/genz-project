@@ -148,13 +148,13 @@ export default function CalendarPage() {
     <button className="quiz-next" disabled={loading || selected === undefined} onClick={nextQuestion}>{step === questions.length - 1 && !loading ? '결과 보기' : <>다음 문제 <span aria-hidden="true">›</span></>}</button>
   </nav>;
   return <main className="calendar-scene" lang="ko">
-    {!calendarOpen && <div className="calendar-reopen"><p>GEN Z CALENDAR</p><button className="quiz-start" onClick={() => setCalendarOpen(true)}>캘린더 다시 열기 ↗</button></div>}
+    {!calendarOpen && <div className="calendar-reopen"><p>근로생활 가이드</p><button className="quiz-start" onClick={() => setCalendarOpen(true)}>캘린더 다시 열기 ↗</button></div>}
     <div className="calendar-object" hidden={!calendarOpen}>
       <section className="calendar-paper" aria-label="스티커로 배우는 취업규칙 달력">
         <div className="bindings" aria-hidden="true">{Array.from({ length: 4 }, (_, i) => <span key={i}/>)}</div>
         <header className="calendar-heading">
           <button className="calendar-help" onClick={() => setHelp(true)} aria-label="캘린더 이용 방법">?</button>
-          <h1>GEN Z CALENDAR</h1>
+          <h1 className="calendar-guide-title"><span>근로생활 가이드</span></h1>
           <button className="calendar-records" onClick={() => setRecords(true)} aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 4H5a2 2 0 0 0-2 2v14h18V6a2 2 0 0 0-2-2h-2"/><rect x="7" y="2" width="10" height="5" rx="2"/><path d="m7 13 2 2 3-4m2 2h3m-10 5h10"/></svg>퀴즈 기록</button>
           <button className="calendar-close" onClick={() => setCalendarOpen(false)} aria-label="캘린더 닫기"><span/><span/></button>
         </header>

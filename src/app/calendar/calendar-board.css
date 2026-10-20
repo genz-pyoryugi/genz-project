@@ -172,3 +172,25 @@ html:has(.calendar-scene),body:has(.calendar-scene){background:var(--background,
   .calendar-footer .quiz-start{min-width:220px;font-size:20px;padding:11px 22px}
 }
 @media(prefers-reduced-motion:reduce){.calendar-leaf{animation:none}.sticker{transition:none}}
+
+/* Reference handwriting is part of the image, so it does not depend on fonts. */
+.calendar-heading h1.calendar-guide-title{
+  width:434px;max-width:calc(100% - 290px);height:140px;padding:0;margin:-18px 0 -6px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  background:url('/calendar/assets/guide-title-handwritten.png') center/72.9% auto no-repeat;
+  color:#174679;font-family:'Calendar Handwriting','Malgun Gothic',sans-serif;
+  font-size:34px;font-weight:400;letter-spacing:2px;line-height:1;
+  -webkit-text-stroke:0;text-shadow:none;
+}
+.calendar-heading h1.calendar-guide-title::before,.calendar-heading h1.calendar-guide-title::after{content:none}
+.calendar-guide-title span{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media(max-width:850px){
+  .calendar-heading h1.calendar-guide-title{max-width:calc(100% - 100px);width:434px;height:auto;aspect-ratio:434/140;margin:-10px 0 0}
+  .calendar-heading:has(.calendar-guide-title){min-height:170px}
+  .calendar-heading:has(.calendar-guide-title) .calendar-records{top:130px}
+}
+@media(max-width:550px){
+  .calendar-heading h1.calendar-guide-title{max-width:calc(100% - 54px);width:360px;height:auto;aspect-ratio:434/140;margin:0}
+  .calendar-heading:has(.calendar-guide-title){min-height:135px}
+  .calendar-heading:has(.calendar-guide-title) .calendar-records{top:98px}
+}
