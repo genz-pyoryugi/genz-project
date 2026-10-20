@@ -11,6 +11,13 @@ interface PostItWriteModalProps {
   onSubmit: (newPost: Omit<PostItPost, 'id' | 'createdAt' | 'stickers' | 'comments'>) => void;
 }
 
+/** 주제(챕터)별 추천 태그 */
+const chapterKeywords = (id: ChapterId): string[] =>
+  CHAPTER_LIST.find((c) => c.id === id)?.recommendedKeywords ?? [];
+
+/** 모든 주제의 추천 태그 — 이 중 하나면 "추천 태그를 쓰는 중", 아니면 사용자가 직접 입력한 태그 */
+const ALL_KEYWORDS = new Set(CHAPTER_LIST.flatMap((c) => c.recommendedKeywords));
+
 export const PostItWriteModal: React.FC<PostItWriteModalProps> = ({
   currentChapterId,
   isOpen,
@@ -20,7 +27,8 @@ export const PostItWriteModal: React.FC<PostItWriteModalProps> = ({
   const [chapterId, setChapterId] = useState<ChapterId>(currentChapterId);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [categoryTag, setCategoryTag] = useState('첫 인사 & 호칭');
+  // 태그는 고른 주제의 첫 번째 추천 키워드로 시작하고, 주제를 바꾸면 함께 바뀐다
+  const [categoryTag, setCategoryTag] = useState(() => chapterKeywords(currentChapterId)[0] ?? '');
   const [authorNickname, setAuthorNickname] = useState('신입사원A');
   const [role, setRole] = useState<'신입' | '인턴' | '1년차' | '취준생'>('신입');
   const [companyType, setCompanyType] = useState('IT스타트업');
@@ -104,7 +112,14 @@ export const PostItWriteModal: React.FC<PostItWriteModalProps> = ({
               </label>
               <select
                 value={chapterId}
-                onChange={(e) => setChapterId(e.target.value as ChapterId)}
+                onChange={(e) => {
+                  const next = e.target.value as ChapterId;
+                  setChapterId(next);
+                  // 추천 태그를 쓰고 있었거나 비어 있으면 새 주제의 추천 태그로 바꾼다 (직접 입력한 태그는 그대로)
+                  if (!categoryTag.trim() || ALL_KEYWORDS.has(categoryTag.trim())) {
+                    setCategoryTag(chapterKeywords(next)[0] ?? '');
+                  }
+                }}
                 className="w-full px-3 py-2 rounded-lg bg-white border border-[#D5CFC5] text-xs font-medium text-[#112334] focus:outline-none focus:ring-2 focus:ring-[#2B729E]"
               >
                 {CHAPTER_LIST.map((chap) => (
@@ -215,6 +230,25 @@ export const PostItWriteModal: React.FC<PostItWriteModalProps> = ({
                   maxLength={10}
                 />
               </div>
+            </div>
+
+            {/* 고른 주제의 추천 태그: 눌러서 바로 선택 */}
+            <div className="flex flex-wrap items-center gap-1.5 -mt-1">
+              <span className="text-[11px] font-ui text-[#736D64] mr-0.5">추천 태그</span>
+              {chapterKeywords(chapterId).map((kw) => (
+                <button
+                  type="button"
+                  key={kw}
+                  onClick={() => setCategoryTag(kw)}
+                  className={`px-2 py-0.5 rounded-full border text-[11px] font-ui transition-colors ${
+                    categoryTag.trim() === kw
+                      ? 'bg-[#2B729E] border-[#2B729E] text-white font-bold'
+                      : 'bg-white border-[#D5CFC5] text-[#2B729E] hover:border-[#2B729E]'
+                  }`}
+                >
+                  #{kw}
+                </button>
+              ))}
             </div>
 
             {/* Title */}

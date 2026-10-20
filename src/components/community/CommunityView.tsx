@@ -112,7 +112,7 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
       } catch {}
     }
   }, []);
-  const [filterMode, setFilterMode] = useState<'all' | 'hasAdvice' | 'popular'>('all');
+  const [filterMode, setFilterMode] = useState<'all' | 'hasAdvice' | 'popular' | 'mine'>('all');
   const [sortOrder, setSortOrder] = useState<'latest' | 'adviceCount' | 'stickerCount'>('latest');
 
 
@@ -231,6 +231,7 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
       createdAt: '방금 전',
       stickers: [],
       comments: [],
+      isMine: true, // 내가 쓴 글 모아보기용 표시
     };
     setPosts((prev) => [newPost, ...prev]);
   };
@@ -238,6 +239,7 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   // Filtering by selected topic & sub filter mode
   // 보이는 라디오 사연: 7대 카테고리별로 공감 스티커 + 테이프 조언을 가장 많이 받은 포스트잇 1개씩
   const radioPosts = useMemo(() => getRadioPosts(posts), [posts]);
+  const myPostCount = useMemo(() => posts.filter((p) => p.isMine).length, [posts]);
   const radioPostIds = useMemo(() => new Set(radioPosts.map((p) => p.id)), [radioPosts]);
   const [radioAutoPlay, setRadioAutoPlay] = useState(false); // 라디오 창의 토글로 사연을 바꾼 경우 바로 재생
   const openRadio = (p: PostItPost) => {
@@ -259,6 +261,8 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
       result = result.filter((p) => p.comments.length > 0);
     } else if (filterMode === 'popular') {
       result = result.filter((p) => p.stickers.length >= 2 || p.comments.length >= 1);
+    } else if (filterMode === 'mine') {
+      result = result.filter((p) => p.isMine);
     }
 
     // Sort order
@@ -451,6 +455,17 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
                 >
                   인기 공감 글 🔥
                 </button>
+                <button
+                  onClick={() => setFilterMode('mine')}
+                  className={`px-3 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                    filterMode === 'mine'
+                      ? 'bg-[#112334] text-white font-bold shadow-2xs'
+                      : 'bg-white/80 text-[#555048] hover:bg-white border border-[#D8D2C6]'
+                  }`}
+                  title="이 브라우저에서 내가 작성한 포스트잇만 모아보기"
+                >
+                  ✍️ 내가 쓴 글 ({myPostCount})
+                </button>
               </div>
 
               {/* Right Actions: Sticker Drawer & Post-it Write & Sort */}
@@ -532,12 +547,18 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
               </div>
             ) : (
               <div className="py-24 text-center rounded-2xl border-2 border-dashed border-[#D2CCC2] bg-white/50 my-6">
-                <span className="text-4xl block mb-2">📌</span>
+                <span className="text-4xl block mb-2">{filterMode === 'mine' ? '✍️' : '📌'}</span>
                 <h3 className="font-bold text-base text-[#112334]">
-                  이 주제에는 아직 등록된 고민이 없습니다.
+                  {filterMode === 'mine'
+                    ? selectedTopic === 'all'
+                      ? '아직 내가 쓴 포스트잇이 없어요.'
+                      : '이 주제에는 아직 내가 쓴 포스트잇이 없어요.'
+                    : '이 주제에는 아직 등록된 고민이 없습니다.'}
                 </h3>
                 <p className="text-xs text-[#736D64] mt-1">
-                  첫 번째 고민 포스트잇을 직접 붙여보세요!
+                  {filterMode === 'mine'
+                    ? '고민을 포스트잇으로 남기면 여기에 모아서 볼 수 있어요.'
+                    : '첫 번째 고민 포스트잇을 직접 붙여보세요!'}
                 </p>
                 <button
                   onClick={() => setIsWriteModalOpen(true)}
@@ -647,12 +668,15 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
         />
       )}
 
-      <PostItWriteModal
-        currentChapterId={(selectedTopic !== 'all' ? selectedTopic : '01') as ChapterId}
-        isOpen={isWriteModalOpen}
-        onClose={() => setIsWriteModalOpen(false)}
-        onSubmit={handleCreatePostIt}
-      />
+      {/* 열 때마다 새로 그려서 지금 보고 있는 주제와 그 주제의 추천 태그로 시작 */}
+      {isWriteModalOpen && (
+        <PostItWriteModal
+          currentChapterId={(selectedTopic !== 'all' ? selectedTopic : '01') as ChapterId}
+          isOpen
+          onClose={() => setIsWriteModalOpen(false)}
+          onSubmit={handleCreatePostIt}
+        />
+      )}
 
 <CommunityTutorialModal
   isOpen={isTutorialOpen}

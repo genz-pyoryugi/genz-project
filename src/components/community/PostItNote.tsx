@@ -167,6 +167,11 @@ export const PostItNote: React.FC<PostItNoteProps> = ({
             </span>
             <span className="text-[10px] text-black/50 whitespace-nowrap font-normal">
               {post.createdAt}
+              {post.isMine && (
+                <span className="ml-1.5 px-1.5 py-px rounded-full bg-[#112334] text-white text-[9px] font-bold align-middle">
+                  ✍️ 내 글
+                </span>
+              )}
             </span>
           </div>
           <div className="flex items-center gap-1 text-[11px] text-black/70 font-medium whitespace-nowrap shrink-0 pt-0.5">
