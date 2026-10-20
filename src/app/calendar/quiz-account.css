@@ -1,5 +1,11 @@
 .quiz-account{position:relative;max-width:1180px;margin:24px auto 0;padding:22px;border:1px solid #c8d7e4;border-radius:16px;background:#fffaf0;color:#18314c;overflow-wrap:anywhere}
 .quiz-account h2{font-size:19px;font-weight:700;margin-bottom:12px}
+.quiz-history-list h3{font-size:17px;margin:18px 0 8px}
+.quiz-history-results{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.quiz-history-verdict{display:inline-flex;align-items:center;padding:4px 9px;border:1px solid;border-radius:18px;font-size:13px;line-height:1.5}
+.quiz-history-verdict.is-correct{color:#25602e;background:#eaf5e7;border-color:#b6d5ad}
+.quiz-history-verdict.is-incorrect{color:#9a3929;background:#fff0e9;border-color:#edc0b2}
+.quiz-history-question>.quiz-history-verdict{margin-top:4px}
 .quiz-account p{font-size:14px;line-height:1.7;margin:8px 0}
 .quiz-account form{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .quiz-account form p{flex-basis:100%}

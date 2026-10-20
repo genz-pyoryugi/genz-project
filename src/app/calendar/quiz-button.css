@@ -1,0 +1,13 @@
+/* Inner content only: button placement, padding, colors and behavior stay with each button. */
+.quiz-dialog .quiz-icon-button{align-items:center;justify-content:center;text-align:center}
+.quiz-dialog .quiz-button-content{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  flex:0 0 auto;vertical-align:middle;font:inherit;line-height:1.2;white-space:nowrap;
+}
+.quiz-dialog .quiz-button-label{display:block;font:inherit;line-height:1.2;transform:none}
+.quiz-dialog .quiz-button-icon{
+  display:block;width:20px;height:20px;min-width:20px;flex:0 0 20px;
+  margin:0;padding:0;transform:none;stroke-width:2;
+}
+.quiz-dialog .quiz-icon-only-button{display:flex;align-items:center;justify-content:center}
+.quiz-dialog .quiz-icon-only-button>.quiz-button-icon{width:20px;height:20px;flex:0 0 20px}

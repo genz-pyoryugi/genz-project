@@ -28,9 +28,10 @@
 .quiz-answer-area .quiz-evidence summary{font-size:18px}
 .quiz-answer-area .quiz-evidence>div{font-size:14px;margin-top:8px}
 .quiz-answer-area .quiz-feedback-next{font-size:17px;min-height:36px;min-width:135px;padding:7px 16px}
-.quiz-dialog:not(.quiz-complete-dialog) .quiz-panel-footer{flex-shrink:0;min-height:42px;margin-top:8px}
+.quiz-dialog:not(.quiz-complete-dialog) .quiz-panel-footer{flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;gap:4px;margin-top:8px}
 .quiz-dialog:not(.quiz-complete-dialog) .quiz-back{min-height:38px;font-size:17px;padding:4px 15px}
-.quiz-dialog:not(.quiz-complete-dialog) .quiz-mode-badge{font-size:12px;padding:8px 13px}
+.quiz-dialog:not(.quiz-complete-dialog) .quiz-mode-badge{display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1.4;text-align:center;gap:5px;padding:2px 8px;margin:0}
+.quiz-dialog:not(.quiz-complete-dialog) .quiz-mode-badge>span{font-size:14px}
 .quiz-source-toggle{display:flex;align-items:center;gap:9px;align-self:center;background:none;border:0;padding:4px 0;font-size:18px;color:#12476d;cursor:pointer;white-space:nowrap}
 .quiz-source-toggle svg{width:18px;height:18px}
 .quiz-source-popover{position:fixed;inset:0;margin:auto;width:min(440px,calc(100% - 40px));max-height:70svh;overflow:auto;padding:28px 25px;border:2px solid #7397b4;border-radius:18px;background:#fffdf6;color:#12476d;box-shadow:0 15px 60px #12395b44;font-size:18px;line-height:1.7}
@@ -38,13 +39,11 @@
 .quiz-source-popover h4{margin:0 30px 15px 0;font-size:24px}
 .quiz-source-popover a{text-decoration:underline;text-underline-offset:3px}
 .quiz-source-close{position:absolute;right:12px;top:5px;font-size:30px;background:none;border:0;cursor:pointer}
-.quiz-navigation{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%}
-.quiz-navigation>button{display:flex;align-items:center;justify-content:center;gap:7px;min-width:120px;min-height:36px;padding:6px 15px;border:2px solid #12476d;border-radius:30px;font-size:16px;line-height:1.2;cursor:pointer;white-space:nowrap}
-.quiz-feedback-actions .quiz-navigation{width:auto;margin-left:auto;flex-shrink:0}
-.quiz-pending-navigation{margin-top:2px}
+.quiz-question-navigation{flex-shrink:0;display:flex;justify-content:center;width:100%;margin-top:2px}
+.quiz-navigation{display:flex;align-items:center;justify-content:center;gap:16px;width:100%}
+.quiz-navigation>button{display:flex;align-items:center;justify-content:center;gap:7px;flex:0 1 144px;width:144px;min-width:0;height:40px;min-height:40px;margin:0;padding:6px 12px;border:2px solid #12476d;border-radius:30px;font-size:16px;line-height:1.2;cursor:pointer;white-space:nowrap}
 .quiz-navigation .quiz-previous{background:#fffdf6;color:#12476d}
-.quiz-navigation .quiz-next{background:#12476d;color:white;margin-left:auto}
-.quiz-navigation>button>span{font-family:Arial,sans-serif;font-size:27px;line-height:.8}
+.quiz-navigation .quiz-next{background:#12476d;color:white}
 .quiz-navigation>button:disabled{opacity:.4;cursor:not-allowed}
 .quiz-mission-bars{pointer-events:none;user-select:none}
 @media(min-width:681px){
@@ -78,11 +77,9 @@
   .quiz-source-toggle{font-size:15px;gap:5px}
   .quiz-answer-area .quiz-feedback-next{min-width:110px;padding:7px 10px;font-size:16px;min-height:35px;gap:5px}
   .quiz-answer-area .quiz-evidence summary{font-size:17px}
-  .quiz-dialog:not(.quiz-complete-dialog) .quiz-panel-footer{min-height:37px;gap:0}
+  .quiz-dialog:not(.quiz-complete-dialog) .quiz-panel-footer{min-height:0;gap:4px}
   .quiz-dialog:not(.quiz-complete-dialog) .quiz-back{min-height:37px;font-size:16px}
-  .quiz-dialog:not(.quiz-complete-dialog) .quiz-mode-badge{display:none}
-  .quiz-dialog .quiz-navigation{flex-direction:row;justify-content:space-between;gap:10px}
-  .quiz-navigation>button{min-width:110px;min-height:37px;padding:6px 13px;font-size:16px;gap:6px}
+  .quiz-dialog:not(.quiz-complete-dialog) .quiz-mode-badge{display:flex}
+  .quiz-dialog .quiz-navigation{flex-direction:row;justify-content:center;gap:16px}
   .quiz-answer-area .quiz-feedback-actions{flex-wrap:wrap;gap:8px}
-  .quiz-feedback-actions .quiz-navigation{flex-basis:100%;width:100%;margin-left:0}
 }

@@ -8,10 +8,14 @@ import './quiz-account.css';
 import './calendar-board.css';
 import './quiz-panel.css';
 import './quiz-frame.css';
+import './quiz-button.css';
 import { ensureCalendarSession, getCalendarSupabase } from '@/lib/calendar-supabase';
 import QuizAccount from './quiz-account';
 import TopicGuide from './topic-guide';
 import { loadQuizQuestions, saveQuizAttempt, type QuizQuestion } from './quiz-store';
+import { localQuestionBank, selectQuizQuestions } from './quiz-selection';
+import { quizQuestionText, quizReadingText } from './quiz-text';
+import QuizButtonContent, { QuizButtonIcon } from './quiz-button-content';
 
 const stickerImage = (art: string) => `/calendar/assets/${art === 'arrival' || art === 'night' ? `${art}-reference.png` : `${art}.svg`}`;
 
@@ -49,6 +53,7 @@ export default function CalendarPage() {
   const attemptId = useRef('');
   const saveInProgress = useRef(false);
   const savedAttempt = useRef<string | null>(null);
+  const retryOf = useRef<string | null>(null);
   const activeUser = useRef<string | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
@@ -93,13 +98,15 @@ export default function CalendarPage() {
   const finished = step === questions.length;
   const selected = answers[step];
   const completedCount = answers.filter(answer => answer !== undefined).length;
-  const explanation = questions[step]?.explanation ?? '';
+  const wrongQuestions = questions.filter((question, index) => answers[index] !== undefined && question.answer !== answers[index]);
+  const explanation = quizReadingText(questions[step]?.explanation ?? '');
   const sentenceEnd = explanation.search(/[.!?。](?:\s|$)/);
   const explanationLead = sentenceEnd < 0 ? explanation : explanation.slice(0, sentenceEnd + 1);
   const explanationRest = sentenceEnd < 0 ? '' : explanation.slice(sentenceEnd + 1).trim();
   const change = (index: number) => { setChapter(index); setAnswers([]); setStep(0); };
   async function startQuiz() {
     const generation = ++run.current;
+    retryOf.current = null;
     attemptId.current = crypto.randomUUID();
     saveInProgress.current = false;
     savedAttempt.current = null;
@@ -112,12 +119,20 @@ export default function CalendarPage() {
       setNotice(userId ? '온라인 문제 · 완료하면 내 기록에 저장돼요.' : '온라인 문제 · 익명 사용자 연결이 안 되어 기록은 저장되지 않아요.');
     } catch (error) {
       if (run.current !== generation) return;
-      setQuestions(current.topics.map((t, position) => ({
-        id: t.art, chapter, position, version: 0, quiz: t.quiz,
-        answer: t.answer, explanation: t.explanation, source: t.source,
-      })));
+      setQuestions(selectQuizQuestions(localQuestionBank(chapter), chapter));
       setNotice(error instanceof Error ? error.message : '지금은 연습 모드이며 기록은 저장되지 않아요.');
     } finally { if (run.current === generation) setLoading(false); }
+  }
+  function retryWrongQuestions() {
+    if (!finished || saving || !wrongQuestions.length || (online && userId && !saved)) return;
+    const parentAttempt = online ? savedAttempt.current : null;
+    run.current++;
+    retryOf.current = parentAttempt;
+    attemptId.current = crypto.randomUUID();
+    savedAttempt.current = null;
+    saveInProgress.current = false;
+    setQuestions(wrongQuestions);
+    setAnswers([]); setStep(0); setSaved(false); setSaving(false); setSaveMessage('');
   }
   async function saveResult() {
     if (!online || !userId || saveInProgress.current || savedAttempt.current === attemptId.current
@@ -126,7 +141,7 @@ export default function CalendarPage() {
     const generation = run.current;
     setSaving(true); setSaveMessage('저장 중…');
     try {
-      await saveQuizAttempt(attemptId.current, chapter, questions, answers);
+      await saveQuizAttempt(attemptId.current, chapter, questions, answers, retryOf.current);
       if (run.current !== generation) return;
       savedAttempt.current = attemptId.current;
       setSaved(true); setSaveMessage('내 풀이 기록과 점수를 저장했어요.');
@@ -144,8 +159,8 @@ export default function CalendarPage() {
     if (step === questions.length - 1) void saveResult();
   }
   const questionNavigation = <nav className="quiz-navigation" aria-label="퀴즈 문제 이동">
-    <button className="quiz-previous" disabled={loading || step === 0} onClick={() => setStep(index => Math.max(0, index - 1))}><span aria-hidden="true">‹</span> 이전 문제</button>
-    <button className="quiz-next" disabled={loading || selected === undefined} onClick={nextQuestion}>{step === questions.length - 1 && !loading ? '결과 보기' : <>다음 문제 <span aria-hidden="true">›</span></>}</button>
+    <button className="quiz-previous quiz-icon-button" disabled={loading || step === 0} onClick={() => setStep(index => Math.max(0, index - 1))}><QuizButtonContent label="이전 문제" icon="left" iconFirst/></button>
+    <button className="quiz-next quiz-icon-button" disabled={loading || selected === undefined} onClick={nextQuestion}><QuizButtonContent label={step === questions.length - 1 && !loading ? '결과 보기' : '다음 문제'} icon="right"/></button>
   </nav>;
   return <main className="calendar-scene" lang="ko">
     {!calendarOpen && <div className="calendar-reopen"><p>근로생활 가이드</p><button className="quiz-start" onClick={() => setCalendarOpen(true)}>캘린더 다시 열기 ↗</button></div>}
@@ -171,7 +186,7 @@ export default function CalendarPage() {
       </section>
     </div>
     <dialog ref={dialog} className={`calendar-dialog${topic ? ' situation-dialog' : ''}${quiz ? ' quiz-dialog' : ''}${quiz && finished && !loading ? ' quiz-complete-dialog' : ''}${quiz && !finished && !loading && selected !== undefined ? ' quiz-answered' : ''}`} onCancel={close} onClick={event => { if (event.target === event.currentTarget) close(); }} aria-labelledby="dialog-title">
-      <button className="close-dialog" onClick={close} aria-label="팝업 닫기">{quiz ? <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" aria-hidden="true"><path d="m5 5 22 22M27 5 5 27"/></svg> : '×'}</button>
+      <button className={`close-dialog${quiz ? ' quiz-icon-only-button' : ''}`} onClick={close} aria-label="팝업 닫기">{quiz ? <QuizButtonIcon icon="close"/> : '×'}</button>
       {help && <><span className="dialog-eyebrow">GEN Z CALENDAR</span><h2 id="dialog-title">스티커로 배우는 일하는 날의 규칙</h2><p className="core-rule">날짜 속 스티커를 누르면 상황별 안내가 열려요.</p><ul><li>위쪽 탭이나 아래 화살표로 근로시간, 휴일·휴가, 퇴직·해고를 살펴보세요.</li><li>한 번 확인한 스티커에는 초록색 체크가 표시돼요. 이 표시는 현재 화면을 이용하는 동안 유지돼요.</li><li>OX 퀴즈를 풀며 배운 내용을 확인하고, 연결된 익명 사용자로 풀이 기록을 저장할 수 있어요.</li></ul><p className="scope-note">학습용 예시 달력으로 실제 근무 일정이 아닙니다. 2026. 2. 표준취업규칙의 일반 근로자용 기준이며 회사별 적용 기준을 확인하세요.</p><p className="source-ref"><a href="/calendar/source.pdf" target="_blank" rel="noreferrer">참고 PDF 보기 ↗</a></p></>}
       {records && <QuizAccount key={userId ?? 'guest'} titleId="dialog-title" userId={userId} connecting={connecting} message={connectionMessage} refresh={historyRefresh} onReconnect={() => { setConnecting(true); setConnectionMessage('익명 사용자 연결 중…'); setConnectionRetry(n => n + 1); }}/>}
       {topic && <TopicGuide key={topic.art} topic={topic} chapter={current.name} image={stickerImage(topic.art)}/>}
@@ -192,8 +207,9 @@ export default function CalendarPage() {
             <div className="quiz-completion-score"><p><strong>{questions.filter((q, i) => q.answer === answers[i]).length}</strong><span> / {questions.length}</span></p><p>정답</p></div>
           </div>
           <div className="quiz-completion-actions">
-            <button className="quiz-retry" disabled={saving} onClick={startQuiz}>다시 풀기 <span aria-hidden="true">↻</span></button>
-            <button className="quiz-return" onClick={close}><span aria-hidden="true">‹</span> 캘린더로</button>
+            <button className="quiz-retry quiz-icon-button" disabled={saving || !wrongQuestions.length || (!!userId && online && !saved)} onClick={retryWrongQuestions} aria-label="틀린 문제 다시 풀기" title={wrongQuestions.length ? `틀린 ${wrongQuestions.length}문제만 다시 풀어요` : '모든 문제를 맞혔어요'}><QuizButtonContent label="다시 풀기" icon="retry"/></button>
+            <button className="quiz-new quiz-icon-button" disabled={saving} onClick={startQuiz}><QuizButtonContent label="새로 풀기" icon="plus"/></button>
+            <button className="quiz-return quiz-icon-button" onClick={close}><QuizButtonContent label="캘린더로" icon="left" iconFirst/></button>
           </div>
           <p className="quiz-completion-status" role="status">{saveMessage || (!online || !userId ? '연습 모드 · 기록 미저장' : '풀이 기록을 저장하고 있어요.')}</p>
           {online && userId && !saved && <button className="quiz-save-retry" disabled={saving} onClick={saveResult}>{saving ? '저장 중…' : '결과 저장 다시 시도'}</button>}
@@ -201,11 +217,11 @@ export default function CalendarPage() {
           <div className="quiz-question-stage">
             <Image className="quiz-mascot" src="/calendar/assets/quiz-clock.svg" alt="" width={220} height={170} unoptimized/>
             <p className="quiz-question-number">Q.{String(step + 1).padStart(2, '0')}</p>
-            <p className="quiz-question">{questions[step].quiz}</p>
+            <p className="quiz-question">{quizQuestionText(questions[step].quiz)}</p>
           </div>
           <div className="quiz-answer-area">
           <div className="ox-choices">{[true, false].map(value => <button key={String(value)} disabled={selected !== undefined} className={selected === value ? 'selected' : ''} onClick={() => setAnswers(previous => { if (previous[step] !== undefined) return previous; const updated = [...previous]; updated[step] = value; return updated; })} aria-label={value ? 'O 선택' : 'X 선택'} aria-pressed={selected === value}><span aria-hidden="true">{value ? 'O' : 'X'}</span></button>)}</div>
-          {selected === undefined && <div className="quiz-pending-navigation">{questionNavigation}</div>}
+          <div className="quiz-question-navigation">{questionNavigation}</div>
           {selected !== undefined && <section key={questions[step].id} className={`quiz-feedback ${selected === questions[step].answer ? 'is-correct' : 'is-incorrect'}`} aria-label="정답 해설">
             <div role="status">
               <div className="quiz-feedback-heading">
@@ -216,15 +232,13 @@ export default function CalendarPage() {
               <div className="quiz-explanation"><p><strong>{explanationLead}</strong></p>{explanationRest && <p>{explanationRest}</p>}</div>
             </div>
             <div className="quiz-feedback-actions">
-              <button className="quiz-source-toggle" popoverTarget="quiz-source-popover">관련 근거 보기 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m3 7 7 7 7-7"/></svg></button>
-              <div id="quiz-source-popover" className="quiz-source-popover" popover="auto"><button className="quiz-source-close" popoverTarget="quiz-source-popover" popoverTargetAction="hide" aria-label="근거 닫기">×</button><h4>관련 조항·출처</h4><p>{questions[step].source}</p><a href="/calendar/source.pdf" target="_blank" rel="noreferrer">참고 PDF 원문 보기 ↗</a></div>
-              {questionNavigation}
+              <button className="quiz-source-toggle quiz-icon-button" popoverTarget="quiz-source-popover"><QuizButtonContent label="관련 근거 보기" icon="down"/></button>
+              <div id="quiz-source-popover" className="quiz-source-popover" popover="auto"><button className="quiz-source-close quiz-icon-only-button" popoverTarget="quiz-source-popover" popoverTargetAction="hide" aria-label="근거 닫기"><QuizButtonIcon icon="close"/></button><h4>관련 조항·출처</h4><p>{questions[step].source}</p><a href="/calendar/source.pdf" target="_blank" rel="noreferrer">참고 PDF 원문 보기 ↗</a></div>
             </div>
           </section>}
           </div>
         </>}
         {(!finished || loading) && <footer className="quiz-panel-footer">
-          <button className="quiz-back" onClick={close}><span aria-hidden="true">‹</span> 캘린더로 돌아가기</button>
           <p className="quiz-mode-badge" role="status" title={notice}><span aria-hidden="true">ⓘ</span> {loading ? '문제를 불러오고 있어요' : !online || !userId ? '연습 모드 · 기록은 저장되지 않아요' : saved ? '내 풀이 기록에 저장했어요' : saving ? '풀이 기록 저장 중…' : '완료하면 내 기록에 저장돼요'}</p>
         </footer>}
       </>}
