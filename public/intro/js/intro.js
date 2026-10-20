@@ -150,7 +150,7 @@
   // tucked into the pages along a slanted line at y ≈ 188 (left) – 197 (right).
   function chatRibbon() {
     let svg = null;
-    try { svg = mainFrame && mainFrame.contentDocument && mainFrame.contentDocument.querySelector('.chatbook__ribbon'); } catch (e) {}
+    try { svg = mainFrame && mainFrame.contentDocument && mainFrame.contentDocument.querySelector('.chatbook__ribbon'); } catch {}
     if (!svg) return null;
     const fr = mainFrame.getBoundingClientRect(), b = svg.getBoundingClientRect();
     if (!b.width) return null;

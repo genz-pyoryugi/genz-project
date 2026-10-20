@@ -1,3 +1,4 @@
+/* exported Simulation */
 // ===== AI팀장 시뮬레이션 =====
 // 채팅창의 "시뮬레이션" 탭. (chat.js가 Simulation.create()로 만든 화면을 붙인다)
 // DB ai_scenarios 테이블에서 상황을 불러와

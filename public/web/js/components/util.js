@@ -1,3 +1,4 @@
+/* exported formatTime, prefersReducedMotion, fromTable */
 // ===== 컴포넌트 공통 도구 =====
 // 모든 컴포넌트는 (data, ctx) => ({ el, destroy }) 형태로 만들고 window.Components에 등록한다.
 //  el: 화면에 붙일 요소 / destroy: 다른 탭으로 바꿀 때 타이머·재생을 정리

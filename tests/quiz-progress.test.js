@@ -13,7 +13,7 @@ const {Tracker}=require('../public/tracking/learning-tracker.js');
 const {randomUUID}=require('node:crypto');
 function storage(){const m=new Map();return {get length(){return m.size;},key:i=>[...m.keys()][i],getItem:k=>m.get(k)??null,setItem:(k,v)=>m.set(k,v),removeItem:k=>m.delete(k)};}
 const identity=(quiz,visitId=randomUUID())=>({id:randomUUID(),quizId:quiz.id,visitId});
-const selected=quiz=>({...freshRun(),picked:[0]});
+const selected=()=>({...freshRun(),picked:[0]});
 function backend(){
   const events=new Set(),answers=new Map(),attempts=new Map(),progress=new Map();
   let online=true,installed=true; const log=[];

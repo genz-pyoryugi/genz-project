@@ -44,14 +44,14 @@
           if (raw) { var e = JSON.parse(raw); all[e.event.id] = e; }
         }
       }
-    } catch (err) { /* storage unreadable: memory copy is still used */ }
+    } catch { /* storage unreadable: memory copy is still used */ }
     return Object.keys(all).map(function (id) { return all[id]; }).sort(function (a, b) {
       return a.event.at < b.event.at ? -1 : a.event.at > b.event.at ? 1 : a.event.sequence - b.event.sequence;
     });
   };
   DurableQueue.prototype.persist = function (item) {
     this.memory[item.event.id] = item;
-    try { this.storage.setItem(OUTBOX + item.event.id, JSON.stringify(item)); return true; } catch (e) { return false; }
+    try { this.storage.setItem(OUTBOX + item.event.id, JSON.stringify(item)); return true; } catch { return false; }
   };
   DurableQueue.prototype.remove = function (id, rejectedReason) {
     var item = this.memory[id];
@@ -62,7 +62,7 @@
         this.storage.setItem(REJECTED + id, JSON.stringify({ item: raw ? JSON.parse(raw) : item, reason: rejectedReason }));
       }
       this.storage.removeItem(OUTBOX + id);
-    } catch (e) { /* ignore */ }
+    } catch { /* ignore */ }
   };
   DurableQueue.prototype.enqueue = function (event, owner) { return this.persist({ owner: owner || null, event: event }); };
   DurableQueue.prototype.hasRejected = function (owner) {
@@ -74,7 +74,7 @@
           if (rejected.reason !== 'owner-changed' && rejected.item && rejected.item.owner === owner) return true;
         }
       }
-    } catch (e) { /* storage unavailable */ }
+    } catch { /* storage unavailable */ }
     return this.lastRejection === owner;
   };
   DurableQueue.prototype.rejections = function (owner) {
@@ -86,12 +86,12 @@
         var row = JSON.parse(this.storage.getItem(key));
         if (row.reason !== 'owner-changed' && row.item && row.item.owner === owner) rows.push({ key: key, row: row });
       }
-    } catch (e) { /* Keep the conservative hasRejected fallback if storage cannot be read. */ }
+    } catch { /* Keep the conservative hasRejected fallback if storage cannot be read. */ }
     return rows;
   };
   DurableQueue.prototype.resolveAcknowledged = function (owner, event) {
-    var self = this, resolved = 0;
-    this.rejections(owner).forEach(function (entry) {
+    var resolved = 0;
+    this.rejections(owner).forEach((entry) => {
       var old = entry.row.item.event, same = false;
       if (!old || !event.attemptId || old.attemptId !== event.attemptId || old.visitId !== event.visitId || old.type !== event.type) return;
       if (event.type === 'quiz_started') same = old.quizVersionId === event.quizVersionId &&
@@ -103,10 +103,10 @@
       if (!same) return;
       try {
         // Keep the original failure for diagnosis; only a matching server acknowledgement resolves it.
-        self.storage.setItem(RESOLVED + old.id, JSON.stringify({ ...entry.row, resolvedAt: new Date().toISOString(), acknowledgedBy: event.id }));
-        self.storage.removeItem(entry.key);
+        this.storage.setItem(RESOLVED + old.id, JSON.stringify({ ...entry.row, resolvedAt: new Date().toISOString(), acknowledgedBy: event.id }));
+        this.storage.removeItem(entry.key);
         resolved++;
-      } catch (e) { /* Never hide a failure if its resolution cannot be retained. */ }
+      } catch { /* Never hide a failure if its resolution cannot be retained. */ }
     });
     if (resolved && !this.rejections(owner).length) this.lastRejection = null;
   };
@@ -126,30 +126,29 @@
         item.recoveryVersion = 3;
         if (this.persist(item)) { this.storage.removeItem(key); recovered++; }
       }
-    } catch (e) { /* Leave unreadable rejected records intact. */ }
+    } catch { /* Leave unreadable rejected records intact. */ }
     if (recovered) this.lastRejection = null;
     return recovered;
   };
   // Sends in order; stops at the first transient failure. Permanent rejections are set aside, never retried.
   DurableQueue.prototype.flush = function (owner, send) {
-    var self = this;
     if (this.running) return this.running;
-    this.running = (async function () {
+    this.running = (async () => {
       var deferred = {}, deferredError = null;
       for (;;) {
-        var remaining = self.items();
+        var remaining = this.items();
         var item = remaining.find(function (entry) { return !deferred[entry.event.id]; });
         if (!item) return { sent: remaining.length === 0, pending: remaining.length, error: deferredError };
-        if (item.owner && item.owner !== owner) { self.remove(item.event.id, 'owner-changed'); continue; }
-        item.owner = owner; self.persist(item);
-        try { await send(item.event); self.resolveAcknowledged(owner, item.event); self.remove(item.event.id); }
+        if (item.owner && item.owner !== owner) { this.remove(item.event.id, 'owner-changed'); continue; }
+        item.owner = owner; this.persist(item);
+        try { await send(item.event); this.resolveAcknowledged(owner, item.event); this.remove(item.event.id); }
         catch (error) {
           if (error.code === 'LT_PROGRESS_SETUP') { deferred[item.event.id] = true; deferredError = error; continue; }
-          if (isPermanent(error)) { self.lastRejection = owner; self.remove(item.event.id, String(error.code) + ' ' + String(error.message || '')); continue; }
-          return { sent: false, pending: self.items().length, error: error };
+          if (isPermanent(error)) { this.lastRejection = owner; this.remove(item.event.id, String(error.code) + ' ' + String(error.message || '')); continue; }
+          return { sent: false, pending: this.items().length, error: error };
         }
       }
-    })().then(function (r) { self.running = null; return r; }, function (e) { self.running = null; throw e; });
+    })().then((r) => { this.running = null; return r; }, (e) => { this.running = null; throw e; });
     return this.running;
   };
 
@@ -165,14 +164,13 @@
     this.visit = null;
     this.sequences = {};
     this.acknowledgedAttempts = {};
-    try { this.visit = JSON.parse(this.session.getItem(VISIT_KEY) || 'null'); } catch (e) { this.visit = null; }
+    try { this.visit = JSON.parse(this.session.getItem(VISIT_KEY) || 'null'); } catch { this.visit = null; }
     this.record('visit_started');
     if (opts.timers !== false && root.addEventListener) {
-      var self = this;
-      root.addEventListener('online', function () { self.retry(); });
-      root.addEventListener('focus', function () { self.retry(); });
-      root.addEventListener('pagehide', function () { self.retry(); });
-      setInterval(function () { self.retry(); }, 15000);
+      root.addEventListener('online', () => { this.retry(); });
+      root.addEventListener('focus', () => { this.retry(); });
+      root.addEventListener('pagehide', () => { this.retry(); });
+      setInterval(() => { this.retry(); }, 15000);
     }
   }
   Tracker.prototype.setStatus = function (state, message, delivered) {
@@ -198,24 +196,24 @@
     return result;
   };
   Tracker.prototype.subscribe = function (fn) {
-    var self = this; this.listeners.push(fn); fn(this.status);
-    return function () { self.listeners = self.listeners.filter(function (x) { return x !== fn; }); };
+    this.listeners.push(fn); fn(this.status);
+    return () => { this.listeners = this.listeners.filter(function (x) { return x !== fn; }); };
   };
   Tracker.prototype.saveVisit = function () {
-    try { this.session.setItem(VISIT_KEY, JSON.stringify(this.visit)); } catch (e) { /* visit stays in memory */ }
+    try { this.session.setItem(VISIT_KEY, JSON.stringify(this.visit)); } catch { /* visit stays in memory */ }
   };
   Tracker.prototype.enqueue = function (type, fields) {
     var visitId = (fields && fields.attemptVisitId) || this.visit.id;
     var sequence = Math.max(this.sequences[visitId] || 0, visitId === this.visit.id ? this.visit.sequence : 0);
-    try { sequence = Math.max(sequence, Number(this.session.getItem('genz.lt.seq.v1.' + visitId)) || 0); } catch (e) { /* memory counter */ }
-    try { sequence = Math.max(sequence, Number(this.queue.storage.getItem('genz.lt.seq.v1.' + visitId)) || 0); } catch (e) { /* storage unavailable */ }
+    try { sequence = Math.max(sequence, Number(this.session.getItem('genz.lt.seq.v1.' + visitId)) || 0); } catch { /* memory counter */ }
+    try { sequence = Math.max(sequence, Number(this.queue.storage.getItem('genz.lt.seq.v1.' + visitId)) || 0); } catch { /* storage unavailable */ }
     // A resumed attempt keeps its old visit even after sessionStorage is gone. The epoch
     // floor also upgrades legacy visits whose durable sequence was not stored yet.
     sequence = Math.max(sequence, Date.now());
     this.sequences[visitId] = ++sequence;
     if (visitId === this.visit.id) this.visit.sequence = sequence;
-    try { this.session.setItem('genz.lt.seq.v1.' + visitId, String(sequence)); } catch (e) { /* memory counter */ }
-    try { this.queue.storage.setItem('genz.lt.seq.v1.' + visitId, String(sequence)); } catch (e) { /* memory/session fallback */ }
+    try { this.session.setItem('genz.lt.seq.v1.' + visitId, String(sequence)); } catch { /* memory counter */ }
+    try { this.queue.storage.setItem('genz.lt.seq.v1.' + visitId, String(sequence)); } catch { /* memory/session fallback */ }
     var event = Object.assign({}, fields || {}, { id: uuid(), visitId: visitId, type: type,
       at: new Date().toISOString(), sequence: sequence });
     if (!this.queue.enqueue(event, (fields && fields.progressOwner) || this.visit.owner)) this.setStatus('error', '기기 저장 공간을 쓸 수 없어요. 이 화면을 닫기 전에 연결 상태를 확인해 주세요.');
@@ -245,34 +243,32 @@
   Tracker.prototype.newId = uuid;
   Tracker.prototype.currentVisitId = function () { this.record('visit_started'); return this.visit.id; };
   Tracker.prototype.client = function () {
-    var self = this;
-    if (!this.clientPromise) this.clientPromise = Promise.resolve().then(function () { return self.getClient(); }).then(function (client) {
-      if (!client) self.clientPromise = null; // A temporary config outage must not disable autosave until reload.
+    if (!this.clientPromise) this.clientPromise = Promise.resolve().then(() => this.getClient()).then((client) => {
+      if (!client) this.clientPromise = null; // A temporary config outage must not disable autosave until reload.
       return client;
-    }, function (error) { self.clientPromise = null; throw error; });
+    }, (error) => { this.clientPromise = null; throw error; });
     return this.clientPromise;
   };
   Tracker.prototype.catalog = async function () {
     var client = await this.client();
     if (!client) {
-      try { var offline = JSON.parse(this.queue.storage.getItem('genz.lt.catalog.v1')); if (Array.isArray(offline) && offline.length) return offline; } catch (e) { /* no cache */ }
+      try { var offline = JSON.parse(this.queue.storage.getItem('genz.lt.catalog.v1')); if (Array.isArray(offline) && offline.length) return offline; } catch { /* no cache */ }
       throw new Error('unconfigured');
     }
     try {
       var res = await client.rpc('lt_catalog');
       if (res.error) throw res.error;
-      try { this.queue.storage.setItem('genz.lt.catalog.v1', JSON.stringify(res.data || [])); } catch (e) { /* optional cache */ }
+      try { this.queue.storage.setItem('genz.lt.catalog.v1', JSON.stringify(res.data || [])); } catch { /* optional cache */ }
       return res.data || [];
     } catch (error) {
-      try { var cached = JSON.parse(this.queue.storage.getItem('genz.lt.catalog.v1')); if (Array.isArray(cached) && cached.length) return cached; } catch (e) { /* no cache */ }
+      try { var cached = JSON.parse(this.queue.storage.getItem('genz.lt.catalog.v1')); if (Array.isArray(cached) && cached.length) return cached; } catch { /* no cache */ }
       throw error;
     }
   };
   Tracker.prototype.identity = async function () {
-    var self = this;
     var client = await this.client();
     if (!client) throw new Error('unconfigured');
-    var authenticate = async function () {
+    var authenticate = async () => {
       var s = await client.auth.getSession();
       if (s.error) throw s.error;
       if (!s.data.session) {
@@ -282,12 +278,12 @@
         s = { data: { session: r.data.session || { user: r.data.user } } };
       }
       var session = s.data.session;
-      if (self.visit.owner && self.visit.owner !== session.user.id) {
-        self.acknowledgedAttempts = {};
-        self.visit = null; self.record('visit_started');
+      if (this.visit.owner && this.visit.owner !== session.user.id) {
+        this.acknowledgedAttempts = {};
+        this.visit = null; this.record('visit_started');
       }
-      self.visit.owner = session.user.id; self.saveVisit();
-      try { self.queue.storage.setItem('genz.lt.owner.v1', session.user.id); } catch (e) { /* optional offline cache */ }
+      this.visit.owner = session.user.id; this.saveVisit();
+      try { this.queue.storage.setItem('genz.lt.owner.v1', session.user.id); } catch { /* optional offline cache */ }
       return { id: session.user.id, token: session.access_token };
     };
     return root.navigator && root.navigator.locks
@@ -305,7 +301,7 @@
     return this.historyReady;
   };
   Tracker.prototype.cachedOwner = function () {
-    try { return this.queue.storage.getItem('genz.lt.owner.v1'); } catch (e) { return null; }
+    try { return this.queue.storage.getItem('genz.lt.owner.v1'); } catch { return null; }
   };
   Tracker.prototype.pendingAttempt = function (id) {
     return this.queue.items().some(function (item) { return item.event.attemptId === id; });
@@ -319,38 +315,37 @@
     return res.data || [];
   };
   Tracker.prototype.retry = function () {
-    var self = this;
     if (this.retrying) return this.retrying;
-    this.retrying = (async function () {
-      var client = await self.client();
-      if (!client) { self.setStatus('unconfigured', MSG_UNCONFIGURED); return; }
+    this.retrying = (async () => {
+      var client = await this.client();
+      if (!client) { this.setStatus('unconfigured', MSG_UNCONFIGURED); return; }
       var owner;
       try {
-        owner = (await self.identity()).id;
-      } catch (e) {
-        self.setStatus('error', '익명 로그인에 실패했어요 · 기록은 기기에 보관 중이며 자동으로 다시 시도해요.'); return;
+        owner = (await this.identity()).id;
+      } catch {
+        this.setStatus('error', '익명 로그인에 실패했어요 · 기록은 기기에 보관 중이며 자동으로 다시 시도해요.'); return;
       }
-      if (self.queue.hasRejected(owner)) {
-        if (!self.historyReady && (!self.lastHistoryCheck || Date.now() - self.lastHistoryCheck > 15000)) {
-          self.lastHistoryCheck = Date.now();
-          try { await self.supportsHistory(); } catch (e) { /* Original outbox still retries below. */ }
+      if (this.queue.hasRejected(owner)) {
+        if (!this.historyReady && (!this.lastHistoryCheck || Date.now() - this.lastHistoryCheck > 15000)) {
+          this.lastHistoryCheck = Date.now();
+          try { await this.supportsHistory(); } catch { /* Original outbox still retries below. */ }
         }
-        if (self.historyReady) self.queue.recoverAfterUpgrade(owner);
+        if (this.historyReady) this.queue.recoverAfterUpgrade(owner);
       }
-      var result = await self.queue.flush(owner, async function (event) {
+      var result = await this.queue.flush(owner, async (event) => {
         var progressRpc = event.type === 'quiz_progress' ? 'lt_save_progress' : event.type === 'quiz_abandoned' ? 'lt_abandon_progress' : null;
         var res = await client.rpc(progressRpc || 'lt_ingest', { p: event });
         if (progressRpc && res.error && (res.error.code === 'PGRST202' || res.error.code === '42883'))
           throw { code: 'LT_PROGRESS_SETUP', message: 'Progress SQL required' };
         if (res.error) throw res.error;
-        if (event.type === 'quiz_progress') self.acknowledgedAttempts[event.attemptId] = true;
+        if (event.type === 'quiz_progress') this.acknowledgedAttempts[event.attemptId] = true;
       });
-      if (self.queue.hasRejected(owner)) self.setStatus('error', '저장 요청 중 거절된 기록이 있어요. 저장 실패 내역에서 원인을 확인해 주세요.', result.sent);
-      else if (result.sent) self.setStatus('saved', 'Supabase 저장 완료', true);
-      else if (result.error && result.error.code === 'LT_PROGRESS_SETUP') self.setStatus('error', '진행 상태는 기기에 보관했어요. Supabase 동기화에는 202610200002_quiz_progress.sql 적용이 필요해요.');
-      else self.setStatus('error', '저장이 지연되고 있어요 · 기록을 보관하며 자동으로 다시 시도해요.');
-    })().then(function () { self.retrying = null; }, function () {
-      self.retrying = null; self.setStatus('error', '저장이 지연되고 있어요 · 자동으로 다시 시도해요.');
+      if (this.queue.hasRejected(owner)) this.setStatus('error', '저장 요청 중 거절된 기록이 있어요. 저장 실패 내역에서 원인을 확인해 주세요.', result.sent);
+      else if (result.sent) this.setStatus('saved', 'Supabase 저장 완료', true);
+      else if (result.error && result.error.code === 'LT_PROGRESS_SETUP') this.setStatus('error', '진행 상태는 기기에 보관했어요. Supabase 동기화에는 202610200002_quiz_progress.sql 적용이 필요해요.');
+      else this.setStatus('error', '저장이 지연되고 있어요 · 기록을 보관하며 자동으로 다시 시도해요.');
+    })().then(() => { this.retrying = null; }, () => {
+      this.retrying = null; this.setStatus('error', '저장이 지연되고 있어요 · 자동으로 다시 시도해요.');
     });
     return this.retrying;
   };
@@ -362,12 +357,12 @@
       var cfg = await res.json();
       if (!cfg.url || !cfg.key || !root.supabase) return null;
       return root.supabase.createClient(cfg.url, cfg.key);
-    } catch (e) { return null; }
+    } catch { return null; }
   }
 
   function shared() {
     try { if (root.parent && root.parent !== root && root.parent.genzTracker) return root.parent.genzTracker; }
-    catch (e) { /* cross-origin parent: never share */ }
+    catch { /* cross-origin parent: never share */ }
     return null;
   }
   var api = { DurableQueue: DurableQueue, Tracker: Tracker, isPermanent: isPermanent, uuid: uuid };

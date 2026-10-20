@@ -179,7 +179,7 @@
   });
   // ESC while the focus is inside the (same-origin) page in the iframe
   contentFrame.addEventListener('load', () => {
-    try { contentFrame.contentWindow.addEventListener('keydown', e => { if (e.key === 'Escape' && !content.hidden) close(); }); } catch (e) {}
+    try { contentFrame.contentWindow.addEventListener('keydown', e => { if (e.key === 'Escape' && !content.hidden) close(); }); } catch {}
   });
   function ripple(dot) {
     const r = document.createElement('span');
