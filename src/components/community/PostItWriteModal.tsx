@@ -161,7 +161,7 @@ export const PostItWriteModal: React.FC<PostItWriteModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/55 backdrop-blur-2xs overflow-y-auto animate-in fade-in duration-150">
-      <div className="bg-[#FAF8F5] w-full max-w-4xl rounded-2xl shadow-2xl border border-[#D5CFC5] overflow-hidden my-auto flex flex-col max-h-[90vh]">
+      <div id="tutorial-target-write-modal" className="bg-[#FAF8F5] w-full max-w-4xl rounded-2xl shadow-2xl border border-[#D5CFC5] overflow-hidden my-auto flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="px-6 py-4 bg-[#EAE6DF] border-b border-[#D5CFC5] flex items-center justify-between shrink-0">
           <div>

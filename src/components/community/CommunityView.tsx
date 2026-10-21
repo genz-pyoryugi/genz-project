@@ -730,6 +730,7 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
     // 3단계(포스트잇 상세창)를 벗어나면 열어둔 상세창을 자동으로 닫아 다음 대상이 가려지지 않게 함
     if (step !== 2) setInspectPostId(null);
     if (step !== 3) setIsStickerDrawerOpen(false);
+    if (step !== 0) setIsWriteModalOpen(false);
     setTutorialStep(step);
   }}
   onOpenWriteModal={() => setIsWriteModalOpen(true)}
@@ -742,6 +743,7 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   onSelectTopic={(topicId) => setSelectedTopic(topicId)}
   isInspectOpen={Boolean(inspectPost)}
   isStickerDrawerOpen={isStickerDrawerOpen}
+  isWriteModalOpen={isWriteModalOpen}
 />
     </div>
   );

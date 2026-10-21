@@ -19,6 +19,7 @@ export interface CommunityTutorialModalProps {
   onStepChange?: (step: number) => void;
   isInspectOpen?: boolean; // 상세창이 열리고 닫힐 때 스포트라이트 위치를 다시 측정하기 위해 사용
   isStickerDrawerOpen?: boolean; // 스티커함이 열리고 닫힐 때 스포트라이트 위치를 다시 측정하기 위해 사용
+  isWriteModalOpen?: boolean; // 포스트잇 작성창이 열리고 닫힐 때 스포트라이트 위치를 다시 측정하기 위해 사용
 }
 
 interface TourStep {
@@ -35,6 +36,8 @@ interface TourStep {
   ringClass: string;
   preferPlacement?: 'right'; // 지정하면 설명 카드를 타겟 우측에 배치 (공간 부족 시 좌측 → 위/아래 순으로 대체)
   altTargetId?: string; // 이 요소가 화면에 있으면 targetId 대신 비춤 (예: 상세창이 열렸을 때 테이프 조언 영역)
+  // 대체 대상을 비출 때 설명 카드 자리: 'preview-top' = 대상 창의 오른쪽 위 빈 곳 (포스트잇 작성창의 미리보기 위)
+  altCardSlot?: 'preview-top';
 }
 
 const TOUR_STEPS: TourStep[] = [
@@ -48,6 +51,8 @@ const TOUR_STEPS: TourStep[] = [
     tip: '💡 팁: 아래 [실제 작성창 열어보기]를 눌러 작성 화면을 미리 체험해보세요!',
     actionButtonText: '📝 실제 작성 화면 열어보기',
     actionType: 'write',
+    altTargetId: 'tutorial-target-write-modal', // 작성창이 열리면 작성창을 비춤
+    altCardSlot: 'preview-top', // 설명 카드는 '실시간 포스트잇 미리보기' 위 빈 곳에 (입력칸·미리보기를 가리지 않도록)
     glowBoxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.78), 0 0 35px rgba(251, 191, 36, 0.9)',
     ringClass: 'ring-4 ring-amber-400',
   },
@@ -106,9 +111,11 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
   onStepChange,
   isInspectOpen = false,
   isStickerDrawerOpen = false,
+  isWriteModalOpen = false,
 }) => {
   const [activeStep, setActiveStep] = useState(currentStepIdx);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
+  const [onAltTarget, setOnAltTarget] = useState(false); // 지금 대체 대상(열린 창)을 비추는 중인지
   const cardRef = useRef<HTMLDivElement>(null);
   const tipRef = useRef<HTMLDivElement>(null);
   // 설명 카드의 실제 높이(팁 상자 포함)와 팁 상자 높이 — 카드가 타겟을 가리지 않도록 위치 계산에 사용
@@ -186,11 +193,14 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
     let raf = 0;
     let last = '';
     const track = () => {
-      const r = findTarget()?.getBoundingClientRect() ?? null;
-      const key = r ? `${r.top}|${r.left}|${r.width}|${r.height}` : 'none';
+      const el = findTarget();
+      const r = el?.getBoundingClientRect() ?? null;
+      const alt = !!el && el.id === stepData.altTargetId;
+      const key = r ? `${r.top}|${r.left}|${r.width}|${r.height}|${alt}` : 'none';
       if (key !== last) {
         last = key;
         setTargetRect(r);
+        setOnAltTarget(alt);
       }
       raf = requestAnimationFrame(track);
     };
@@ -203,7 +213,7 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
       cancelAnimationFrame(raf);
       clearTimeout(glideTimer);
     };
-  }, [isOpen, activeStep, stepData.targetId, stepData.altTargetId, isInspectOpen, isStickerDrawerOpen]);
+  }, [isOpen, activeStep, stepData.targetId, stepData.altTargetId, isInspectOpen, isStickerDrawerOpen, isWriteModalOpen]);
 
   if (!isOpen) return null;
 
@@ -263,7 +273,21 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
     let top: number;
     let left: number;
 
-    if (stepData.preferPlacement === 'right' && (fitsRight || fitsLeft)) {
+    // 대상이 화면 대부분을 차지하는 큰 창(포스트잇 작성창 등)이면 위아래·옆 어디에도 자리가 없으므로
+    // 카드를 줄여 오른쪽 아래 구석에 둔다 (작성창의 입력칸이 아닌 미리보기 쪽이라 가리는 부분이 적다)
+    const isLargeTarget = targetRect.height > window.innerHeight * 0.6 && !fitsRight && !fitsLeft;
+
+    if (onAltTarget && stepData.altCardSlot === 'preview-top') {
+      // 포스트잇 작성창: 오른쪽(미리보기) 칸의 위쪽 빈 곳 — 창 제목줄 바로 아래, 미리보기 칸 시작점에 맞춤
+      isCompact = true;
+      top = targetRect.top + 76;
+      left = targetRect.left + targetRect.width * (7 / 12) + 20; // 작성창은 입력 7칸 : 미리보기 5칸
+      left = Math.max(16, Math.min(window.innerWidth - cardWidth - 16, left));
+    } else if (isLargeTarget) {
+      isCompact = true;
+      top = Math.max(16, window.innerHeight - (cardHeight - tipHeight) - 16);
+      left = Math.max(16, window.innerWidth - cardWidth - 16);
+    } else if (stepData.preferPlacement === 'right' && (fitsRight || fitsLeft)) {
       // 타겟 옆(우측 우선, 안 되면 좌측)에 세로 중앙 정렬
       left = fitsRight ? targetRect.right + 16 : targetRect.left - 16 - cardWidth;
       top = targetRect.top + targetRect.height / 2 - cardHeight / 2;

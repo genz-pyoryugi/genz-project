@@ -235,7 +235,13 @@
           // (only for the pages that fill the popup themselves — e.g. 고민상담소 is a long page and must keep scrolling)
           (/^\/checklist\b/.test(new URL(contentFrame.src, location.href).pathname) ? 'html,body{background:transparent!important;overflow:hidden!important}' : '') +
           // no visible scrollbars inside the popup (areas still scroll with the wheel / touch)
-          '*{scrollbar-width:none!important}*::-webkit-scrollbar{display:none!important}' +
+          // — except 고민상담소 (/community): a long board, so keep a thin scrollbar to show there is more below
+          (/^\/community\b/.test(new URL(contentFrame.src, location.href).pathname)
+            ? 'html{scrollbar-width:thin;scrollbar-color:#B9B1A4 transparent}' +
+              'html::-webkit-scrollbar{width:8px}html::-webkit-scrollbar-track{background:transparent}' +
+              'html::-webkit-scrollbar-thumb{background:#B9B1A4;border-radius:999px;border:2px solid #EAE6DF}' +
+              'html::-webkit-scrollbar-thumb:hover{background:#8F877A}'
+            : '*{scrollbar-width:none!important}*::-webkit-scrollbar{display:none!important}') +
           '.checklist-scene{background:transparent!important;padding:24px 0 0!important;min-height:0!important;height:100vh}' +
           '.office-wash{display:none!important}.checklist-sheet{width:100%!important;height:calc(100vh - 24px)!important;min-height:0!important}' +
           // quiz (GEN Z QUIZ): transparent page around its own card
