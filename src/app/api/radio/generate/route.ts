@@ -13,6 +13,7 @@ import { RadioEpisode, RadioEpisodeLine } from '@/types/radio';
 import { RADIO_SYSTEM_PROMPT, buildRadioUserPrompt } from '@/lib/radio/prompt';
 import { GeminiError, estimateDuration, generateRadioScript, synthesizeDialogue } from '@/lib/radio/gemini';
 import { alignLines } from '@/lib/radio/align';
+import { saveEpisodeToDb } from '@/lib/radio/db';
 
 const EPISODES_DIR = path.join(process.cwd(), 'public', 'radio', 'episodes');
 const LINE_GAP = 0.35; // 음성 없이 진행할 때 대사 사이 간격(초)
@@ -122,7 +123,15 @@ export async function POST(req: NextRequest) {
     };
 
     // 음성까지 다 만든 방송만 저장 (음성 실패본은 다음에 다시 시도)
-    if (audioUrl) await writeFile(episodePath, JSON.stringify(episode, null, 2), 'utf-8');
+    if (audioUrl) {
+      await writeFile(episodePath, JSON.stringify(episode, null, 2), 'utf-8');
+      // 팀 DB(Supabase radio_contents)에도 저장 — 실패해도 방송은 그대로 보여 준다
+      try {
+        await saveEpisodeToDb(episode, post);
+      } catch (e) {
+        console.error(e instanceof Error ? e.message : e);
+      }
+    }
 
     return NextResponse.json(episode);
   } catch (e) {
