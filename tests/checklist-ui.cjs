@@ -10,7 +10,7 @@ fs.mkdirSync(shots,{recursive:true});
 async function measure(frame) {
   return frame.evaluate(()=>{
     const root=document.scrollingElement;
-    const tabs=[...document.querySelectorAll('[role=tab]')];
+    const tabs=[...document.querySelectorAll('.cute-tabs [role=tab]')];
     const checks=[...document.querySelectorAll('.cute-note label')];
     const save=document.querySelector('.cute-finish').getBoundingClientRect();
     return {viewport:[innerWidth,innerHeight],page:[root.scrollWidth,root.scrollHeight],
@@ -58,7 +58,7 @@ async function openPopup(page) {
       await frame.getByRole('tab').first().click();
       await frame.getByRole('button',{name:'근거 보기',exact:true}).click();
       await frame.getByRole('dialog',{name:'자료와 근거'}).waitFor({state:'visible'});
-      assert.ok(await frame.getByRole('link',{name:/PDF.*쪽/}).count());
+      assert.ok(await frame.getByRole('link',{name:/^\d+쪽$/}).count());
       await page.keyboard.press('Escape');
       await frame.getByRole('dialog',{name:'자료와 근거'}).waitFor({state:'hidden'});
       assert.ok(await page.locator('#officeContent.is-open').isVisible(),'Escape must not close outer popup');
@@ -66,13 +66,15 @@ async function openPopup(page) {
       await frame.getByRole('button',{name:'완료 기록 저장 ✓',exact:true}).click();
       await frame.getByRole('button',{name:'오늘도 해냈다! ✓',exact:true}).waitFor();
       await frame.getByRole('button',{name:'완료 기록 보기, 1개',exact:true}).click();
-      await frame.getByRole('dialog',{name:'나의 완료 기록 1개'}).waitFor();
+      await frame.getByRole('dialog',{name:'나의 체크리스트'}).waitFor();
+      await frame.locator('.cute-history-entry .folder-record-card').first().click();
       assert.equal(await frame.locator('.cute-history-entry li').count(),5);
       await frame.getByRole('button',{name:'기록 팝업 닫기'}).click();
       await frame.locator('.cute-checklist').screenshot({path:`${shots}/checklist-${size.width}x${size.height}.png`});
       await frame.goto(base+'/checklist');
       await frame.waitForSelector('.cute-note input:not(:disabled)');
       await frame.getByRole('button',{name:'완료 기록 보기, 1개',exact:true}).click();
+      await frame.locator('.cute-history-entry .folder-record-card').first().click();
       assert.equal(await frame.locator('.cute-history-entry li').count(),5,'History survives reload');
       console.log('PASS popup '+size.width+'x'+size.height+': 7 topics, no scrolling, save + history + evidence + Escape + reload');
       await context.close();

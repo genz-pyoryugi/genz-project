@@ -7,7 +7,7 @@ const legacyKey='genz-checklist-completions-v1';
 const records=Array.from({length:53},(_,i)=>({id:`legacy-${i}`,category:'조직 이해·적응',completedAt:new Date(Date.UTC(2026,9,15,0,i)).toISOString(),groups:[{id:`g${i}`,title:`기존 기록 ${i}`,sourceUrl:null,items:[{key:`i${i}`,text:'확인한 항목'}]}]}));
 const waitCount=(page,n)=>page.waitForFunction(n=>document.querySelectorAll('.cute-history-entry').length===n,n);
 async function ready(page){await page.goto(base+'/checklist?preview=1');await page.waitForSelector('.cute-note input:not(:disabled)');for(const input of await page.getByRole('checkbox').all())await input.check();await page.locator('.cute-finish:not(:disabled)').waitFor();}
-async function history(page){await page.locator('.cute-history-button').click();await page.getByRole('dialog',{name:/나의 완료 기록/}).waitFor();}
+async function history(page){await page.locator('.cute-history-button').click();await page.getByRole('dialog',{name:/나의 체크리스트/}).waitFor();}
 (async()=>{
  const browser=await chromium.launch();
  try{
@@ -35,6 +35,7 @@ async function history(page){await page.locator('.cute-history-button').click();
   cloud.failWriteAt=0;
   await page.getByRole('button',{name:'기존 기록 서버로 이전'}).click();await waitCount(page,54);
   assert.equal(cloud.rows.size,54,'Retry imports only missing records');
+  await page.locator('.cute-history-entry').filter({hasText:'기존 기록 0'}).locator('.folder-record-card').click();
   await page.getByRole('button',{name:'기존 기록 0 완료 기록 삭제',exact:true}).click();await waitCount(page,53);
   await page.getByRole('button',{name:'기존 기록 서버로 이전'}).click();await page.getByRole('button',{name:'기존 기록 서버로 이전'}).waitFor({state:'visible'});
   await page.waitForFunction(()=>!document.querySelector('.cute-legacy-import button').disabled);

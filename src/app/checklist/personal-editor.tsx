@@ -3,17 +3,15 @@ import { useEffect, useRef, useState } from 'react';
 import type { usePersonalChecklists } from './use-personal-checklists';
 import { validatePersonal, type PersonalChecklist, type PersonalItem } from './personal-store';
 import { ChecklistIcon } from './icons';
+import { HistoryCard } from './folder-dialog';
 type Store = ReturnType<typeof usePersonalChecklists>;
 export type PersonalRequest = { id: string | null; nonce: number };
 export function PersonalHistory({ store, open }: { store: Store; open: (id: string) => void }) {
   return <section className="personal-history" aria-label="내 체크리스트 목록">
-    <h3>내 체크리스트 <small>{store.entries.length}개</small></h3>
     {store.connection === 'loading' && <p role="status">내 목록을 불러오는 중이에요.</p>}
     {store.error && <p role="alert">{store.error} <button onClick={() => void store.refresh()}>다시 불러오기</button></p>}
-    {store.connection === 'ready' && !store.entries.length && <p>직접 만든 체크리스트가 여기에 모여요.</p>}
-    {store.entries.map(entry => <button className="personal-history-entry" key={entry.id} onClick={() => open(entry.id)}>
-      <strong>{entry.title}</strong><span>{entry.items.filter(item => item.checked).length} / {entry.items.length} 체크 · {entry.pinned ? '책상에 붙임' : '보관 중'}</span>
-    </button>)}
+    {store.connection === 'ready' && !store.entries.length && <p className="folder-empty">직접 만든 목록이 없어요. ‘만들기’로 첫 목록을 추가해 보세요.</p>}
+    {store.entries.map(entry => <HistoryCard className="personal-history-entry" key={entry.id} title={entry.title} done={entry.items.filter(item=>item.checked).length} total={entry.items.length} pinned={entry.pinned} onClick={()=>open(entry.id)}/>)}
   </section>;
 }
 export function PersonalEditor({ store, request, onClose, onPin }: { store: Store; request: PersonalRequest; onClose: () => void; onPin: (entry: PersonalChecklist) => void }) {

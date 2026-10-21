@@ -34,6 +34,7 @@ async function frame(page){const handle=await page.locator('#officeContentFrame'
    await current.getByRole('button',{name:'크게 보기'}).click();f=await frame(page);
    for(const input of await f.getByRole('checkbox').all())await input.check();
    await f.locator('.cute-finish').click();await f.getByRole('button',{name:'완료 기록 보기, 1개'}).click();
+   await f.locator('.cute-history-entry .folder-record-card').first().click();
    await f.getByRole('button',{name:'이 기록 붙여두기'}).click();
    await page.locator('#officeContent').waitFor({state:'hidden'});
    assert.equal(await page.locator('.desk-note').count(),2);
@@ -42,7 +43,7 @@ async function frame(page){const handle=await page.locator('#officeContentFrame'
    await page.reload({waitUntil:'domcontentloaded'});await page.waitForSelector('#officeStage.is-ready');
    assert.equal(await page.locator('.desk-note').count(),2,'Both notes survive reload');
    await completed.locator('summary').click();await completed.getByRole('button',{name:'완료 기록 열기'}).click();
-   f=await frame(page);await f.getByRole('dialog',{name:'나의 완료 기록 1개'}).waitFor();
+   f=await frame(page);await f.getByRole('dialog',{name:'나의 체크리스트'}).waitFor();
    assert.equal(await f.locator('.cute-history-entry li').count(),5);
    await f.getByRole('button',{name:'기록 팝업 닫기'}).click();await f.getByRole('button',{name:'체크리스트 닫기',exact:true}).click();
    await page.locator('#officeContent').waitFor({state:'hidden'});

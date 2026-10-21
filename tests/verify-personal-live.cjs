@@ -26,6 +26,15 @@ async function sessionFromBrowser(){
  browser=await chromium.launch();context=await browser.newContext({viewport:{width:560,height:820},reducedMotion:'reduce'});page=await context.newPage();
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  await page.goto(base+'/checklist');await page.locator('.cute-note input:not(:disabled)').first().waitFor();
+ await page.getByRole('button',{name:'근거 보기',exact:true}).click();
+ const evidence=page.getByRole('dialog',{name:'자료와 근거',exact:true});
+ const pdfUrl=await evidence.getByRole('link',{name:'전체 PDF 열기',exact:true}).getAttribute('href');
+ assert.ok(/^https:\/\//.test(pdfUrl));assert.ok((await page.request.head(pdfUrl)).ok(),'Connected PDF actually responds');
+ for(const link of await evidence.locator('.folder-page-link').all()){
+  const label=(await link.innerText()).trim(),href=await link.getAttribute('href');assert.equal(href,`${pdfUrl}#page=${parseInt(label,10)}`);
+ }
+ await evidence.getByRole('button',{name:'근거 팝업 닫기',exact:true}).click();
+ console.log('PASS actual source PDF responds, and linked page destinations match displayed page numbers');
  await page.getByRole('button',{name:'만들기',exact:true}).click();
  const editor=page.getByRole('dialog',{name:'나만의 체크리스트',exact:true}),detail=page.getByRole('dialog',{name:'내 체크리스트',exact:true});
  const title=`실제 저장 검증 ${randomUUID().slice(0,8)}`;
