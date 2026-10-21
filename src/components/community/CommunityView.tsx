@@ -7,6 +7,7 @@ import { TapeCommentModal } from './TapeCommentModal';
 import { PostItWriteModal } from './PostItWriteModal';
 import { PostItInspectModal } from './PostItInspectModal';
 import { CommunityTutorialModal } from './CommunityTutorialModal';
+import { MyPostsModal, isMyPost } from './MyPostsModal';
 import { VisibleRadioModal } from '@/components/radio/VisibleRadioModal';
 import { RadioHubModal } from '@/components/radio/RadioHubModal';
 import { getRadioPosts } from '@/lib/radio/popular';
@@ -24,7 +25,8 @@ import {
   BookmarkCheck,
   Laptop,
   Layers,
-  HelpCircle
+  HelpCircle,
+  Archive,
 } from 'lucide-react';
 import { sound } from '@/utils/audio';
 
@@ -80,6 +82,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
 
   const [activeStickerId, setActiveStickerId] = useState<string | null>(null);
   const [isStickerDrawerOpen, setIsStickerDrawerOpen] = useState(false);
+  const [isMyPostsOpen, setIsMyPostsOpen] = useState(false); // 내 보관함
   const [inspectPostId, setInspectPostId] = useState<string | null>(null);
 
   // ?post=<포스트잇 id> (보이는 라디오의 [고민상담소로 바로가기]) → 화면이 뜬 뒤 그 포스트잇 상세창을 연다
@@ -97,20 +100,13 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0); // 👈 추가!
 
-  // 처음 접속 시 자동으로 튜토리얼 팝업을 띄우는 useEffect 👈 추가!
+  // 고민상담소를 열 때마다(새로고침 포함) 튜토리얼 팝업을 띄운다 (다른 튜토리얼과 같게 — 예전 '다시 안 보기' 기록은 쓰지 않음)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const seen = localStorage.getItem('genz_office_tutorial_seen');
-        if (!seen) {
-          const timer = setTimeout(() => {
-            setTutorialStep(0);
-            setIsTutorialOpen(true);
-          }, 450);
-          return () => clearTimeout(timer);
-        }
-      } catch {}
-    }
+    const timer = setTimeout(() => {
+      setTutorialStep(0);
+      setIsTutorialOpen(true);
+    }, 450);
+    return () => clearTimeout(timer);
   }, []);
   const [filterMode, setFilterMode] = useState<'all' | 'hasAdvice' | 'popular'>('all');
   const [sortOrder, setSortOrder] = useState<'latest' | 'adviceCount' | 'stickerCount'>('latest');
@@ -231,8 +227,15 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
       createdAt: '방금 전',
       stickers: [],
       comments: [],
+      isMine: true,
     };
     setPosts((prev) => [newPost, ...prev]);
+  };
+
+  // 내 보관함에서 삭제: 내가 쓴 포스트잇만 지울 수 있다
+  const handleDeletePost = (postId: string) => {
+    setPosts((prev) => prev.filter((p) => !(p.id === postId && isMyPost(p))));
+    setInspectPostId((current) => (current === postId ? null : current));
   };
 
   // Filtering by selected topic & sub filter mode
@@ -274,7 +277,7 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   }, [posts, selectedTopic, filterMode, sortOrder]);
 
   return (
-    <div className={`min-h-screen bg-[#EAE6DF] text-[#112334] font-sans flex flex-col ${className}`}>
+    <div className={`min-h-screen bg-[#EAE6DF] text-[#112334] font-ui flex flex-col ${className}`}>
       {/* 1. Independent Community Top Bar */}
       {/* 좌우 여백을 아래 데스크 창과 똑같이 맞춤: 바깥 여백(px-3 / sm:px-6) + 창 테두리 1px + 창 제목줄 여백(px-4 / sm:px-6)
           → '젠지 표류기'는 '오피스 고민상담소 | 젠지 표류기 데스크'와, '보이는 라디오'는 '고민·조언·스티커'와 같은 세로선에 놓인다 */}
@@ -492,6 +495,15 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
                 </button>
 
                 <button
+                  onClick={() => setIsMyPostsOpen(true)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-[#D5CFC5] bg-white text-[#112334] hover:bg-[#F2EFEB] flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+                >
+                  <Archive className="w-3.5 h-3.5 text-[#2B729E]" />
+                  <span>내 보관함</span>
+                  <span className="text-[10px] font-bold text-[#2B729E]">{posts.filter(isMyPost).length}</span>
+                </button>
+
+                <button
                   id="tutorial-target-write" /* 👈 이 id 추가! */
                   onClick={() => {
                     sound.playStickSound();
@@ -591,6 +603,14 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
       )}
 
       {/* Interactive Modals */}
+      <MyPostsModal
+        isOpen={isMyPostsOpen}
+        posts={posts}
+        onClose={() => setIsMyPostsOpen(false)}
+        onOpenPost={(p) => { setIsMyPostsOpen(false); setInspectPostId(p.id); }}
+        onDelete={handleDeletePost}
+      />
+
       <OfficeStickerDrawer
         isOpen={isStickerDrawerOpen}
         onClose={() => setIsStickerDrawerOpen(false)}
@@ -647,7 +667,9 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
         />
       )}
 
+      {/* key: 열 때마다 새로 만들어서, 지금 보고 있는 챕터와 그 챕터의 태그로 시작 */}
       <PostItWriteModal
+        key={isWriteModalOpen ? `open-${selectedTopic}` : 'closed'}
         currentChapterId={(selectedTopic !== 'all' ? selectedTopic : '01') as ChapterId}
         isOpen={isWriteModalOpen}
         onClose={() => setIsWriteModalOpen(false)}

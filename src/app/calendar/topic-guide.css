@@ -1,0 +1,67 @@
+.calendar-dialog.situation-dialog{
+  width:min(780px,calc(100% - 40px));max-height:82svh;padding:0;
+  overflow:hidden;border:3px solid #213c58;border-radius:28px;
+  background:radial-gradient(ellipse at 35% 10%,#fffef9,#fffaf1);
+  color:#0b294f;box-shadow:0 18px 70px #10283f4d;
+}
+.situation-dialog>.close-dialog{z-index:3;right:16px;top:10px;width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:#fffcf3ed;color:#657789;font-size:36px;line-height:1}
+.situation-dialog>.close-dialog:hover{background:#e9f3fb;color:#173e67}
+.situation-content{
+  max-height:calc(82svh - 6px);overflow-y:auto;overflow-x:hidden;
+  padding:28px 28px 26px 32px;scrollbar-gutter:stable;scrollbar-width:auto;
+  scrollbar-color:#cad2d3 transparent;overscroll-behavior:contain;scroll-padding-block:24px;
+  font-size:22px;line-height:1.75;word-break:keep-all;overflow-wrap:anywhere;
+}
+.situation-content:focus-visible{outline:2px solid #81b9e8;outline-offset:-5px}
+.situation-badge{display:inline-block;margin-right:24px;padding:4px 18px;border-radius:30px;background:#d9ecff;color:#155caa;font-size:20px;line-height:1.5}
+.situation-heading{display:grid;grid-template-columns:minmax(0,1fr) 140px;align-items:center;gap:12px;margin:20px 0}
+.situation-dialog .situation-heading h2{font-size:38px;line-height:1.4;font-weight:400;margin:0;letter-spacing:-.8px;text-wrap:balance}
+.situation-heading img{display:block;width:140px;height:120px;object-fit:contain}
+.situation-summary{background:linear-gradient(115deg,#e5f3ff,#e1effd);padding:20px 22px;border-radius:19px;margin-bottom:22px}
+.situation-dialog .situation-summary h3{display:table;margin:0 0 12px;padding:4px 13px;border-radius:11px;background:#123e71;color:white;font-size:22px;line-height:1.5;font-weight:400}
+.situation-summary h3 span{color:#ffda76;padding-right:7px}
+.situation-summary p{font-size:25px;line-height:1.75;margin:0}
+.situation-dialog .situation-details>h3{font-size:28px;line-height:1.5;margin:0 0 10px;font-weight:400}
+.situation-details ol{padding:0;margin:0;list-style:none}
+.situation-details li{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;padding:18px 0;border-bottom:1px solid #cfe7f7;font-size:inherit;line-height:inherit;margin:0}
+.situation-details li:last-child{border-bottom:0}
+.situation-number{display:grid;place-items:center;align-self:start;width:44px;height:44px;border-radius:50%;background:#dcefff;color:#1364b5;font-size:27px;line-height:1}
+.situation-details h4{font-size:25px;line-height:1.5;font-weight:400;margin:0 0 4px}
+.situation-content p{margin:0;line-height:1.75}
+.situation-company{display:grid;grid-template-columns:40px minmax(0,1fr);gap:14px;padding:20px;margin:18px 0;border:1.5px solid #f4aa37;border-radius:18px;background:linear-gradient(115deg,#fff1cb,#fff5de)}
+.situation-info-icon{display:grid;place-items:center;width:43px;height:43px;border-radius:50%;background:#ff9d0d;color:#fff;font-family:Arial,sans-serif;font-size:31px;line-height:1;font-weight:700}
+.situation-dialog .situation-company h3{font-size:25px;line-height:1.5;font-weight:400;margin:0 0 4px}
+.situation-company p{font-size:inherit;margin:0}
+.situation-source{border:1.5px solid #cbd8df;border-radius:16px;background:#fffdf8;margin-top:20px}
+.situation-source summary{display:flex;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;list-style:none;font-size:23px;line-height:1.5}
+.situation-source summary::-webkit-details-marker{display:none}
+.situation-source summary>svg:first-child{width:26px;height:30px;flex-shrink:0}
+.situation-source-chevron{width:24px;height:24px;margin-left:auto;flex-shrink:0;transition:transform .15s}
+.situation-source[open] .situation-source-chevron{transform:rotate(180deg)}
+.situation-source>div{border-top:1px solid #d9e1e5;padding:18px 22px 22px;font-size:22px}
+.situation-source a{display:inline-block;color:#1563a8;text-decoration:underline;text-underline-offset:4px}
+.situation-content .situation-scope{margin-top:16px;padding-top:16px;border-top:1px solid #d9e1e5;font-size:20px;color:#5a7084}
+@media(max-width:680px){
+  .calendar-dialog.situation-dialog{width:calc(100% - 20px);max-height:92svh;border-radius:22px}
+  .situation-content{max-height:calc(92svh - 6px);padding:28px 18px 24px;font-size:20px;line-height:1.85;scroll-padding-block:20px}
+  .situation-dialog>.close-dialog{top:7px;right:9px;width:34px;height:34px;font-size:31px}
+  .situation-badge{font-size:17px;padding:5px 13px;margin-right:25px}
+  .situation-heading{grid-template-columns:minmax(0,1fr);gap:10px;margin:22px 0}
+  .situation-dialog .situation-heading h2{font-size:32px;line-height:1.5;letter-spacing:-.5px}
+  .situation-heading img{width:125px;height:100px;justify-self:center}
+  .situation-summary{padding:20px 18px;border-radius:17px;margin-bottom:22px}
+  .situation-dialog .situation-summary h3{font-size:21px;margin-bottom:12px;padding:4px 12px}
+  .situation-summary p{font-size:24px}
+  .situation-dialog .situation-details>h3{font-size:27px}
+  .situation-details li{grid-template-columns:36px minmax(0,1fr);gap:11px;padding:19px 0;line-height:1.85}
+  .situation-number{width:36px;height:36px;font-size:23px}
+  .situation-details h4{font-size:23px;line-height:1.6;margin-bottom:6px}
+  .situation-company{grid-template-columns:30px minmax(0,1fr);gap:10px;padding:18px 13px;margin-top:18px}
+  .situation-info-icon{width:30px;height:30px;font-size:23px}
+  .situation-dialog .situation-company h3{font-size:23px;margin-bottom:8px}
+  .situation-source summary{font-size:21px;padding:15px 13px;gap:10px}
+  .situation-source summary>svg:first-child{width:23px;height:26px}
+  .situation-source>div{padding:16px 14px 20px;font-size:20px}
+  .situation-content .situation-scope{font-size:18px}
+}
+@media(prefers-reduced-motion:reduce){.situation-source-chevron{transition:none}}

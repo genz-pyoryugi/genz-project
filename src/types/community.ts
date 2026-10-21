@@ -68,4 +68,5 @@ export interface PostItPost {
   highlightedText?: string;
   stickers: PlacedSticker[];
   comments: TapeComment[];
+  isMine?: boolean; // 이 브라우저에서 내가 쓴 포스트잇 (내 보관함 · 삭제)
 }

@@ -3,6 +3,16 @@
    ======================================================== */
 @import "tailwindcss";
 
+/* Pretendard (가변 폰트, public/web/assets/fonts) — 'Pretendard'를 쓰는 모든 곳(.font-ui, 본문)에 적용 */
+@font-face {
+  font-family: 'Pretendard';
+  src: url('/web/assets/fonts/PretendardVariable.woff2') format('woff2-variations'), url('/web/assets/fonts/PretendardVariable.woff2') format('woff2');
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+}
+
+
 /* ========================================================
    2. Next.js 기본 테마 변수
    ======================================================== */
@@ -151,4 +161,9 @@ p, h1, h2, h3, h4, h5, h6, span, div, button {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #9D9487;
+}
+/* 사이트 전체 글씨를 Pretendard 로 (퀴즈 · 근태 가이드 · 체크리스트 등 페이지마다 따로 정한 글꼴 포함)
+   예외: 고민상담소 포스트잇 · 보이는 라디오 사연의 손글씨(.font-dakkuda · .font-handwriting) — 정적 페이지는 public/fonts/pretendard-all.css */
+html body, html body *:not(.font-dakkuda):not(.font-dakkuda *):not(.font-handwriting):not(.font-handwriting *) {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif !important;
 }

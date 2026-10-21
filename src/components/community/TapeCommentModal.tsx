@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { PostItPost, TapeComment } from '../../types/community';
 import { X, Send } from 'lucide-react';
 import { sound } from '../../utils/audio';
+import { findBlocked, MODERATION_MESSAGE } from '@/lib/moderation';
 
 interface TapeCommentModalProps {
   post: PostItPost | null;
@@ -24,12 +25,16 @@ export const TapeCommentModal: React.FC<TapeCommentModalProps> = ({
   const [authorRole, setAuthorRole] = useState<TapeComment['authorRole']>('선배');
   const [tapeStyle, setTapeStyle] = useState<TapeComment['tapeStyle']>('scotch');
   const [selectedQuote, setSelectedQuote] = useState('');
+  const [blockedError, setBlockedError] = useState(''); // 욕설 · 비하 · 혐오 · 위협 표현 안내
 
   if (!isOpen || !post) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) return;
+    // 욕설 · 비하 · 혐오 · 위협 표현이 있으면 붙이지 않고 안내 (src/lib/moderation.ts)
+    if (findBlocked(content, authorName)) { setBlockedError(MODERATION_MESSAGE); requestAnimationFrame(() => document.querySelector('[data-moderation-alert]')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })); return; }
+    setBlockedError('');
 
     sound.playTapeSnipSound();
     onSubmitComment(post.id, {
@@ -182,6 +187,8 @@ export const TapeCommentModal: React.FC<TapeCommentModalProps> = ({
             </div>
           </div>
 
+          {/* 욕설 · 비하 · 혐오 · 위협 표현 안내 */}
+          {blockedError && <p role="alert" data-moderation-alert className="px-3 py-2 rounded-lg bg-[#FCE9E3] text-[#9A330A] text-xs font-bold break-keep">{blockedError}</p>}
           {/* Action Buttons */}
           <div className="pt-2 flex justify-end gap-2 border-t border-[#E8E2D8]">
             <button

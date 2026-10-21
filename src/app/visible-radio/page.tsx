@@ -12,6 +12,7 @@ import { INITIAL_POSTIT_POSTS } from '@/data/officeData';
 import { loadSavedPosts } from '@/lib/community/storage';
 import { getRadioPosts } from '@/lib/radio/popular';
 import { VisibleRadioModal } from '@/components/radio/VisibleRadioModal';
+import { RadioTutorial } from '@/components/radio/RadioTutorial';
 
 /** 사무실 팝업 안(iframe)이면 사무실의 팝업 닫기 버튼을 누르고, 단독으로 열렸으면 이전 화면으로 */
 function closeRadio() {
@@ -44,7 +45,8 @@ export default function VisibleRadioPage() {
     );
   }
 
-  return (
+  return (<>
+    <RadioTutorial />
     <VisibleRadioModal
       key={current.id}
       variant="page"
@@ -54,5 +56,5 @@ export default function VisibleRadioPage() {
       autoPlay={pickedId !== null}
       onClose={closeRadio}
     />
-  );
+  </>);
 }

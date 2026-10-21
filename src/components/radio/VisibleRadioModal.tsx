@@ -32,7 +32,7 @@ const StoryPostCard: React.FC<{ post: PostItPost; isPage: boolean; onGoToPost?: 
   const parts = post.highlightedText ? post.content.split(post.highlightedText) : [post.content];
 
   return (
-    <article className="relative flex flex-col md:flex-1 md:min-h-0 mx-1 sm:mx-2 mt-2 px-5 sm:px-6 pt-6 pb-4 bg-[#FFF6BA] border border-[#EFE295] text-[#342A0D] rounded-sm shadow-[0_10px_24px_rgba(0,0,0,.12)] -rotate-[0.6deg]">
+    <article data-tour="radio-story" className="relative flex flex-col md:flex-1 md:min-h-0 mx-1 sm:mx-2 mt-2 px-5 sm:px-6 pt-6 pb-4 bg-[#FFF6BA] border border-[#EFE295] text-[#342A0D] rounded-sm shadow-[0_10px_24px_rgba(0,0,0,.12)] -rotate-[0.6deg]">
       {/* 위쪽 마스킹테이프 */}
       <span
         aria-hidden="true"
@@ -77,12 +77,14 @@ const StoryPostCard: React.FC<{ post: PostItPost; isPage: boolean; onGoToPost?: 
           <button
             type="button"
             onClick={() => onGoToPost(post)}
+            data-tour="radio-go"
             className="shrink-0 px-3.5 py-1.5 rounded-lg bg-[#102B46] hover:bg-[#1b3b5c] text-white text-xs font-bold transition-colors"
           >
             고민상담소로 바로가기 →
           </button>
         ) : (
           <a
+            data-tour="radio-go"
             href={href}
             className="shrink-0 px-3.5 py-1.5 rounded-lg bg-[#102B46] hover:bg-[#1b3b5c] text-white text-xs font-bold transition-colors"
           >
@@ -342,7 +344,7 @@ export const VisibleRadioModal: React.FC<VisibleRadioModalProps> = ({
               <div className="shrink-0 flex items-center gap-2">
                 {/* 사연 선택 토글: 7대 카테고리 인기 사연 중 하나로 바로 바꿔 듣기 */}
                 {stories && stories.length > 1 && onSelectStory && (
-                  <label className="relative">
+                  <label data-tour="radio-pick" className="relative">
                     <span className="sr-only">다른 사연 듣기</span>
                     <select
                       value={post.id}
@@ -377,6 +379,7 @@ export const VisibleRadioModal: React.FC<VisibleRadioModalProps> = ({
   
             {/* DJ 패널 */}
             <div
+              data-tour="radio-stage"
               className="relative px-3 sm:px-9 pt-5 sm:pt-7 [@media(max-height:860px)]:sm:pt-4 pb-4 [@media(max-height:860px)]:pb-3 rounded-[36px] sm:rounded-[60px] border-[6px] sm:border-[9px] border-[#aeb1b3]"
               style={{
                 backgroundColor: '#131516',
@@ -455,7 +458,7 @@ export const VisibleRadioModal: React.FC<VisibleRadioModalProps> = ({
             </div>
   
             {/* 플레이어 */}
-            <div className="flex items-center gap-3 sm:gap-4 py-5 [@media(max-height:860px)]:py-3">
+            <div data-tour="radio-player" className="flex items-center gap-3 sm:gap-4 py-5 [@media(max-height:860px)]:py-3">
               <button
                 type="button"
                 onClick={togglePlay}
@@ -557,7 +560,7 @@ export const VisibleRadioModal: React.FC<VisibleRadioModalProps> = ({
                 </div>
               )}
 
-              <div className="flex items-center justify-between mb-3">
+              <div data-tour="radio-chat" className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold flex items-center gap-1.5">
                   <Radio className="w-4 h-4 text-[#397C9B]" /> DJ 대화
                 </h3>

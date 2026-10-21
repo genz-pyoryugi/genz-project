@@ -1,72 +1,68 @@
-// Mount only the reusable four-card component, without the former site UI.
 Components.rookieCardnews = (article = ARTICLES.a1) => ({
   el: createDeck(rookieMistakeSlides(article)),
   destroy() {},
 });
 
-// 주제 탭(js/data/cardnews-topics.js) + 고른 주제의 카드. 주제마다 카드 묶음은 처음 열 때 한 번만 만든다.
-// 주소에 ?topic=<id> 를 붙이면 그 주제로 열린다.
-(() => {
-  const root = document.querySelector('#cardnews-preview');
-  const decks = {};
-  // before: 카드뉴스를 열면 첫 카드 위 가운데에 뜨는 질문 팝업 (답을 고르면 닫힘)
-  // after : 마지막 질문 카드 (점수별 안내 + 퀴즈 · SOS 버튼)
-  const deckFor = (topic) => decks[topic.id] ??= topic.rookieTop3
-    ? Components.rookieCardnews().el
-    : withBeforePopup(createDeck([...imageSlides(topic.images), topic.after && surveySlide(topic.after)].filter(Boolean)), topic.before);
+function cardnewsCategoryIds(content) {
+  const article = ARTICLES[content.articleId];
+  const known = new Set(CARDNEWS_CATEGORIES.map(category => category.id));
+  // Explicit IDs take precedence. Only exact existing principle names are mapped.
+  const ids = content.categoryIds ?? article?.categoryIds;
+  if (Array.isArray(ids)) return [...new Set(ids.filter(id => known.has(id)))];
+  const existing = CARDNEWS_CATEGORIES.find(category => category.name === article?.category);
+  return existing ? [existing.id] : [];
+}
 
-  function withBeforePopup(deck, before) {
-    if (!before) return deck;
-    const viewport = deck.querySelector('.cardnews__viewport');
-    const box = h('div', { class: 'survey-modal__box', role: 'dialog', 'aria-modal': 'true', 'aria-label': before.question });
-    const modal = h('div', { class: 'survey-modal' }, box);
-    // 답하기 전에는 다음 장으로 못 넘어가게: 넘김 버튼 · 점은 잠그고, 방향키 · 스와이프는 막는다
-    const locked = [deck.querySelector('.cardnews__controls'), deck.querySelector('.cardnews__dots')].filter(Boolean);
-    const blockKeys = (e) => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') e.stopImmediatePropagation(); };
-    const stop = (e) => e.stopPropagation();
-    const blockClicks = (e) => { if (locked.some((el) => el.contains(e.target))) { e.preventDefault(); e.stopImmediatePropagation(); } };
-    locked.forEach((el) => { el.inert = true; el.classList.add('is-locked'); });
-    viewport.addEventListener('keydown', blockKeys, true);
-    deck.addEventListener('click', blockClicks, true);
-    ['pointerdown', 'pointerup'].forEach((type) => modal.addEventListener(type, stop));
-    box.append(...surveySlide({ ...before, onAnswer: () => {
-      modal.classList.add('is-closing');
-      setTimeout(() => {
-        modal.remove();
-        locked.forEach((el) => { el.inert = false; el.classList.remove('is-locked'); });
-        viewport.removeEventListener('keydown', blockKeys, true);
-        deck.removeEventListener('click', blockClicks, true);
-        viewport.focus({ preventScroll: true });
-      }, 250);
-    } }).filter(Boolean));
-    viewport.append(modal);
-    requestAnimationFrame(() => box.querySelector('.survey-card__option')?.focus({ preventScroll: true }));
-    return deck;
+Components.cardnewsCollection = (contents = CARDNEWS_CONTENTS) => {
+  let selected = 'all';
+  const buttons = [];
+  const results = h('div', { class: 'cardnews-results', id: 'cardnews-results' });
+  const status = h('p', { class: 'cardnews-filter-status', role: 'status', 'aria-live': 'polite' });
+  const filters = [{ id: 'all', name: '전체' }, ...CARDNEWS_CATEGORIES];
+  const bar = h('div', { class: 'cardnews-filters', role: 'group', 'aria-label': '카드뉴스 카테고리 필터' });
+
+  function select(id) {
+    selected = id;
+    buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.category === id)));
+    const visible = contents.filter(content => selected === 'all' || cardnewsCategoryIds(content).includes(selected));
+    // Fresh decks reset their slide index to zero on every category change.
+    results.replaceChildren(...visible.map(content => {
+      const article = ARTICLES[content.articleId];
+      const deck = createLearningFlow(content, () =>
+        content.type === 'rookieTop3' && article
+          ? rookieMistakeSlides(article)
+          : content.type === 'firstDayGuide' && article
+            ? firstDaySlides(content, article)
+            : content.type === 'communicationGuide' || content.type === 'newsletterTest'
+              ? communicationSlides(content.type === 'newsletterTest' ? COMMUNICATION_CONTENT : content)
+              : content.slides || (article ? [articleSlide(article)] : []));
+      return h('section', { class: 'cardnews-content'+(content.type==='newsletterTest'?' cardnews-content--newsletter':''), 'data-content-id': content.id, 'aria-label': article?.title || content.title || '카드뉴스' }, deck);
+    }));
+    status.textContent = visible.length ? visible.length + '개의 카드뉴스' : '이 카테고리의 카드뉴스를 준비하고 있어요.';
+    status.classList.toggle('cardnews-filter-status--empty', visible.length === 0);
   }
-
-  const tabs = h('div', { class: 'cardnews-topics', role: 'tablist', 'aria-label': '카드뉴스 주제' },
-    CARDNEWS_TOPICS.map((topic) => h('button', {
-      class: 'cardnews-topics__tab', type: 'button', role: 'tab', 'data-topic': topic.id,
-      onClick: () => show(topic),
-    }, topic.label)));
-  const panel = h('div', { class: 'cardnews-topics__panel', role: 'tabpanel' });
-
-  function show(topic) {
-    [...tabs.children].forEach((tab) => tab.setAttribute('aria-selected', String(tab.dataset.topic === topic.id)));
-    panel.setAttribute('aria-label', topic.label);
-    panel.replaceChildren(deckFor(topic));
-  }
-
-  // 방향키로 탭 이동
-  tabs.addEventListener('keydown', (e) => {
-    const list = [...tabs.children], i = list.indexOf(document.activeElement);
-    if (i < 0 || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
-    const next = list[(i + (e.key === 'ArrowRight' ? 1 : -1) + list.length) % list.length];
-    next.focus();
-    next.click();
+  filters.forEach((filter, index) => {
+    const button = h('button', {
+      type: 'button', class: 'cardnews-filter', 'data-category': filter.id,
+      'aria-pressed': String(filter.id === 'all'), 'aria-controls': 'cardnews-results',
+      onClick: () => select(filter.id),
+    }, filter.name);
+    button.addEventListener('keydown', event => {
+      let target;
+      if (event.key === 'ArrowRight') target = (index + 1) % filters.length;
+      if (event.key === 'ArrowLeft') target = (index + filters.length - 1) % filters.length;
+      if (event.key === 'Home') target = 0;
+      if (event.key === 'End') target = filters.length - 1;
+      if (target === undefined) return;
+      event.preventDefault();
+      buttons[target].focus();
+      buttons[target].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    });
+    buttons.push(button);
+    bar.append(button);
   });
+  select('all');
+  return { el: h('div', { class: 'cardnews-collection' }, bar, status, results), destroy() {} };
+};
 
-  const wanted = new URLSearchParams(location.search).get('topic');
-  show(CARDNEWS_TOPICS.find((topic) => topic.id === wanted) || CARDNEWS_TOPICS[0]);
-  root.replaceChildren(tabs, panel);
-})();
+document.querySelector('#cardnews-preview').replaceChildren(Components.cardnewsCollection().el);

@@ -1,15 +1,54 @@
-// Labels and order verified in frontend:public/web/js/data/chapters.js.
-export const topics = ['첫인상 & 대면', '업무 커뮤니케이션', '회의 & 응대', '오피스 룰', '근태 & 이직·퇴사', '경조사', '업무 보고 & 실수 대처'];
+// Fallback order matches the current Supabase categories; the page also loads live names.
+export const topics = ['조직 이해·적응', '업무 절차·기준', '질문·소통', '협업·동료 존중', '직장 관계·예절', '근무·재택 수칙', '공용 공간·비품 관리'];
 export type Row = {
   id: string | number; category: string | null; title: string | null;
   item1: string | null; item2: string | null; item3: string | null; item4: string | null; item5: string | null;
+  source_url?: string | null;
+  source_title?: string;
+  source_pages?: number[];
+  source_evidence?: string;
 };
 export const sameCategory = (a: string | null, b: string) => String(a || '').replace(/\s/g, '') === b.replace(/\s/g, '');
 export const fields = ['item1', 'item2', 'item3', 'item4', 'item5'] as const;
+export const visitKey = 'genz-checklist-last-visit-v1';
+const categoryKey = (category: string | null) => String(category || '').replace(/\s/g, '');
+export function selectVisitRows(rows: Row[], previous: Record<string, string>): Row[] {
+  const categories = new Map<string, Row[]>();
+  for (const row of rows) {
+    if (!fields.some(field => typeof row[field] === 'string' && row[field]!.trim())) continue;
+    const category = categoryKey(row.category);
+    const candidates = categories.get(category) || [];
+    candidates.push(row);
+    categories.set(category, candidates);
+  }
+  return Array.from(categories, ([category, candidates]) => {
+    const alternatives = candidates.filter(row => String(row.id) !== previous[category]);
+    const pool = alternatives.length ? alternatives : candidates;
+    return pool[Math.floor(Math.random() * pool.length)];
+  });
+}
+export function rowsForVisit(rows: Row[]): Row[] {
+  let previous: Record<string, string> = {};
+  try {
+    const value: unknown = JSON.parse(sessionStorage.getItem(visitKey) || '{}');
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      previous = Object.fromEntries(Object.entries(value).filter(([, id]) => typeof id === 'string'));
+    }
+  } catch { /* Selection still works when browser storage is unavailable. */ }
+  const selected = selectVisitRows(rows, previous);
+  try {
+    sessionStorage.setItem(visitKey, JSON.stringify(Object.fromEntries(selected.map(row => [categoryKey(row.category), String(row.id)]))));
+  } catch { /* Remembering the previous selection is optional. */ }
+  return selected;
+}
 export function groupsFor(rows: Row[], category: string) {
   return rows.filter(row => sameCategory(row.category, category)).map(row => ({
     id: row.id,
     title: row.title,
+    sourceUrl: row.source_url && /^https?:\/\//i.test(row.source_url) ? row.source_url : null,
+    sourceTitle: row.source_title,
+    sourcePages: row.source_pages,
+    sourceEvidence: row.source_evidence,
     items: fields.flatMap(field => typeof row[field] === 'string' && row[field]!.trim()
       ? [{ key: `${row.id}:${field}:${row[field]}`, text: row[field]! }] : []),
   })).filter(group => group.items.length);

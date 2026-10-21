@@ -13,6 +13,10 @@
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
 html,body{background:var(--abyss);color:var(--ribbon)}
+/* first paint: the page is the sea's own colour and the intro stays hidden until the sea texture is decoded (js: .sea-ready),
+   so nothing else flashes before the real sea */
+html:not(.sea-ready),html:not(.sea-ready) body{background:#255f71}
+html:not(.sea-ready) #intro{visibility:hidden}
 body{font-family:var(--sans);margin:0;word-break:keep-all;overflow-wrap:break-word}
 #intro{position:relative;height:1595vh}
 .stage{position:sticky;top:env(safe-area-inset-top,0px);height:100vh;height:100svh;overflow:hidden;background:var(--abyss)}
