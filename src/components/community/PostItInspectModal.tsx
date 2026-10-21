@@ -6,6 +6,8 @@ import { OfficeStickerSvg } from './OfficeStickerSvg';
 import { OFFICE_STICKER_LIBRARY } from '@/data/officeData';
 import { X, Sparkles, Plus, Building2, Clock, ThumbsUp, Move, Trash2, Radio } from 'lucide-react';
 import { sound } from '@/utils/audio';
+import { ReportButton } from './ReportButton';
+import { isHidden, ReportReason } from '@/lib/community/report';
 
 interface PostItInspectModalProps {
   post: PostItPost | null;
@@ -20,6 +22,11 @@ interface PostItInspectModalProps {
   onOpenStickerDrawer: () => void;
   isMacStyle?: boolean;
   onOpenRadio?: (post: PostItPost) => void; // 이 고민과 테이프 조언으로 보이는 라디오 방송 듣기
+  // 신고: 글은 신고하면 내 화면에서 가려지고(상세창도 닫힘), 조언은 그 자리에 "가려진 조언"으로 표시
+  onReportPost?: (postId: string, reason: ReportReason) => void;
+  onReportComment?: (postId: string, commentId: string, reason: ReportReason) => void;
+  onUndoReportComment?: (postId: string, commentId: string) => void;
+  onUndoReportPost?: (postId: string) => void;
 }
 
 export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
@@ -34,6 +41,10 @@ export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
   activeStickerId,
   onOpenStickerDrawer,
   onOpenRadio,
+  onReportPost,
+  onReportComment,
+  onUndoReportComment,
+  onUndoReportPost,
 }) => {
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
@@ -155,8 +166,27 @@ export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
               <span>{post.author.companyType}</span>
               <span className="text-[#2B729E]">[{post.author.role}]</span>
               <span>{post.author.nickname}</span>
+              {onReportPost && !post.isMine && !isHidden(post) && (
+                <ReportButton className="ml-1" onReport={(reason) => onReportPost(post.id, reason)} />
+              )}
             </div>
           </div>
+
+          {/* 신고로 가린 글 안내 (가린 글 보기에서 연 경우) */}
+          {isHidden(post) && (
+            <div className="mb-4 px-3.5 py-2.5 rounded-lg border border-dashed border-[#B4232F]/40 bg-[#FDECEE] text-xs font-ui text-[#7A1F2B] flex items-center justify-between gap-2">
+              <span>🚩 {post.reportedByMe ? '내가 신고해서 가린 글이에요.' : '신고가 쌓여 가려진 글이에요.'}</span>
+              {post.reportedByMe && onUndoReportPost && (
+                <button
+                  type="button"
+                  onClick={() => onUndoReportPost(post.id)}
+                  className="text-[11px] font-bold text-[#2B729E] hover:underline"
+                >
+                  신고 취소
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Title */}
           <h2 className="font-ui font-extrabold text-xl sm:text-2xl text-[#112334] mb-3 leading-snug break-keep">
@@ -205,7 +235,7 @@ export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
             <div className="flex items-center justify-between mb-3">
               <h4 className="font-ui font-bold text-xs text-[#112334] flex items-center gap-1.5">
                 <span>📎 부착된 테이프 조언</span>
-                <span className="text-[#2B729E]">({post.comments.length}개)</span>
+                <span className="text-[#2B729E]">({post.comments.filter((c) => !isHidden(c)).length}개)</span>
               </h4>
               <button
                 onClick={() => onAddComment(post)}
@@ -227,6 +257,26 @@ export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
                     ? 'bg-[#FFF9D6] border-[#DFD07D] text-[#3D3008]'
                     : 'bg-white/90 border-[#CBD4DC] text-[#1A2632]';
 
+                if (isHidden(cmt)) {
+                  return (
+                    <div
+                      key={cmt.id}
+                      className="px-3.5 py-2.5 rounded-lg border border-dashed border-black/15 bg-black/[0.03] text-xs font-ui text-[#857F76] flex items-center justify-between gap-2"
+                    >
+                      <span>🚩 신고로 가려진 조언이에요.</span>
+                      {cmt.reportedByMe && onUndoReportComment && (
+                        <button
+                          type="button"
+                          onClick={() => onUndoReportComment(post.id, cmt.id)}
+                          className="text-[11px] font-bold text-[#2B729E] hover:underline"
+                        >
+                          신고 취소
+                        </button>
+                      )}
+                    </div>
+                  );
+                }
+
                 return (
                   <div
                     key={cmt.id}
@@ -241,6 +291,9 @@ export const PostItInspectModal: React.FC<PostItInspectModalProps> = ({
                       </span>
                       <div className="flex items-center gap-2 whitespace-nowrap">
                         <span className="whitespace-nowrap">{cmt.createdAt}</span>
+                        {onReportComment && (
+                          <ReportButton onReport={(reason) => onReportComment(post.id, cmt.id, reason)} />
+                        )}
                         {onRemoveComment && (
                           <button
                             onClick={() => {

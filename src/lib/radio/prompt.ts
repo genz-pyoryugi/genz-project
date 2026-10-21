@@ -4,6 +4,7 @@
 
 import { PostItPost } from '@/types/community';
 import { CHAPTER_LIST } from '@/data/officeData';
+import { isHidden } from '@/lib/community/report';
 
 export const RADIO_SYSTEM_PROMPT = `너는 보이는 라디오 "오피스 라디오"의 대본 작가다.
 두 DJ가 신입사원의 직장생활 사연을 읽고, 동료와 선배들이 남긴 조언을 소개하며 해결 방법을 알려주는 대본을 쓴다.
@@ -47,8 +48,9 @@ export const RADIO_SYSTEM_PROMPT = `너는 보이는 라디오 "오피스 라디
 export function buildRadioUserPrompt(post: PostItPost): string {
   const chapter = CHAPTER_LIST.find((c) => c.id === post.chapterId);
 
-  const advices = post.comments.length
-    ? post.comments
+  const visibleComments = post.comments.filter((c) => !isHidden(c)); // 신고로 가려진 조언은 대본 재료에서 제외
+  const advices = visibleComments.length
+    ? visibleComments
         .map((c, i) => {
           const quote = c.targetSentence ? ` (사연 중 "${c.targetSentence}" 부분에 대해)` : '';
           return `${i + 1}. [${c.authorRole}] ${c.author}${quote}: ${c.content}`;

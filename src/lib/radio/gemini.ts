@@ -50,17 +50,18 @@ function getApiKey(): string {
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // 다른 모델로 바꿔 볼 만한 오류: 사용량 초과, 과부하, 모델 없음/종료
-const SWITCHABLE = new Set([404, 429, 500, 503]);
+const SWITCHABLE = new Set([404, 429, 500, 503, 504]); // 504 = 정해 둔 시간 안에 응답이 없음
 
 /** 모델 목록을 앞에서부터 시도한다. 붐비는 모델은 건너뛰고 다음 모델로. */
 async function callGeminiWithFallback(
   models: string[],
-  body: unknown | ((model: string) => unknown) // 모델마다 요청 형식이 다르면 함수로 넘긴다
+  body: unknown | ((model: string) => unknown), // 모델마다 요청 형식이 다르면 함수로 넘긴다
+  timeoutMs?: number // 모델 하나를 기다리는 최대 시간 (넘으면 다음 모델로)
 ): Promise<GeminiResponse & { model: string }> {
   const failures: string[] = [];
   for (const model of models) {
     try {
-      const data = await callGemini(model, typeof body === 'function' ? body(model) : body);
+      const data = await callGemini(model, typeof body === 'function' ? body(model) : body, 1, timeoutMs);
       return { ...data, model }; // 실제로 응답한 모델 이름도 함께
     } catch (e) {
       if (!(e instanceof GeminiError) || !SWITCHABLE.has(e.status)) throw e;
@@ -75,15 +76,24 @@ async function callGeminiWithFallback(
 }
 
 /** generateContent 호출. 429(사용량 초과)·503(과부하)는 잠깐 기다렸다가 한 번 더 시도한다. */
-async function callGemini(model: string, body: unknown, retries = 1): Promise<GeminiResponse> {
+async function callGemini(model: string, body: unknown, retries = 1, timeoutMs?: number): Promise<GeminiResponse> {
   const key = getApiKey();
 
   for (let attempt = 0; ; attempt++) {
-    const res = await fetch(`${API_BASE}/${model}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-      body: JSON.stringify(body),
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE}/${model}:generateContent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+        body: JSON.stringify(body),
+        ...(timeoutMs ? { signal: AbortSignal.timeout(timeoutMs) } : {}),
+      });
+    } catch (e) {
+      if (e instanceof Error && (e.name === 'TimeoutError' || e.name === 'AbortError')) {
+        throw new GeminiError(`Gemini 응답 시간 초과 (${model}, ${timeoutMs}ms)`, 504);
+      }
+      throw e;
+    }
 
     if (res.ok) return (await res.json()) as GeminiResponse;
 
@@ -122,6 +132,29 @@ export interface RadioScript {
 
 const SPEAKERS: RadioSpeaker[] = ['senior', 'junior'];
 const SEGMENTS: RadioSegment[] = ['opening', 'story', 'talk', 'tip', 'practice', 'closing'];
+
+/** 지시문 + 입력 → JSON 응답 (고민상담소 글 검사 등 다른 기능에서도 사용) */
+export async function generateJson<T>(
+  systemPrompt: string,
+  userPrompt: string,
+  options: { models?: string[]; temperature?: number; timeoutMs?: number } = {}
+): Promise<T> {
+  const data = await callGeminiWithFallback(
+    options.models ?? SCRIPT_MODELS,
+    {
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+      generationConfig: { responseMimeType: 'application/json', temperature: options.temperature ?? 0.2 },
+    },
+    options.timeoutMs
+  );
+  const raw = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
+  try {
+    return JSON.parse(raw.replace(/^```(?:json)?\s*|\s*```$/g, '')) as T;
+  } catch {
+    throw new GeminiError('AI 응답이 JSON 형식이 아니에요.', 502, 'BAD_RESPONSE');
+  }
+}
 
 export async function generateRadioScript(systemPrompt: string, userPrompt: string): Promise<RadioScript> {
   const data = await callGeminiWithFallback(SCRIPT_MODELS, {

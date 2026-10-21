@@ -4,6 +4,7 @@
 
 import { PostItPost } from '@/types/community';
 import { CHAPTER_LIST } from '@/data/officeData';
+import { isHidden } from '@/lib/community/report';
 
 export function popularityScore(post: PostItPost): number {
   return post.stickers.length + post.comments.length;
@@ -13,7 +14,7 @@ export function popularityScore(post: PostItPost): number {
 export function getRadioPosts(posts: PostItPost[]): PostItPost[] {
   return CHAPTER_LIST.map((chapter) =>
     posts
-      .filter((p) => p.chapterId === chapter.id && p.comments.length > 0)
+      .filter((p) => p.chapterId === chapter.id && !isHidden(p) && p.comments.some((c) => !isHidden(c)))
       .reduce<PostItPost | null>((best, p) => {
         if (!best) return p;
         const diff = popularityScore(p) - popularityScore(best) || p.comments.length - best.comments.length;

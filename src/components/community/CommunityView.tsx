@@ -29,6 +29,7 @@ import {
 import { sound } from '@/utils/audio';
 
 import { loadSavedPosts, savePosts } from '@/lib/community/storage';
+import { isHidden, withReport, withoutMyReport, ReportReason } from '@/lib/community/report';
 
 export interface CommunityViewProps {
   initialChapterId?: ChapterId;
@@ -211,6 +212,32 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   };
 
   // Remove Tape Advice Comment
+  // ---- 신고: 신고한 글·조언은 내 화면에서 바로 가려지고, 신고가 쌓이면 모두에게 가려진다 ----
+  const [showHidden, setShowHidden] = useState(false); // 가린 글도 보기 (신고 취소용)
+  const handleReportPost = (postId: string, reason: ReportReason) => {
+    sound.playPeelSound();
+    setPosts((prev) => prev.map((p) => (p.id === postId ? withReport(p, reason) : p)));
+    setInspectPostId(null); // 가린 글의 상세창은 닫는다
+  };
+  const handleUndoReportPost = (postId: string) => {
+    setPosts((prev) => prev.map((p) => (p.id === postId ? withoutMyReport(p) : p)));
+  };
+  const handleReportComment = (postId: string, commentId: string, reason: ReportReason) => {
+    sound.playPeelSound();
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId ? { ...p, comments: p.comments.map((c) => (c.id === commentId ? withReport(c, reason) : c)) } : p
+      )
+    );
+  };
+  const handleUndoReportComment = (postId: string, commentId: string) => {
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId ? { ...p, comments: p.comments.map((c) => (c.id === commentId ? withoutMyReport(c) : c)) } : p
+      )
+    );
+  };
+
   const handleRemoveComment = (postId: string, commentId: string) => {
     setPosts((prev) =>
       prev.map((p) =>
@@ -248,8 +275,11 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
     setRadioPost(p);
   };
 
+  const hiddenPostCount = useMemo(() => posts.filter((p) => isHidden(p)).length, [posts]);
+
   const displayedPosts = useMemo(() => {
-    let result = posts;
+    // 신고로 가려진 글은 빼고 (가린 글 보기를 켜면 가린 글만 모아서 보여 준다)
+    let result = posts.filter((p) => (showHidden ? isHidden(p) : !isHidden(p)));
 
     // Topic filter
     if (selectedTopic !== 'all') {
@@ -275,7 +305,7 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
       }
       return 0; // Default order
     });
-  }, [posts, selectedTopic, filterMode, sortOrder]);
+  }, [posts, selectedTopic, filterMode, sortOrder, showHidden]);
 
   return (
     <div className={`min-h-screen bg-[#EAE6DF] text-[#112334] font-sans flex flex-col ${className}`}>
@@ -466,6 +496,17 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
                 >
                   ✍️ 내가 쓴 글 ({myPostCount})
                 </button>
+                {(hiddenPostCount > 0 || showHidden) && (
+                  <button
+                    onClick={() => setShowHidden((v) => !v)}
+                    className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                      showHidden ? 'bg-[#B4232F] text-white font-bold' : 'text-[#8A7F72] hover:text-[#B4232F]'
+                    }`}
+                    title="신고해서 가린 글 보기 · 신고 취소"
+                  >
+                    🚩 {showHidden ? '가린 글 닫기' : `가린 글 ${hiddenPostCount}`}
+                  </button>
+                )}
               </div>
 
               {/* Right Actions: Sticker Drawer & Post-it Write & Sort */}
@@ -643,6 +684,10 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
         onOpenStickerDrawer={() => setIsStickerDrawerOpen(true)}
         isMacStyle={true}
         onOpenRadio={inspectPost && radioPostIds.has(inspectPost.id) ? openRadio : undefined}
+        onReportPost={handleReportPost}
+        onReportComment={handleReportComment}
+        onUndoReportComment={handleUndoReportComment}
+        onUndoReportPost={handleUndoReportPost}
       />
 
       {isRadioHubOpen && (

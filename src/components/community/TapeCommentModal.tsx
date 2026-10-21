@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { PostItPost, TapeComment } from '../../types/community';
 import { X, Send } from 'lucide-react';
 import { sound } from '../../utils/audio';
+import { ModerationResult } from '@/types/moderation';
+import { LIMITS } from '@/lib/community/validation';
+import { ModerationNotice, applyMasks, localCheck, requestModeration } from './ModerationNotice';
 
 interface TapeCommentModalProps {
   post: PostItPost | null;
@@ -24,25 +27,44 @@ export const TapeCommentModal: React.FC<TapeCommentModalProps> = ({
   const [authorRole, setAuthorRole] = useState<TapeComment['authorRole']>('선배');
   const [tapeStyle, setTapeStyle] = useState<TapeComment['tapeStyle']>('scotch');
   const [selectedQuote, setSelectedQuote] = useState('');
+  // 등록 전 검사 (형식 · 개인정보 · AI 표현 검사)
+  const [checking, setChecking] = useState(false);
+  const [modResult, setModResult] = useState<ModerationResult | null>(null);
 
   if (!isOpen || !post) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!content.trim()) return;
-
+  /** 검사를 통과한(또는 사용자가 안내를 확인한) 조언으로 실제 등록 */
+  const submitComment = (text: string) => {
     sound.playTapeSnipSound();
     onSubmitComment(post.id, {
       author: authorName.trim() || '익명의 동료',
       authorRole,
-      content: content.trim(),
+      content: text.trim(),
       tapeStyle,
       targetSentence: selectedQuote || undefined,
     });
 
     setContent('');
     setSelectedQuote('');
+    setModResult(null);
     onClose();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (checking) return;
+
+    // ① 형식 검사는 브라우저에서 바로
+    const local = localCheck('comment', { content, nickname: authorName });
+    if (local) return setModResult(local);
+
+    // ② 개인정보 · ③ AI 표현 검사(욕설·비하, 공격적인 말투)는 서버에서
+    setChecking(true);
+    const result = await requestModeration({ kind: 'comment', content, nickname: authorName, postTitle: post.title });
+    setChecking(false);
+
+    if (result.ok) submitComment(content);
+    else setModResult(result);
   };
 
   const tapeColors: {
@@ -59,8 +81,8 @@ export const TapeCommentModal: React.FC<TapeCommentModalProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-2xs animate-in fade-in duration-150">
-      <div className="bg-[#FAF8F5] w-full max-w-lg rounded-2xl shadow-2xl border border-[#D5CFC5] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-2xs overflow-y-auto animate-in fade-in duration-150">
+      <div className="bg-[#FAF8F5] w-full max-w-lg my-auto rounded-2xl shadow-2xl border border-[#D5CFC5] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="px-6 py-4 bg-[#EAE6DF] border-b border-[#D5CFC5] flex items-center justify-between">
           <div>
@@ -170,17 +192,35 @@ export const TapeCommentModal: React.FC<TapeCommentModalProps> = ({
             <textarea
               rows={3}
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={(e) => {
+                setContent(e.target.value);
+                if (modResult) setModResult(null); // 고치면 이전 검사 결과는 지운다
+              }}
               placeholder="경험에서 우러나온 실전 대처법이나 따뜻한 응원의 말을 적어주세요..."
               className="w-full p-3 rounded-lg bg-white border border-[#D5CFC5] text-base font-dakkuda text-[#112334] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#2B729E]"
-              maxLength={150}
+              maxLength={LIMITS.comment.max}
               required
             />
             <div className="flex justify-between text-[11px] font-ui text-[#857F76] mt-1">
-              <span>테이프 위에 손글씨 스타일로 부착됩니다.</span>
-              <span>{content.length}/150</span>
+              <span>🔒 등록 전에 개인정보와 표현(욕설·비하·공격적인 말투)을 검사해요.</span>
+              <span>
+                {content.trim().length}/{LIMITS.comment.max} · {LIMITS.comment.min}자 이상
+              </span>
             </div>
           </div>
+
+          {/* 등록 전 검사 결과 */}
+          <ModerationNotice
+            checking={checking}
+            result={modResult}
+            onMaskAndSubmit={() => modResult && submitComment(applyMasks(content, modResult))}
+            onUseSuggestion={() => {
+              if (!modResult?.suggestion) return;
+              setContent(modResult.suggestion.slice(0, LIMITS.comment.max));
+              setModResult(null); // 바꾼 문장을 확인하고 다시 [테이프 붙이기]를 누르면 다시 검사
+            }}
+            onSubmitAnyway={() => submitComment(content)}
+          />
 
           {/* Action Buttons */}
           <div className="pt-2 flex justify-end gap-2 border-t border-[#E8E2D8]">
@@ -193,10 +233,11 @@ export const TapeCommentModal: React.FC<TapeCommentModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-xs font-ui font-semibold text-white bg-[#112334] hover:bg-[#203548] rounded-lg shadow-sm transition-all flex items-center gap-1.5"
+              disabled={checking}
+              className="px-4 py-2 text-xs font-ui font-semibold text-white bg-[#112334] hover:bg-[#203548] disabled:opacity-60 rounded-lg shadow-sm transition-all flex items-center gap-1.5"
             >
               <Send className="w-3.5 h-3.5" />
-              테이프 붙이기
+              {checking ? '검사 중…' : '테이프 붙이기'}
             </button>
           </div>
         </form>

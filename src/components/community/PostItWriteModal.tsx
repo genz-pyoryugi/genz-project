@@ -3,6 +3,9 @@ import { PostItPost, ChapterId, PostItColor, FastenerType } from '../../types/co
 import { CHAPTER_LIST } from '@/data/officeData';
 import { X, PenTool } from 'lucide-react';
 import { sound } from '../../utils/audio';
+import { ModerationResult } from '@/types/moderation';
+import { LIMITS } from '@/lib/community/validation';
+import { ModerationNotice, applyMasks, localCheck, requestModeration } from './ModerationNotice';
 
 interface PostItWriteModalProps {
   currentChapterId: ChapterId;
@@ -35,21 +38,21 @@ export const PostItWriteModal: React.FC<PostItWriteModalProps> = ({
   const [color, setColor] = useState<PostItColor>('yellow');
   const [fastener, setFastener] = useState<FastenerType>('tape-clear');
   const [highlightedText, setHighlightedText] = useState('');
+  // 등록 전 검사 (형식 · 개인정보 · AI 표현 검사)
+  const [checking, setChecking] = useState(false);
+  const [modResult, setModResult] = useState<ModerationResult | null>(null);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim() || !content.trim()) return;
-
+  /** 검사를 통과한(또는 사용자가 안내를 확인한) 내용으로 실제 등록 */
+  const submitPost = (values: { title: string; content: string; highlightedText: string }) => {
     sound.playStickSound();
-
     const randomRot = Math.round((Math.random() * 2.8 - 1.4) * 10) / 10;
 
     onSubmit({
       chapterId,
-      title: title.trim(),
-      content: content.trim(),
+      title: values.title.trim(),
+      content: values.content.trim(),
       categoryTag: categoryTag.trim() || '직장생활 고민',
       author: {
         nickname: authorNickname.trim() || '익명의 신입',
@@ -59,10 +62,33 @@ export const PostItWriteModal: React.FC<PostItWriteModalProps> = ({
       color,
       fastener,
       rotation: randomRot,
-      highlightedText: highlightedText.trim() || undefined,
+      highlightedText: values.highlightedText.trim() || undefined,
     });
 
     onClose();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (checking) return;
+
+    // ① 형식 검사는 브라우저에서 바로
+    const local = localCheck('post', { title, content, nickname: authorNickname });
+    if (local) return setModResult(local);
+
+    // ② 개인정보 · ③ AI 표현 검사는 서버에서 (최종 기준)
+    setChecking(true);
+    const result = await requestModeration({ kind: 'post', title, content, nickname: authorNickname });
+    setChecking(false);
+
+    if (result.ok) submitPost({ title, content, highlightedText });
+    else setModResult(result);
+  };
+
+  /** 내용을 고치면 이전 검사 결과는 지운다 */
+  const edited = <T,>(setter: (v: T) => void) => (v: T) => {
+    setter(v);
+    if (modResult) setModResult(null);
   };
 
   const colorOptions: { id: PostItColor; label: string; bgClass: string; borderClass: string }[] = [
@@ -259,12 +285,15 @@ export const PostItWriteModal: React.FC<PostItWriteModalProps> = ({
               <input
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => edited(setTitle)(e.target.value)}
                 placeholder="예: 출근 첫날 점심시간... 혼밥해도 되나요?"
                 className="w-full px-3 py-2 rounded-lg bg-white border border-[#D5CFC5] text-sm text-[#112334] focus:outline-none focus:ring-2 focus:ring-[#2B729E]"
-                maxLength={45}
+                maxLength={LIMITS.title.max}
                 required
               />
+              <p className="text-right text-[11px] font-ui text-[#857F76] mt-1">
+                {title.trim().length}/{LIMITS.title.max}자 · {LIMITS.title.min}자 이상
+              </p>
             </div>
 
             {/* Content */}
@@ -275,12 +304,18 @@ export const PostItWriteModal: React.FC<PostItWriteModalProps> = ({
               <textarea
                 rows={4}
                 value={content}
-                onChange={(e) => setContent(e.target.value)}
+                onChange={(e) => edited(setContent)(e.target.value)}
                 placeholder="실제 회사에서 겪은 당황스러운 순간이나, 혼자 끙끙 앓았던 질문을 편하게 적어주세요..."
                 className="w-full p-3 rounded-lg bg-white border border-[#D5CFC5] text-base font-dakkuda text-[#112334] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#2B729E]"
-                maxLength={250}
+                maxLength={LIMITS.content.max}
                 required
               />
+              <p className="flex justify-between text-[11px] font-ui text-[#857F76] mt-1">
+                <span>🔒 등록 전에 개인정보(전화번호·실명·회사명 등)와 표현을 검사해요.</span>
+                <span>
+                  {content.trim().length}/{LIMITS.content.max}자 · {LIMITS.content.min}자 이상
+                </span>
+              </p>
             </div>
 
             {/* Highlight quote */}
@@ -291,11 +326,26 @@ export const PostItWriteModal: React.FC<PostItWriteModalProps> = ({
               <input
                 type="text"
                 value={highlightedText}
-                onChange={(e) => setHighlightedText(e.target.value)}
+                onChange={(e) => edited(setHighlightedText)(e.target.value)}
                 placeholder="본문 중 다른 동기들이 집중해서 봐주길 바라는 문장"
                 className="w-full px-3 py-1.5 rounded-lg bg-white border border-[#D5CFC5] text-xs text-[#112334] focus:outline-none focus:ring-2 focus:ring-[#2B729E]"
               />
             </div>
+
+            {/* 등록 전 검사 결과 */}
+            <ModerationNotice
+              checking={checking}
+              result={modResult}
+              onMaskAndSubmit={() =>
+                modResult &&
+                submitPost({
+                  title: applyMasks(title, modResult),
+                  content: applyMasks(content, modResult),
+                  highlightedText: applyMasks(highlightedText, modResult),
+                })
+              }
+              onSubmitAnyway={() => submitPost({ title, content, highlightedText })}
+            />
 
             {/* Submit */}
             <div className="pt-2 flex justify-end gap-2 border-t border-[#E5DFD4]">
@@ -308,10 +358,11 @@ export const PostItWriteModal: React.FC<PostItWriteModalProps> = ({
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 text-xs font-ui font-bold text-white bg-[#112334] hover:bg-[#203548] rounded-lg shadow-sm transition-all flex items-center gap-1.5"
+                disabled={checking}
+                className="px-5 py-2 text-xs font-ui font-bold text-white bg-[#112334] hover:bg-[#203548] disabled:opacity-60 rounded-lg shadow-sm transition-all flex items-center gap-1.5"
               >
                 <PenTool className="w-3.5 h-3.5" />
-                포스트잇 붙이기
+                {checking ? '검사 중…' : '포스트잇 붙이기'}
               </button>
             </div>
           </form>

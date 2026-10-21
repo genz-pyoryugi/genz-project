@@ -6,6 +6,7 @@ import { OfficeStickerSvg } from './OfficeStickerSvg';
 import { OFFICE_STICKER_LIBRARY } from '@/data/officeData';
 import { MessageSquare, Plus, Sparkles, Building2, Move, Trash2, X, Radio } from 'lucide-react';
 import { sound } from '@/utils/audio';
+import { isHidden } from '@/lib/community/report';
 
 interface PostItNoteProps {
   post: PostItPost;
@@ -31,6 +32,7 @@ export const PostItNote: React.FC<PostItNoteProps> = ({
   onOpenRadio,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const visibleComments = post.comments.filter((c) => !isHidden(c)); // 신고로 가려진 조언은 카드에서 뺀다
   const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
   const [draggedSticker, setDraggedSticker] = useState<{ id: string; x: number; y: number } | null>(null);
@@ -231,12 +233,12 @@ export const PostItNote: React.FC<PostItNoteProps> = ({
         )}
 
         {/* Masking Tape Comments (Attached beneath or overlapping post-it) */}
-        {post.comments.length > 0 && (
+        {visibleComments.length > 0 && (
           <div className="mt-4 pt-3 border-t border-black/8 space-y-2">
             <div className="flex items-center justify-between text-[11px] font-ui text-black/60 mb-1">
               <span className="flex items-center gap-1 font-semibold text-[#112334]">
                 <MessageSquare className="w-3 h-3 text-[#2B729E]" />
-                테이프 조언 ({post.comments.length})
+                테이프 조언 ({visibleComments.length})
               </span>
               <button
                 onClick={(e) => {
@@ -250,7 +252,7 @@ export const PostItNote: React.FC<PostItNoteProps> = ({
             </div>
 
             {/* Display up to 2 tape comments */}
-            {post.comments.slice(0, 2).map((cmt, idx) => {
+            {visibleComments.slice(0, 2).map((cmt, idx) => {
               const tapeStyle =
                 cmt.tapeStyle === 'blue'
                   ? 'bg-[#E5EEF5] border-[#9ABED8] text-[#132B40]'

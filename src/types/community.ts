@@ -48,6 +48,10 @@ export interface TapeComment {
   targetSentence?: string;
   createdAt: string;
   likes: number;
+  // 신고 (src/lib/community/report.ts)
+  reportCount?: number;
+  reportedByMe?: boolean;
+  reportReasons?: string[];
 }
 
 export interface PostItPost {
@@ -67,6 +71,10 @@ export interface PostItPost {
   rotation: number;
   highlightedText?: string;
   isMine?: boolean; // 이 브라우저에서 내가 작성한 포스트잇 ('내가 쓴 글' 모아보기용, 로그인 기능 전까지의 표시)
+  // 신고 (src/lib/community/report.ts)
+  reportCount?: number;
+  reportedByMe?: boolean;
+  reportReasons?: string[];
   stickers: PlacedSticker[];
   comments: TapeComment[];
 }
