@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>퇴근길</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=IBM+Plex+Sans+KR:wght@400;500;700&family=Nanum+Pen+Script&display=swap">
+<link rel="stylesheet" href="outro.css">
+  <link rel="stylesheet" href="/fonts/pretendard-all.css" />
+</head>
+<body>
+<!-- =====================================================
+     OUTRO — 사무실의 '나가기'(펼쳐진 책 오른쪽 면)를 누르면 책으로 줌인되어 흰 화면이 되고 이 페이지가 열림 (intro/js/office.js)
+     스크롤하며 내려가는 퇴근길: ① 인사(도움이 되었나요?) → ② 잘했다는 말(한 줄씩) → ③ 오늘의 기사(제목 + article.jpg 본문 캡처)
+     → ④ 기사 끝의 흰 화면이 영상(outro.mp4: 줌아웃 → 책장 넘김 → 표지)으로 이어지고 표지 옆에 무사히 퇴근 + 끝 버튼. 각 줄은 화면에 들어올 때 나타남(.reveal, outro.js)
+     ===================================================== -->
+<main>
+  <!-- ① greeting -->
+  <section class="scene scene--hello">
+    <p class="kicker reveal">GOOD EVENING</p>
+    <h1 class="big reveal">오늘 하루, 수고 많았어요.</h1>
+    <p class="lead reveal">낯선 회사에서 보낸 첫날,<br>젠지 표류기가 조금은 도움이 되었나요?</p>
+    <p class="scroll-cue reveal" aria-hidden="true">퇴근길로 내려가기<span>↓</span></p>
+  </section>
+
+  <!-- ② praise, one line at a time -->
+  <section class="scene scene--praise" aria-label="오늘의 나에게">
+    <p class="kicker reveal">TO. 오늘의 나</p>
+    <p class="line reveal">모르는 건 물어보고,</p>
+    <p class="line reveal">헷갈리는 건 다시 확인하고,</p>
+    <p class="line reveal">어려운 대화는 미리 연습해 봤어요.</p>
+    <p class="big big--blue reveal">정말 잘했어요!</p>
+  </section>
+
+  <!-- ③ the article: 기사 제목(글자) + 본문(article.jpg, 동아일보 기사 화면에서 본문만 잘라낸 캡처) -->
+  <section class="scene scene--article">
+    <article class="article reveal" aria-labelledby="articleTitle">
+      <h2 class="article__title" id="articleTitle">신입사원 첫 출근, ‘이 실수’했다간 첫 단추 잘못 끼운다 [알쓸톡]</h2>
+      <!-- 본문 이미지 위에 덧그림(svg, outro.js가 그림): 우리 카테고리에 맞는 문장 = 빨간 동그라미 + 이름, 그 아래 설명 문단 = 형광펜. 스크롤해서 닿으면 그려짐 -->
+      <div class="article__body">
+        <img src="article.jpg?v=2" alt="기사 본문: 신입사원이 첫 출근에서 저지르기 쉬운 실수 — 무리한 업무, 무작정 새로운 방식 도입, 질문하지 않는 습관, 동료를 함부로 대하는 태도, 뒷담화, 불성실한 재택근무, 사무실 비품 관리" draggable="false">
+        <svg class="marks" id="marks" viewBox="0 0 796 3812" aria-hidden="true"></svg>
+      </div>
+    </article>
+    <p class="src reveal">출처: 동아일보 「신입사원 첫 출근, ‘이 실수’했다간 첫 단추 잘못 끼운다」 2026.04.12 ·
+      <a href="https://www.donga.com/news/Society/article/all/20260410/133715092/2" target="_blank" rel="noopener">기사 원문 보기 ↗</a></p>
+  </section>
+
+  <!-- ④ ending (outro.mp4 — CapCut, must be H.264): the last screen. When the article ends, the white page fades into the video's
+       first frame (a full-screen book page), the video plays — zoom out, pages turn, the book closes on its cover —
+       and 「오늘도 무사히 퇴근!」 appears beside the cover (outro.js) -->
+  <section class="ending" id="ending" aria-label="가이드북 덮기">
+    <div class="ending__stage">
+      <video class="ending__video" id="outroVideo" src="outro.mp4?v=1" muted playsinline preload="auto" aria-hidden="true"></video>
+      <div class="ending__white" id="endingWhite" aria-hidden="true"></div>
+      <div class="bye" id="bye">
+        <p class="kicker">OFF WORK</p>
+        <h2 class="bye__t">오늘도<br>무사히 퇴근!</h2>
+        <p class="bye__d">첫 출근을 무사히 마친 당신,<br>내일은 오늘보다 한결 편할 거예요.<br>내일도 젠지 표류기와 함께해요.</p>
+        <div class="row bye__row">
+          <button type="button" class="btn btn--primary" id="endRestart">처음부터 다시 보기</button>
+          <button type="button" class="btn" id="endBack">사무실로 돌아가기</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="progress" aria-hidden="true"><i id="progress"></i></div>
+<script src="outro.js" defer></script>
+</body>
+</html>

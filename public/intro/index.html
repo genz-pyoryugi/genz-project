@@ -8,8 +8,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&family=Nanum+Pen+Script&display=swap">
+<link rel="preload" as="image" href="assets/images/sea-baked.jpg" fetchpriority="high">
 <link rel="stylesheet" href="css/intro.css">
 <link rel="stylesheet" href="css/office.css">
+  <link rel="stylesheet" href="/fonts/pretendard-all.css" />
 </head>
 <body>
 <!-- =====================================================
@@ -84,7 +86,7 @@
      OFFICE — 입사 안내(어두운 화면) 다음: 어둠 속에서 신입사원 책상이 서서히 나타남 (css/office.css, js/office.js)
      margin-top:-100vh 로 인트로 마지막 화면과 겹쳐서, 인트로가 끝나는 순간 같은 자리에서 이어받습니다.
      핫스팟 클릭 영역은 아래 SVG path(사무실 이미지를 1672×941 로 본 픽셀 좌표 — 이미지 크기가 달라도 같은 비율이면 그대로 맞음), 이름은 button 의 data-label 에서 바꾸면 됩니다.
-     발광 마커는 path 영역 가운데에 놓이고, 다른 자리에 두려면 button 에 data-dot="x,y"(이미지 픽셀)를 적습니다.
+     발광 마커는 path 영역 가운데에 놓이고, 다른 자리에 두려면 button 에 data-dot="x,y"(이미지 픽셀)를 적습니다. 나가기의 data-zoom="x,y,배율" 은 줌인 초점과 배율입니다.
      ===================================================== -->
 <section id="office" aria-label="젠지컴퍼니 사무실">
   <div class="office-stage" id="officeStage">
@@ -94,7 +96,7 @@
       <p class="dusk-s">첫 출근, 무사히 퇴근할 수 있을까요?<br>사무실 곳곳을 클릭해 필요한 가이드를 확인해보세요.</p>
     </div>
     <div class="office-scene" id="officeScene">
-      <img class="office-img" src="assets/images/office.jpg?v=6" alt="신입사원 1인칭 시점의 사무실 책상" draggable="false">
+      <img class="office-img" src="assets/images/office.jpg?v=7" alt="신입사원 1인칭 시점의 사무실 책상" draggable="false">
       <!-- SOS(휴대폰 든 손) 팝업이 열린 동안 책상 위 왼팔(소매·손)을 왼쪽 빈 책상 무늬로 덮음 (css/office.css .office-patch) -->
       <div class="office-patch office-patch--sleeve" aria-hidden="true"></div>
       <div class="office-patch office-patch--hand" aria-hidden="true"></div>
@@ -104,38 +106,38 @@
         <path class="hotspot-shape" data-object="calendar" d="M370 313L520 290L537 448L390 484L386 462Z"/>
         <path class="hotspot-shape" data-object="postit"   d="M398 649L530 651L488 742L343 740Z"/>
         <path class="hotspot-shape" data-object="radio"    d="M252 552L305 540L330 547L340 565L330 590L275 602L247 592L241 570Z"/>
-        <path class="hotspot-shape" data-object="book"     d="M752 616L1012 615L1016 822L727 822Z"/>
+        <path class="hotspot-shape" data-object="book"     d="M866 640L1068 622L1088 806L866 806Z"/>
         <path class="hotspot-shape" data-object="phone"    d="M518 528L600 528L606 538L566 616L472 614L467 603Z"/>
         <path class="hotspot-shape" data-object="notebook" d="M1158 174H1288V348H1158Z"/>
         <path class="hotspot-shape" data-object="pen"      d="M1084 655L1104 641L1176 760L1156 778Z"/>
       </svg>
       <!-- data-label: 마우스를 올렸을 때 뜨는 메뉴명 (아이콘은 js/office.js 의 ICONS)
-           data-href: 클릭하면 사무실 위 팝업으로 여는 페이지 (없으면 임시 패널) · data-popup="chat": 채팅창 크기 팝업 · "phone": 손에 든 휴대폰 팝업 (흰 화면) · "phone-plain": 같은 휴대폰 (흰 화면, 상담사 프로필 없음) · "phone-dark": 같은 휴대폰 (남색 화면) · "medium": 중간 크기 팝업 · "sheet": 상자 없이 페이지의 종이(체크리스트)만 팝업처럼 · "desktop": 컴퓨터 채팅 프로그램 창 (제목 줄 + 창 버튼) · "fit": 기본 팝업 안에 페이지 속 물건(달력)을 스크롤 없이 다 보이게 맞춤 -->
-      <button type="button" class="hotspot" data-object="files"    data-label="주제별 가이드 / 카드뉴스" data-title="카드뉴스" data-href="/web/cardnews.html" data-popup="card"></button>
-      <button type="button" class="hotspot" data-object="radio"    data-label="보이는 라디오" data-href="/visible-radio" data-popup="medium"></button>
+           data-href: 클릭하면 사무실 위 팝업으로 여는 페이지 (없으면 임시 패널) · data-popup="chat": 채팅창 크기 팝업 · "phone": 손에 든 휴대폰 팝업 (흰 화면) · "phone-plain": 같은 휴대폰 (흰 화면, 상담사 프로필 없음) · "phone-dark": 같은 휴대폰 (남색 화면) · "medium": 중간 크기 팝업 · "sheet": 상자 없이 페이지의 종이(체크리스트)만 팝업처럼 · "desktop": 컴퓨터 채팅 프로그램 창 (제목 줄 + 창 버튼) · "outro": 화면 전체 (나가기 → 아웃트로 책 · 신문 스크랩, /outro) · "fit": 기본 팝업 안에 페이지 속 물건(달력)을 스크롤 없이 다 보이게 맞춤 -->
+      <button type="button" class="hotspot" data-object="files"    data-label="주제별 가이드 / 카드뉴스" data-title="카드뉴스" data-href="/web/cardnews.html"></button>
+      <button type="button" class="hotspot" data-object="radio"    data-label="보이는 라디오" data-href="/visible-radio"></button>
       <button type="button" class="hotspot" data-object="postit"   data-label="고민상담소" data-href="/community"></button>
       <button type="button" class="hotspot" data-object="calendar" data-label="근태 가이드" data-href="/calendar" data-popup="fit"></button>
       <button type="button" class="hotspot" data-object="phone"    data-label="SOS" data-href="/web/sos.html?view=chat" data-popup="phone"></button>
       <button type="button" class="hotspot" data-object="monitor"  data-label="AI 팀장 시뮬레이션" data-href="/web/sos.html?view=sim" data-popup="desktop"></button>
-      <button type="button" class="hotspot" data-object="notebook" data-label="체크리스트" data-href="/checklist" data-popup="sheet"></button>
+      <button type="button" class="hotspot" data-object="notebook" data-label="체크리스트" data-href="/checklist" data-popup="portrait"></button>
       <button type="button" class="hotspot" data-object="pen"      data-label="퀴즈" data-title="직장생활 퀴즈" data-href="/quiz" data-popup="quiz"></button>
-      <button type="button" class="hotspot hotspot--red" data-object="book"     data-label="나가기" data-dot="871,772"></button>
+      <button type="button" class="hotspot hotspot--red" data-object="book"     data-label="나가기" data-title="오늘의 스크랩" data-href="/outro/index.html" data-popup="outro" data-dot="975,716" data-zoom="975,745,8"></button>
     </div>
     <p class="office-hint" id="officeHint">책상 위 물건을 클릭해보세요.</p>
-    <!-- 사무실이 처음 밝아지면 뜨는 안내 팝업: 7개 주제(버튼에는 주제별 추천 문구, aria-label 에 주제 이름) 중 고민되는 것을 고르면 그 주제의 고민상담소(/community?chapter=)를 엶 (js/office.js) -->
+    <!-- 사무실이 처음 밝아지면 뜨는 안내 팝업: 7개 주제(버튼에는 주제별 걱정 문구, aria-label 에 주제 이름) 중 고민되는 것을 고르면 그 주제의 고민상담소(/community?chapter=)를 엶 (js/office.js) -->
     <div class="office-welcome" id="officeWelcome" hidden>
       <div class="office-welcome__box" role="dialog" aria-modal="true" aria-labelledby="officeWelcomeTitle">
         <p class="office-welcome__k">WELCOME</p>
         <h2 class="office-welcome__t" id="officeWelcomeTitle">첫 회사생활, 뭐가 제일 걱정되나요?</h2>
         <p class="office-welcome__d">지금 가장 고민되는 주제부터 골라보세요.</p>
         <div class="office-welcome__list">
-          <button type="button" class="office-welcome__item" data-chapter="01" aria-label="01 조직이해&amp;적응 · 우리 팀과 내 역할 알아보기"><b>01</b>우리 팀과 내 역할 알아보기</button>
-          <button type="button" class="office-welcome__item" data-chapter="02" aria-label="02 업무 절차&amp;기준 · 일을 어디서부터 어떻게 해야 할지"><b>02</b>일을 어디서부터 어떻게 해야 할지</button>
+          <button type="button" class="office-welcome__item" data-chapter="01" aria-label="01 조직이해&amp;적응 · 회사에 잘 적응할 수 있을지"><b>01</b>회사에 잘 적응할 수 있을지</button>
+          <button type="button" class="office-welcome__item" data-chapter="02" aria-label="02 업무 절차&amp;기준 · 일을 제대로 해낼 수 있을지"><b>02</b>일을 제대로 해낼 수 있을지</button>
           <button type="button" class="office-welcome__item" data-chapter="03" aria-label="03 질문&amp;소통 · 언제, 어떻게 물어봐야 할지"><b>03</b>언제, 어떻게 물어봐야 할지</button>
-          <button type="button" class="office-welcome__item" data-chapter="04" aria-label="04 협업&amp;동료 존중 · 다른 사람과 편하게 일하는 법"><b>04</b>다른 사람과 편하게 일하는 법</button>
-          <button type="button" class="office-welcome__item" data-chapter="05" aria-label="05 직장 내 관계&amp;예절 · 회사 사람들과 선 지키며 지내기"><b>05</b>회사 사람들과 선 지키며 지내기</button>
-          <button type="button" class="office-welcome__item" data-chapter="06" aria-label="06 근무&amp;재택 수칙 · 출퇴근부터 재택까지 기본 지키기"><b>06</b>출퇴근부터 재택까지 기본 지키기</button>
-          <button type="button" class="office-welcome__item" data-chapter="07" aria-label="07 공용 공간 &amp; 비품 관리 · 함께 쓰는 공간, 센스 있게 사용하기"><b>07</b>함께 쓰는 공간, 센스 있게 사용하기</button>
+          <button type="button" class="office-welcome__item" data-chapter="04" aria-label="04 협업&amp;동료 존중 · 동료들과 잘 협업할 수 있을지"><b>04</b>동료들과 잘 협업할 수 있을지</button>
+          <button type="button" class="office-welcome__item" data-chapter="05" aria-label="05 직장 내 관계&amp;예절 · 회사 사람들과 잘 지낼 수 있을지"><b>05</b>회사 사람들과 잘 지낼 수 있을지</button>
+          <button type="button" class="office-welcome__item" data-chapter="06" aria-label="06 근무&amp;재택 수칙 · 근무·재택할 때 뭘 지켜야 할지"><b>06</b>근무·재택할 때 뭘 지켜야 할지</button>
+          <button type="button" class="office-welcome__item" data-chapter="07" aria-label="07 공용 공간 &amp; 비품 관리 · 공용 공간에서 어떻게 행동해야 센스 있을지"><b>07</b>공용 공간에서 어떻게 행동해야 센스 있을지</button>
         </div>
         <button type="button" class="office-welcome__skip" id="officeWelcomeSkip">먼저 사무실 둘러볼게요</button>
       </div>
@@ -203,7 +205,12 @@
      ===================================================== -->
 <main id="site"></main>
 
+<!-- 익명 이용 기록 (public/tracking/learning-tracker.js, feature/quiz): Supabase 연결이 없어도 사이트는 그대로 동작합니다 -->
+<script src="/vendor/supabase.js" defer></script>
+<script src="/tracking/learning-tracker.js" defer></script>
 <script src="js/intro.js" defer></script>
+<script src="js/desk-notes.js" defer></script>
+<script src="js/desk-notes-tour.js" defer></script>
 <script src="js/office.js" defer></script>
 
 

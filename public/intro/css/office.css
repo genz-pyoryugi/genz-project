@@ -26,7 +26,7 @@
    - sleeve: strip shifted 270px right → covers x 270–570, y 715+
    - hand:   strip shifted 470px right → covers x 470–722 (stops before the post-it edge and the book) */
 .office-patch{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .35s ease;
-  background:url(../assets/images/office.jpg?v=6) 0 0/100% 100% no-repeat;filter:brightness(var(--bright,.08));
+  background:url(../assets/images/office.jpg?v=7) 0 0/100% 100% no-repeat;filter:brightness(var(--bright,.08));
   transform:translateX(calc(var(--shift) / 1672 * 100%));-webkit-mask:var(--mask);mask:var(--mask)}
 .office-patch--sleeve{--shift:270;--mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1672 941' preserveAspectRatio='none'%3E%3Cfilter id='b'%3E%3CfeGaussianBlur stdDeviation='8'/%3E%3C/filter%3E%3Cpath filter='url(%23b)' d='M0 960L0 900L45 840L150 765L240 752L300 735L300 960Z'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat}
 .office-patch--hand{--shift:470;--mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1672 941' preserveAspectRatio='none'%3E%3Cfilter id='b'%3E%3CfeGaussianBlur stdDeviation='8'/%3E%3C/filter%3E%3Cpath filter='url(%23b)' d='M85 612L240 605L252 650L252 850L150 875L60 850L0 815L0 765L35 752L50 700L78 650Z'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat}
@@ -233,7 +233,7 @@
 .office-content--phone.is-open .office-content__agent{opacity:1;transform:none}
 .office-content__agent--left{background-image:url(../assets/images/sos-logo.png)!important;background-size:92%!important;background-position:50% 50%!important;background-color:#fff!important;
   left:calc(233 / 948 * 100% - var(--av) * .84);top:calc(300 / 1659 * 100%)}
-.office-content__agent--right{border-color:#3584fc!important;background-image:url(../assets/images/sos-user.png)!important;background-size:cover!important;background-position:50% 20%!important;
+.office-content__agent--right{border-color:#3584fc!important;background-image:url(../assets/images/sos-user-maltese-v4.png)!important;background-size:cover!important;background-position:50% 50%!important;
   left:calc(767 / 948 * 100% - var(--av) * .16);top:calc(470 / 1659 * 100%);transition-delay:.3s!important}
 @media (prefers-reduced-motion:reduce){.office-content--phone .office-content__agent{transition:none}}
 
@@ -258,12 +258,11 @@
 .office-content--sheet .office-content__bar{display:none}
 .office-content--sheet .office-content__frame{background:transparent;color-scheme:light}
 .office-content--sheet .office-content__close{top:24px}   /* 종이 위쪽(핀 자리 24px 아래)에 맞춤 */
-/* quiz popup: normal box + title bar sized to the quiz paper; the iframe reaches 210px past the box's right edge so the
-   pen mascot shows outside it. The whole group is shifted left so it stays centred. */
-.office-content--quiz .office-content__dialog{width:min(calc(94vw - 230px),1100px);height:min(88vh,860px);height:min(88svh,860px);left:-105px}
-.office-content--quiz .office-content__screen{overflow:visible;border-radius:0 0 14px 14px}
-.office-content--quiz .office-content__frame{flex:1 1 auto;align-self:flex-start;width:calc(100% + 210px);background:transparent;color-scheme:light}
-.office-content--quiz .office-content__close{top:-10px}
+/* quiz popup (feature/quiz GEN Z QUIZ): the quiz brings its own card and close button; height follows the card (genz-quiz:resize) */
+.office-content--quiz .office-content__bar{display:none}
+.office-content--quiz .office-content__dialog{width:min(94vw,880px);height:var(--quiz-height,720px);max-height:calc(100svh - 32px);background:transparent;border-radius:22px;box-shadow:none}
+.office-content--quiz .office-content__frame{background:transparent;color-scheme:light}
+.office-content--quiz .office-content__close{display:none}
 /* card popup (card news): fills the screen's height; width follows the card (square card + tabs + controls ≈ height - 150px) */
 .office-content--card .office-content__dialog{height:86vh;height:86svh;width:min(92vw,calc(86vh - 150px));width:min(92vw,calc(86svh - 150px))}
 .office-content--card .office-content__frame{background:#f3f6f9;color-scheme:light}
@@ -311,3 +310,114 @@
 @media (prefers-reduced-motion:reduce){.office-welcome,.office-welcome__box{transition:none}}
 .office-welcome__item b{grid-row:auto}   /* buttons: number + one recommended phrase */
 .office-welcome__box{width:min(640px,100%)}
+/* welcome popup: frosted, see-through box (the office shows through, blurred) */
+.office-welcome{background:rgba(8,12,20,.32)}
+.office-welcome__box{background:rgba(251,249,244,.62);border:1px solid rgba(255,255,255,.6);-webkit-backdrop-filter:blur(18px) saturate(1.2);backdrop-filter:blur(18px) saturate(1.2)}
+.office-welcome__item{background:rgba(255,255,255,.62);border-color:rgba(255,255,255,.7)}
+.office-welcome__item:hover{background:rgba(242,247,255,.9)}
+/* outro popup (나가기 → /outro): the whole screen, no box — the page draws its own book over a dark office */
+.office-content--outro .office-content__backdrop{background:#fff;transition:none}
+.office-content--outro .office-content__dialog{width:100vw;height:100vh;height:100svh;background:transparent;box-shadow:none;border-radius:0}
+.office-content--outro .office-content__bar{display:none}
+.office-content--outro .office-content__frame{background:#fff;color-scheme:light}
+.office-content--outro .office-content__close{top:18px;left:auto;right:28px;box-shadow:0 2px 10px rgba(5,10,25,.18)}
+.office-content--outro .office-content__dialog{transform:none;transition:opacity .2s ease}
+/* 나가기: the office zooms into the open book (origin = its marker, set by js) and its white paper fills the screen (::after),
+   then the outro opens on that white; reversed when it closes */
+.office-stage.is-zooming .office-scene,.office-stage.is-zoom-back .office-scene{transform-origin:var(--zx,52%) var(--zy,76%);transition:transform .95s cubic-bezier(.55,0,.25,1)}
+.office-stage.is-zooming .office-scene{transform:translate(-50%,calc((100vh - 100%) * .25)) scale(var(--zs,6));transform:translate(-50%,calc((100svh - 100%) * .25)) scale(var(--zs,6))}
+.office-stage.is-zooming .hotspot-dot,.office-stage.is-zooming .office-menu-btn{opacity:0;transition:opacity .3s}
+.office-stage::after{content:"";position:absolute;inset:0;z-index:10;background:#fff;opacity:0;pointer-events:none;transition:opacity .45s ease}
+.office-stage.is-zooming::after{opacity:1;transition:opacity .4s ease .55s}
+
+/* ===== checklist (feature/checklist 08cd4ba): portrait popup + desk notes ===== */
+/* Checklist: a portrait sheet. Its narrow iframe also stacks checklist items. */
+.office-content--portrait .office-content__dialog{
+  width:min(94vw,580px,74vh);width:min(94vw,580px,74svh);
+  height:min(92vh,720px);height:min(92svh,720px);
+}
+.office-content--portrait .office-content__bar{display:none}
+.office-content--portrait .office-content__dialog,.office-content--portrait .office-content__screen,.office-content--portrait .office-content__frame{background:transparent;box-shadow:none}
+
+/* Small notes live beside the desk, outside the full checklist popup. */
+.desk-notes{position:absolute;top:58px;right:18px;width:260px;max-height:calc(100% - 88px);z-index:10;pointer-events:auto;color:#193852;font-family:'IBM Plex Sans KR','Malgun Gothic',sans-serif;opacity:0;visibility:hidden;transition:opacity .2s}   /* untransformed shelf keeps fixed notes anchored (feature/checklist) */
+.desk-notes{position:fixed;box-sizing:border-box}.desk-notes *{box-sizing:border-box}
+.desk-notes[hidden]{display:none}.office-stage.is-ready .desk-notes{opacity:1;visibility:visible;transform:none}
+.desk-notes__header{display:flex;justify-content:flex-end}.desk-notes__toggle{display:flex;align-items:center;gap:9px;padding:9px 13px;border:1px solid #d2c18b;border-radius:9px;background:#fff5cf;color:#193852;font:700 13px 'IBM Plex Sans KR','Malgun Gothic',sans-serif;box-shadow:0 3px 12px #0002;cursor:pointer}
+.desk-notes__count{min-width:21px;padding:2px 5px;border-radius:50%;background:#2e5975;color:#fff;text-align:center;font-size:11px}
+.desk-notes__list{max-height:calc(100svh - 155px);overflow:auto;overscroll-behavior:contain;padding:10px 4px 8px;scrollbar-width:thin}.desk-notes__list[hidden]{display:none}
+.desk-note{position:relative;margin:7px 0 12px;padding:10px 12px 12px;border:1px solid #dbc988;border-radius:3px 7px 4px 6px;background:#fff3b9;box-shadow:3px 5px 10px #0003;transform:rotate(.7deg)}
+.desk-note:nth-child(even){background:#fffdf0;transform:rotate(-.7deg)}.desk-note::before{content:'';position:absolute;top:-6px;left:37%;width:58px;height:13px;background:#eed79cbb;transform:rotate(-4deg);pointer-events:none}
+.desk-note__summary{display:flex;flex-direction:column;gap:5px;padding:5px 0;cursor:pointer;list-style:none}.desk-note__summary::-webkit-details-marker{display:none}.desk-note__summary strong{font-size:15px;line-height:1.5;overflow-wrap:anywhere}.desk-note__kind{color:#65753f;font-size:10px;font-weight:700}.desk-note__progress{font-size:11px;color:#6d725c}
+.desk-note__category{font-size:11px;margin:6px 0 8px;color:#617286}.desk-note__items{display:grid;gap:4px;list-style:none;margin:0;padding:0}.desk-note__items label{display:flex;align-items:flex-start;gap:7px;min-height:29px;padding:4px 0;font-size:12px;line-height:1.6;cursor:pointer}.desk-note__items input{flex:none;margin:4px 0 0;accent-color:#68983f}.desk-note__items input:checked+span{text-decoration:line-through;color:#6d7c65}.desk-note__items input:disabled{opacity:1}
+.desk-note__actions{display:flex;justify-content:space-between;gap:8px;margin-top:10px;border-top:1px dashed #ccbd8a;padding-top:9px}.desk-note__actions button{min-height:32px;padding:5px 8px;border:1px solid #a9b8b2;border-radius:6px;background:#fffdf0;color:#244b65;font:inherit;font-size:11px;cursor:pointer}.desk-note__remove{border-color:transparent!important;background:transparent!important;color:#7d6c4f!important}
+.desk-notes__status{margin:4px 0;padding:0;background:#fff8dc;color:#9a3e29;font-size:12px;line-height:1.5}.desk-notes__status:empty{display:none}.desk-notes button:focus-visible,.desk-note summary:focus-visible{outline:3px solid #78b3dd;outline-offset:3px}
+@media(max-width:700px){.desk-notes{top:auto;bottom:14px;right:12px;width:min(270px,calc(100% - 24px));max-height:42svh}.desk-notes__list{max-height:calc(42svh - 45px)}}
+@media(prefers-reduced-motion:reduce){.desk-notes{transition:none}}
+.desk-note__summary{position:relative;cursor:grab;touch-action:none;user-select:none}
+.desk-note--floating{position:fixed!important;width:252px;max-width:calc(100vw - 16px);max-height:calc(100svh - 16px);margin:0;overflow:auto;overscroll-behavior:contain;z-index:2}.desk-note.desk-note--floating{transform:none}
+.desk-note--dragging{z-index:4;box-shadow:5px 9px 20px #0005}.desk-note--dragging .desk-note__summary{cursor:grabbing}
+@font-face{font-family:'Desk Jua';src:url('/checklist/fonts/Jua-Regular.ttf') format('truetype');font-display:swap}
+.desk-note--mini{border:2px solid #193852;border-radius:10px;background:#fffdf1!important;padding:9px 10px 10px;color-scheme:light}
+.desk-note--mini.desk-note--floating{width:232px}
+.desk-note__brand{display:block;width:fit-content;max-width:100%;padding:2px 5px;border-radius:30% 8% 20% 10%;background:#6baed4;color:#fffce9;font:16px/1.2 'Desk Jua',sans-serif;letter-spacing:.2px;-webkit-text-stroke:1px #24374b;paint-order:stroke fill;white-space:nowrap}
+.desk-note--mini .desk-note__summary{gap:5px;padding-top:5px;padding-right:0}.desk-note--mini .desk-note__brand{margin-top:0}
+.desk-note--mini .desk-note__summary strong{width:fit-content;max-width:100%;align-self:center;padding:4px 10px;background:#79ad47;color:white;font:15px/1.4 'Desk Jua',sans-serif;clip-path:polygon(3% 0,97% 2%,100% 20%,97% 40%,100% 60%,97% 98%,3% 100%,0 80%,3% 60%,0 40%,3% 20%)}
+.desk-note--mini .desk-note__kind{display:none}.desk-note--mini .desk-note__progress::after{content:'';display:block;height:3px;margin-top:5px;border-radius:3px;background:linear-gradient(to right,#78aa4b var(--desk-progress,0%),#e5dfca var(--desk-progress,0%))}
+.desk-note--mini .desk-note__items label{font-family:'Desk Jua',sans-serif;font-size:12px;line-height:1.4;min-height:24px;padding:3px 0}.desk-note--mini .desk-note__actions button{font-size:10px;padding:4px 6px}
+.office-content--portrait .office-content__close{display:none}   /* the checklist page has its own close (genz-checklist:close) */
+/* checklist popup: no white corners — the iframe stays see-through (same colour scheme as the page inside, otherwise the browser
+   paints it opaque white) and the popup is clipped to the sheet's rounded corners */
+.office-content--portrait .office-content__frame{background:transparent!important;color-scheme:normal}
+.office-content--portrait .office-content__screen{border-radius:20px;overflow:hidden;background:transparent}
+.office-content--portrait .office-content__dialog{background:transparent!important;border-radius:20px}
+/* desk note guide (js/desk-notes-tour.js): spotlight on a part of the pinned checklist note + a tip on its left */
+.desk-tour{position:fixed;inset:0;z-index:40}
+.desk-tour__spot{position:fixed;border-radius:10px;box-shadow:0 0 0 9999px rgba(10,16,28,.55),0 0 0 3px #6baed4;pointer-events:none;transition:left .25s,top .25s,width .25s,height .25s}
+.desk-tour__tip{position:fixed;width:250px;box-sizing:border-box;padding:12px 14px 10px;border:2px solid #193852;border-radius:12px;background:#fffdf1;color:#193852;font-family:'IBM Plex Sans KR','Malgun Gothic',sans-serif;box-shadow:0 10px 26px rgba(0,0,0,.3)}
+.desk-tour__count{margin:0;font-size:11px;font-weight:700;color:#78aa4b}
+.desk-tour__title{margin:2px 0 4px;font-size:15px;font-weight:800}
+.desk-tour__text{margin:0 0 10px;font-size:13px;line-height:1.55;word-break:keep-all}
+.desk-tour__row{display:flex;justify-content:space-between;align-items:center}
+.desk-tour__row button{padding:5px 12px;border-radius:8px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.desk-tour__skip{border:0;background:none;color:#6d725c}
+.desk-tour__next{border:1.5px solid #4f7d2c;background:#79ad47;color:#fff}
+.desk-tour button:focus-visible{outline:3px solid #6baed4;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.desk-tour__spot{transition:none}}
+/* office tour (js/office.js startTour): card news → quiz → AI 팀장, spotlight on the object + a tip beside it */
+.office-tour{position:absolute;inset:0;z-index:11;pointer-events:auto}
+.office-tour__spot{position:fixed;border-radius:22px;box-shadow:0 0 0 9999px rgba(6,10,20,.62),0 0 0 3px rgba(120,180,255,.9),0 0 30px 6px rgba(80,150,255,.45);pointer-events:none;transition:left .45s cubic-bezier(.3,.7,.2,1),top .45s cubic-bezier(.3,.7,.2,1),width .45s,height .45s}
+.office-tour__tip{position:fixed;width:300px;box-sizing:border-box;padding:16px 18px 14px;border-radius:16px;background:#fbf9f4;color:#16233f;box-shadow:0 18px 44px rgba(0,0,0,.4);transition:left .45s cubic-bezier(.3,.7,.2,1),top .45s cubic-bezier(.3,.7,.2,1)}
+.office-tour__step{margin:0;font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:rgb(40,115,255)}
+.office-tour__title{margin:4px 0 6px;font-size:19px;font-weight:800;letter-spacing:-.02em}
+.office-tour__text{margin:0 0 12px;font-size:14px;line-height:1.6;color:#4b5563;word-break:keep-all}
+.office-tour__dots{display:flex;gap:6px;margin-bottom:12px}
+.office-tour__dots i{width:22px;height:5px;border-radius:5px;background:#dde3ec}.office-tour__dots i.is-on{background:rgb(40,115,255)}
+.office-tour__row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.office-tour__row button{padding:8px 14px;border-radius:999px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.office-tour__skip{border:0;background:none;color:#6b7280}
+.office-tour__next{border:0;background:rgb(40,115,255);color:#fff}
+.office-tour__next:hover{background:#1f63e6}
+.office-tour button:focus-visible{outline:3px solid #9cc0ff;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.office-tour__spot,.office-tour__tip{transition:none}}
+/* first visit: name tags stay hidden until the tour's 'reveal' step (the welcome popup and the learning steps come first);
+   the object the tour is pointing at still shows its own tag */
+.office-stage.is-tags-hidden .hotspot-label{opacity:0;transform:translate(-50%,4px) scale(.82)}
+.office-stage.is-tags-hidden .hotspot.is-hovered .hotspot-label{opacity:1;transform:translate(-50%,0) scale(.82)}
+.office-tour__dots{flex-wrap:wrap}
+.office-tour__dots i{width:16px}
+/* 나가기 잠금 (js/office.js): 다른 물건을 다 체험하기 전에는 흐리게 + 진행 '3/8', 다 체험하면 반짝 */
+.hotspot.is-locked .hotspot-dot{filter:grayscale(.7);opacity:.7}
+.hotspot.is-unlocked .hotspot-dot{animation:office-exit-glow 1.6s ease-in-out 3}
+@keyframes office-exit-glow{50%{transform:scale(1.35);filter:drop-shadow(0 0 14px rgba(255,90,90,.95))}}
+.office-lock{z-index:12}
+.office-lock__list{grid-template-columns:repeat(2,minmax(0,1fr))}
+.office-lock__list .office-welcome__item{display:block;text-align:center}
+.office-lock__list .office-welcome__item:last-child{grid-column:auto}
+@media (prefers-reduced-motion:reduce){.hotspot.is-unlocked .hotspot-dot{animation:none}}
+/* tour step with several objects at once (더 둘러보기): SVG layer with a hole per object; the single spotlight hides */
+.office-tour__multi{position:fixed;inset:0;width:100%;height:100%;display:none;pointer-events:none}
+.office-tour.is-multi .office-tour__multi{display:block}
+.office-tour.is-multi .office-tour__spot{opacity:0}
+/* 사무실 이름표: 둥근 배경을 진한 남색(72%)으로 — 사진 어디에 있어도 흰 글씨가 또렷하게 (예전: 흰색 20%) */
+.hotspot-label{background:rgba(16,32,64,.72);border-color:rgba(255,255,255,.35)}

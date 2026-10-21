@@ -103,8 +103,14 @@
   const SEA_IMG = 'assets/images/sea.png', SEA_TILE = 400, SEA_N = 2048; // SEA_N px = 5 photo tiles
   let seaBmp = null;
   const seaImg = new Image();
-  seaImg.onload = () => createImageBitmap(bakeSea(seaImg)).then(bmp => { seaBmp = bmp; });
-  seaImg.src = SEA_IMG;
+  // the finished texture is a file (assets/images/sea-baked.jpg = bakeSea(sea.png), preloaded in index.html), so the very first
+  // frame already shows the real sea: the stage stays hidden (html:not(.sea-ready) in intro.css) until it is decoded
+  const SEA_BAKED = 'assets/images/sea-baked.jpg';
+  const seaReady = () => document.documentElement.classList.add('sea-ready');
+  seaImg.onload = () => createImageBitmap(seaImg).then(bmp => { seaBmp = bmp; requestAnimationFrame(() => requestAnimationFrame(seaReady)); });
+  seaImg.onerror = () => { seaImg.onerror = null; seaImg.onload = () => createImageBitmap(bakeSea(seaImg)).then(bmp => { seaBmp = bmp; seaReady(); }); seaImg.src = SEA_IMG; };
+  setTimeout(seaReady, 3000);   // never keep the intro hidden for long (slow network)
+  seaImg.src = SEA_BAKED;
   function bakeSea(img) {
     const N = SEA_N, c = document.createElement('canvas'); c.width = c.height = N;
     const g = c.getContext('2d'), pat = g.createPattern(img, 'repeat');
@@ -197,6 +203,12 @@
   // ---- drawing
   function drawOcean(camX, camY, z, t) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // until the sea texture is ready (the stage is still hidden then): plain sea colour
+    const g = ctx.createRadialGradient(W / 2, H * .45, 0, W / 2, H * .45, Math.hypot(W, H) * .6);
+    g.addColorStop(0, '#0d4566'); g.addColorStop(1, '#072436');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    if (!seaBmp) return;
+    const fadeIn = 1;
     const ts = clamp(z, .35, 1.6) * .5;
     const ox = W / 2 - camX * ts * 2, oy = H / 2 + camY * ts * 2;
     if (seaBmp) {
@@ -209,7 +221,7 @@
       ctx.fillStyle = basePat; ctx.fillRect(0, 0, W, H);
     }
     // moving glints on top so the photo doesn't look frozen
-    const glint = seaBmp ? .35 : 1;  // the photo already has foam, so the drawn glints stay faint over it
+    const glint = .35 * fadeIn;  // the photo already has foam, so the drawn glints stay faint over it
     ctx.globalAlpha = (.25 + .15 * Math.sin(t * 1.3)) * glint;
     sparkPat.setTransform(new DOMMatrix([ts, 0, 0, ts, ox + t * 9, oy + t * 6]));
     ctx.fillStyle = sparkPat; ctx.fillRect(0, 0, W, H);

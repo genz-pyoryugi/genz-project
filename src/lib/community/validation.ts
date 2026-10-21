@@ -1,7 +1,9 @@
 // 고민상담소 글·조언 유효성 검사 (규칙 기반) — 브라우저(입력 중 바로 안내)와 서버(등록 시 최종 확인)가 함께 쓴다
-// ① 기본 입력 검증: 필수 · 길이 · 도배 · 외부 링크
+// ① 기본 입력 검증: 필수 · 길이 · 도배 · 외부 링크 · 욕설 단어 목록(사이트 공통 src/lib/moderation.ts)
 // ② 개인정보 탐지: 전화번호 · 이메일 · 주민등록번호 · 계좌번호 → 자동 가리기 제안
 // (실명 · 회사명처럼 형식이 없는 개인정보와 욕설 · 비하 등은 서버의 AI 검사가 맡는다)
+
+import { findBlocked, MODERATION_MESSAGE } from '@/lib/moderation';
 
 export type ContentKind = 'post' | 'comment';
 
@@ -54,6 +56,10 @@ export function validateBasics(
   }
   if (fields.nickname !== undefined && fields.nickname.trim().length > LIMITS.nickname.max) {
     issues.push({ field: 'nickname', message: `닉네임은 ${LIMITS.nickname.max}자까지 쓸 수 있어요.` });
+  }
+  // 욕설 · 비하 · 혐오 · 위협 · 성적 표현 단어 목록 (사이트 공통, src/lib/moderation.ts) — AI 검사 전에 즉시 차단
+  if (findBlocked(fields.title, fields.content, fields.nickname)) {
+    issues.push({ field: 'content', message: MODERATION_MESSAGE });
   }
   return issues;
 }

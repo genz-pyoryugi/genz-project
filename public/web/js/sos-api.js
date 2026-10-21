@@ -41,5 +41,6 @@ const SosApi = (() => {
     return data.answer;
   }
 
-  return { ask };
+  // accessToken: AI 팀장 시뮬레이션이 결과를 같은 익명 사용자로 저장할 때도 쓴다 (js/simulation.js)
+  return { ask, accessToken };
 })();

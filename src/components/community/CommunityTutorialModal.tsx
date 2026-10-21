@@ -108,7 +108,6 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
   isStickerDrawerOpen = false,
 }) => {
   const [activeStep, setActiveStep] = useState(currentStepIdx);
-  const [neverShowAgain, setNeverShowAgain] = useState(false);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const tipRef = useRef<HTMLDivElement>(null);
@@ -231,11 +230,6 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
 
   const handleClose = () => {
     sound.playPageFlipSound();
-    if (typeof window !== 'undefined' && neverShowAgain) {
-      try {
-        localStorage.setItem('genz_office_tutorial_seen', 'true');
-      } catch {}
-    }
     onClose();
   };
 
@@ -394,15 +388,8 @@ export const CommunityTutorialModal: React.FC<CommunityTutorialModalProps> = ({
         </div>
 
         <div className="pt-2 border-t border-[#E5DFD4] flex items-center justify-between gap-2">
-          <label className="flex items-center gap-1.5 text-[11px] text-[#7A746B] cursor-pointer">
-            <input
-              type="checkbox"
-              checked={neverShowAgain}
-              onChange={(e) => setNeverShowAgain(e.target.checked)}
-              className="rounded text-[#2B729E] w-3 h-3 cursor-pointer"
-            />
-            <span>다시 안 보기</span>
-          </label>
+          {/* '다시 안 보기'는 없앰: 튜토리얼은 새로고침할 때마다 다시 뜬다 */}
+          <span />
 
           <div className="flex items-center gap-1.5">
             <button

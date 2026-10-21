@@ -1,0 +1,12 @@
+/* 사이트 전체 글씨를 Pretendard 로 (정적 페이지용 — Next 페이지는 src/app/globals.css 에 같은 규칙)
+   예외: 고민상담소 포스트잇 · 보이는 라디오 사연의 손글씨(.font-dakkuda · .font-handwriting) */
+@font-face {
+  font-family: 'Pretendard';
+  src: url('/web/assets/fonts/PretendardVariable.woff2') format('woff2-variations'), url('/web/assets/fonts/PretendardVariable.woff2') format('woff2');
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+}
+html body, html body *:not(.font-dakkuda):not(.font-dakkuda *):not(.font-handwriting):not(.font-handwriting *) {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif !important;
+}

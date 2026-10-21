@@ -85,7 +85,7 @@
     .theme-sim .sim__level[data-level="쉬움"] { background: #e3f6ea; color: #1f8a4c; }
     .theme-sim .sim__level[data-level="보통"] { background: #e6efff; color: #2f6fd8; }
     .theme-sim .sim__level[data-level="어려움"] { background: #fdecea; color: #c2410c; }
-    .theme-sim .sim__bar, .theme-sim .chat__form { border-color: #eef0f3; }
+    .theme-sim .sim__bar, .theme-sim .chat__form, .theme-sim .sim__endbox { border-color: #eef0f3; }
     .theme-sim .sim__bar-title { color: #111827; }
     .theme-sim .sim__context { background: #f4f8ff; border-left-color: #2f7cf6; color: #1b2433; }
     .theme-sim .sim__context-label, .theme-sim .sim__speaker, .theme-sim .sim__count { color: #2f6fd8; }
@@ -96,22 +96,37 @@
     .theme-sim .sim__score { border-color: #e5e7eb; background: #f8f9fb; color: #1b2433; }
     .theme-sim .sim__score input { accent-color: #2f7cf6; }
     .theme-sim .sim__ghost { border-color: #d1d5db; color: #374151; }
+    .theme-sim .sim__item-meta, .theme-sim .sim__leader-desc, .theme-sim .sim__preset-desc { color: #6b7280; }
+    .theme-sim .sim__home-title { color: #111827; }
+    .theme-sim .sim:has(.sim__carousel) > .sim__intro { width: 100%; max-width: 880px; margin-left: auto; margin-right: auto; box-sizing: border-box; }
+    .theme-sim .sim__leader { border-color: #e5e7eb; background: #f8f9fb; }
+    .theme-sim .sim__panel { background: #f8f9fb; }
+    .theme-sim .sim__preset-card { border-color: #e5e7eb; background: #fff; }
+    .theme-sim .sim__preset-card:hover, .theme-sim .sim__ghost:hover { border-color: #9cc0fb; background: #eef4ff; }
+    .theme-sim .sim__ghost.sim__choice[aria-pressed="true"] { border-color: #2f7cf6; color: #1f5fd1; background: #eef4ff; }
+    .theme-sim .sim__ghost { background: #fff; }
+    .theme-sim .sim__leader-tag { background: #e6efff; color: #2f6fd8; }
+    .theme-sim .sim__error { color: #c2410c; }
+    .theme-sim .sim__custom-hint { color: #6b7280; }
+    .theme-sim .sim > .sim__pad, .theme-sim .sim > .sim__page { width: 100%; max-width: 640px; margin-left: auto; margin-right: auto; box-sizing: border-box; }
     /* 컴퓨터 창(사무실 모니터 팝업)처럼 넓을 때: 첫 화면 · 목록은 가운데 채팅창 폭으로, 대화는 창 전체 폭 + 말풍선은 적당한 길이까지 */
     @media (min-width: 720px) {
       .theme-sim .sim > .sim__intro, .theme-sim .sim > .sim__team, .theme-sim .sim > .sim__list,
       .theme-sim .sim > .sim__cat-bar, .theme-sim .sim > .sim__notice { width: 100%; max-width: 640px; margin-left: auto; margin-right: auto; box-sizing: border-box; }
       .theme-sim .sim__team { max-height: 300px; }
-      .theme-sim .sim__log .chat__msg { max-width: 62%; }
+      .theme-sim .sim__log .chat__msg { max-width: 68%; }
       .theme-sim .sim__log { padding-left: 28px; padding-right: 28px; }
       .theme-sim .chat__form { padding-left: 28px; padding-right: 28px; }
     }
   </style>
+  <link rel="stylesheet" href="/fonts/pretendard-all.css" />
 </head>
 <body>
   <section class="hero"></section>
 
   <script src="js/components/util.js"></script>
   <script src="js/data/chapters.js"></script>
+  <script src="js/moderation.js"></script>
   <script src="js/simulation.js"></script>
   <script src="js/sos-api.js"></script>
   <script src="js/chat.js"></script>
@@ -147,6 +162,16 @@
       sendBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5.5 11.5L12 5l6.5 6.5"/></svg>';
       sendBtn.setAttribute("aria-label", "보내기");
       document.querySelector(".chat__input").placeholder = "메시지 입력";
+      // SOS 안내: 열 때마다(새로고침 포함) 화면이 보이면 한 번 — 첫인사 → 추천 질문 → 입력창 순서로 밝게 비춘다
+      const visible = (sel) => [...document.querySelectorAll(sel)].find((el) => el.offsetParent);
+      setTimeout(() => {
+        const steps = [
+          { target: visible(".chat__log"), text: "궁금한 직장생활 상황을 편하게 물어보세요. 상담 AI가 바로 답해 줘요.", next: "다음" },
+          { target: visible(".chat__chips"), text: "자주 묻는 질문을 누르면 바로 물어볼 수 있어요.", next: "다음" },
+          { target: visible(".chat__form"), text: "직접 질문을 입력하고 파란 화살표로 보내요.", next: "시작하기" },
+        ].filter((st) => st.target);
+        if (steps.length) Simulation.startTour(steps, () => visible(".chat__input")?.focus({ preventScroll: true }));
+      }, 700);
     }
     if (view === "sim") {
       document.querySelector('.chat__version[data-view="sim"]').click();

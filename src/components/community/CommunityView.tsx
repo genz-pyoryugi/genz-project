@@ -7,6 +7,7 @@ import { TapeCommentModal } from './TapeCommentModal';
 import { PostItWriteModal } from './PostItWriteModal';
 import { PostItInspectModal } from './PostItInspectModal';
 import { CommunityTutorialModal } from './CommunityTutorialModal';
+import { MyPostsModal, isMyPost } from './MyPostsModal';
 import { VisibleRadioModal } from '@/components/radio/VisibleRadioModal';
 import { RadioHubModal } from '@/components/radio/RadioHubModal';
 import { getRadioPosts } from '@/lib/radio/popular';
@@ -24,7 +25,8 @@ import {
   BookmarkCheck,
   Laptop,
   Layers,
-  HelpCircle
+  HelpCircle,
+  Archive,
 } from 'lucide-react';
 import { sound } from '@/utils/audio';
 
@@ -81,6 +83,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
 
   const [activeStickerId, setActiveStickerId] = useState<string | null>(null);
   const [isStickerDrawerOpen, setIsStickerDrawerOpen] = useState(false);
+  const [isMyPostsOpen, setIsMyPostsOpen] = useState(false); // 내 보관함
   const [inspectPostId, setInspectPostId] = useState<string | null>(null);
 
   // ?post=<포스트잇 id> (보이는 라디오의 [고민상담소로 바로가기]) → 화면이 뜬 뒤 그 포스트잇 상세창을 연다
@@ -98,22 +101,15 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0); // 👈 추가!
 
-  // 처음 접속 시 자동으로 튜토리얼 팝업을 띄우는 useEffect 👈 추가!
+  // 고민상담소를 열 때마다(새로고침 포함) 튜토리얼 팝업을 띄운다 (다른 튜토리얼과 같게 — 예전 '다시 안 보기' 기록은 쓰지 않음)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const seen = localStorage.getItem('genz_office_tutorial_seen');
-        if (!seen) {
-          const timer = setTimeout(() => {
-            setTutorialStep(0);
-            setIsTutorialOpen(true);
-          }, 450);
-          return () => clearTimeout(timer);
-        }
-      } catch {}
-    }
+    const timer = setTimeout(() => {
+      setTutorialStep(0);
+      setIsTutorialOpen(true);
+    }, 450);
+    return () => clearTimeout(timer);
   }, []);
-  const [filterMode, setFilterMode] = useState<'all' | 'hasAdvice' | 'popular' | 'mine'>('all');
+  const [filterMode, setFilterMode] = useState<'all' | 'hasAdvice' | 'popular'>('all');
   const [sortOrder, setSortOrder] = useState<'latest' | 'adviceCount' | 'stickerCount'>('latest');
 
 
@@ -258,15 +254,20 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
       createdAt: '방금 전',
       stickers: [],
       comments: [],
-      isMine: true, // 내가 쓴 글 모아보기용 표시
+      isMine: true, // 내 보관함 · '내 글' 배지용 표시
     };
     setPosts((prev) => [newPost, ...prev]);
+  };
+
+  // 내 보관함에서 삭제: 내가 쓴 포스트잇만 지울 수 있다
+  const handleDeletePost = (postId: string) => {
+    setPosts((prev) => prev.filter((p) => !(p.id === postId && isMyPost(p))));
+    setInspectPostId((current) => (current === postId ? null : current));
   };
 
   // Filtering by selected topic & sub filter mode
   // 보이는 라디오 사연: 7대 카테고리별로 공감 스티커 + 테이프 조언을 가장 많이 받은 포스트잇 1개씩
   const radioPosts = useMemo(() => getRadioPosts(posts), [posts]);
-  const myPostCount = useMemo(() => posts.filter((p) => p.isMine).length, [posts]);
   const radioPostIds = useMemo(() => new Set(radioPosts.map((p) => p.id)), [radioPosts]);
   const [radioAutoPlay, setRadioAutoPlay] = useState(false); // 라디오 창의 토글로 사연을 바꾼 경우 바로 재생
   const openRadio = (p: PostItPost) => {
@@ -291,8 +292,6 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
       result = result.filter((p) => p.comments.length > 0);
     } else if (filterMode === 'popular') {
       result = result.filter((p) => p.stickers.length >= 2 || p.comments.length >= 1);
-    } else if (filterMode === 'mine') {
-      result = result.filter((p) => p.isMine);
     }
 
     // Sort order
@@ -308,7 +307,7 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   }, [posts, selectedTopic, filterMode, sortOrder, showHidden]);
 
   return (
-    <div className={`min-h-screen bg-[#EAE6DF] text-[#112334] font-sans flex flex-col ${className}`}>
+    <div className={`min-h-screen bg-[#EAE6DF] text-[#112334] font-ui flex flex-col ${className}`}>
       {/* 1. Independent Community Top Bar */}
       {/* 좌우 여백을 아래 데스크 창과 똑같이 맞춤: 바깥 여백(px-3 / sm:px-6) + 창 테두리 1px + 창 제목줄 여백(px-4 / sm:px-6)
           → '젠지 표류기'는 '오피스 고민상담소 | 젠지 표류기 데스크'와, '보이는 라디오'는 '고민·조언·스티커'와 같은 세로선에 놓인다 */}
@@ -485,17 +484,6 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
                 >
                   인기 공감 글 🔥
                 </button>
-                <button
-                  onClick={() => setFilterMode('mine')}
-                  className={`px-3 py-1 rounded-md font-medium transition-colors cursor-pointer ${
-                    filterMode === 'mine'
-                      ? 'bg-[#112334] text-white font-bold shadow-2xs'
-                      : 'bg-white/80 text-[#555048] hover:bg-white border border-[#D8D2C6]'
-                  }`}
-                  title="이 브라우저에서 내가 작성한 포스트잇만 모아보기"
-                >
-                  ✍️ 내가 쓴 글 ({myPostCount})
-                </button>
                 {(hiddenPostCount > 0 || showHidden) && (
                   <button
                     onClick={() => setShowHidden((v) => !v)}
@@ -548,6 +536,15 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
                 </button>
 
                 <button
+                  onClick={() => setIsMyPostsOpen(true)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-[#D5CFC5] bg-white text-[#112334] hover:bg-[#F2EFEB] flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+                >
+                  <Archive className="w-3.5 h-3.5 text-[#2B729E]" />
+                  <span>내 보관함</span>
+                  <span className="text-[10px] font-bold text-[#2B729E]">{posts.filter(isMyPost).length}</span>
+                </button>
+
+                <button
                   id="tutorial-target-write" /* 👈 이 id 추가! */
                   onClick={() => {
                     sound.playStickSound();
@@ -588,18 +585,12 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
               </div>
             ) : (
               <div className="py-24 text-center rounded-2xl border-2 border-dashed border-[#D2CCC2] bg-white/50 my-6">
-                <span className="text-4xl block mb-2">{filterMode === 'mine' ? '✍️' : '📌'}</span>
+                <span className="text-4xl block mb-2">📌</span>
                 <h3 className="font-bold text-base text-[#112334]">
-                  {filterMode === 'mine'
-                    ? selectedTopic === 'all'
-                      ? '아직 내가 쓴 포스트잇이 없어요.'
-                      : '이 주제에는 아직 내가 쓴 포스트잇이 없어요.'
-                    : '이 주제에는 아직 등록된 고민이 없습니다.'}
+                  이 주제에는 아직 등록된 고민이 없습니다.
                 </h3>
                 <p className="text-xs text-[#736D64] mt-1">
-                  {filterMode === 'mine'
-                    ? '고민을 포스트잇으로 남기면 여기에 모아서 볼 수 있어요.'
-                    : '첫 번째 고민 포스트잇을 직접 붙여보세요!'}
+                  첫 번째 고민 포스트잇을 직접 붙여보세요!
                 </p>
                 <button
                   onClick={() => setIsWriteModalOpen(true)}
@@ -653,6 +644,14 @@ const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
       )}
 
       {/* Interactive Modals */}
+      <MyPostsModal
+        isOpen={isMyPostsOpen}
+        posts={posts}
+        onClose={() => setIsMyPostsOpen(false)}
+        onOpenPost={(p) => { setIsMyPostsOpen(false); setInspectPostId(p.id); }}
+        onDelete={handleDeletePost}
+      />
+
       <OfficeStickerDrawer
         isOpen={isStickerDrawerOpen}
         onClose={() => setIsStickerDrawerOpen(false)}

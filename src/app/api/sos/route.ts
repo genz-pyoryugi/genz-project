@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { findBlocked, MODERATION_MESSAGE } from "@/lib/moderation";
 
 export const runtime = "nodejs";
 
@@ -72,6 +73,11 @@ export async function POST(request: Request) {
       { error: "질문을 1~4,000자로 입력해 주세요." },
       { status: 400 }
     );
+  }
+
+  // 욕설 · 비하 · 혐오 · 위협 표현은 AI 로 보내지 않는다 (src/lib/moderation.ts)
+  if (findBlocked(question)) {
+    return NextResponse.json({ error: MODERATION_MESSAGE }, { status: 400 });
   }
 
   if (

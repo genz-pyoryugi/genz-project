@@ -128,6 +128,11 @@ const BookChat = (() => {
   async function send(raw) {
     const text = raw.trim();
     if (!text || pending) return;
+    // 욕설 · 비하 · 혐오 · 위협 표현은 보내지 않고 바로 안내 (js/moderation.js — 서버도 한 번 더 검사)
+    if (typeof GenzModeration !== "undefined" && GenzModeration.findBlocked(text)) {
+      addMessage("bot", GenzModeration.MODERATION_MESSAGE);
+      return;
+    }
     pending = true;
     input.value = "";
     addMessage("user", text);

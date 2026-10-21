@@ -3,24 +3,78 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>주제별 카드뉴스</title>
+  <title>젠지표류기 · 카드뉴스 학습</title>
+  <!-- 카드뉴스: content 브랜치(팀 카드뉴스 7개 코스)의 home.html 과 같은 구성. 사무실 파일첩(주제별 가이드 / 카드뉴스) 팝업에서 열림.
+       팝업 안에서 스크롤 없이 한눈에 보이도록: 한 번에 카드뉴스 하나만(‘전체’ 탭 숨김, 처음엔 첫 카테고리),
+       카드는 남은 높이에 맞춰 줄여서(zoom) 보여준다 — 아래 맨 끝 스크립트. 팀원 파일(js/·css/)은 고치지 않음. -->
+  <style>
+    html,body{height:100%;overflow:hidden!important}
+    .cardnews-preview{padding-top:18px!important;padding-bottom:0!important}
+    .cardnews-filter[data-category="all"]{display:none}
+    .cardnews-filter-status{display:none}
+    .cardnews-results{transform-origin:top center}
+    /* 카테고리 탭: 화면 폭 전체 대신 글자 길이만큼만, 가운데에 (카드뉴스가 더 크게 보이도록 탭 높이도 조금 줄임) */
+    .cardnews-filters{width:fit-content!important;max-width:100%;margin:0 auto!important}
+    .cardnews-filter{flex:0 0 auto!important;min-height:44px!important;padding:0 14px!important;font-size:15px!important}
+  </style>
   <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="css/cardnews-preview.css" />
-  <style>
-    /* 사무실 파일첩 팝업 안: 주제 탭 + 카드 + 아래 넘김 버튼이 창 높이에 다 들어오게 (탭 줄 ≈ 50px) */
-    .cardnews-preview { padding: 16px; }
-    /* 카드는 팝업 크기만큼 크게 (정사각형 카드는 남은 높이 = 너비, 4:5 카드는 그 0.8배) */
-    .cardnews-preview .cardnews__deck { width: min(100%, calc((100svh - 32px - 72px - 50px) * 0.8)); }
-    .cardnews-preview .cardnews__deck:has(.cardnews__card--image) { width: min(100%, calc(100svh - 32px - 72px - 50px)); }
-    .cardnews-preview .cardnews__viewport { width: 100%; }
-  </style>
+  <link rel="stylesheet" href="css/communication-learning.css" />
+  <link rel="stylesheet" href="css/newsletter-cardnews.css" />
+  <link rel="stylesheet" href="/fonts/pretendard-all.css" />
 </head>
 <body>
-  <main class="cardnews-preview" id="cardnews-preview" aria-label="주제별 카드뉴스"></main>
+  <main class="cardnews-preview" id="cardnews-preview" aria-label="젠지표류기 카드뉴스 학습 콘텐츠"></main>
   <script src="js/components/util.js"></script>
   <script src="js/components/cardnews.js"></script>
   <script src="js/data/articles.js"></script>
-  <script src="js/data/cardnews-topics.js"></script>
+  <script src="js/data/cardnews-categories.js"></script>
+  <script src="js/data/cardnews-contents.js"></script>
+  <script src="js/data/communication-content.js"></script>
+  <script src="js/data/newsletter-content.js"></script>
+  <script src="js/data/interpersonal-content.js"></script>
+  <script src="js/data/work-ethics-content.js"></script>
+  <script src="js/data/first-day-adaptation-content.js"></script>
+  <script src="js/data/email-messenger-content.js"></script>
+  <script src="js/data/remote-work-content.js"></script>
+  <script src="js/data/shared-resources-content.js"></script>
+  <script src="js/components/first-day-cardnews.js"></script>
+  <script src="js/components/communication-cardnews.js"></script>
+  <script src="js/components/cardnews-learning.js"></script>
+  <script src="js/components/newsletter-cardnews.js"></script>
   <script src="js/components/cardnews-preview.js"></script>
+  <script>
+    // 한눈에 보기: 첫 카테고리를 고르고, 카드뉴스를 남은 공간에 맞게 키우거나 줄인다
+    (() => {
+      const results = document.getElementById('cardnews-results');
+      // 카드뉴스를 남은 공간(높이 · 폭)에 꽉 차게: 작으면 키우고(최대 1.7배) 넘치면 줄인다
+      const fit = () => {
+        results.style.zoom = 1;
+        const top = results.getBoundingClientRect().top, h = results.scrollHeight;
+        const card = results.querySelector('.cardnews-content') || results;
+        const w = card.getBoundingClientRect().width;
+        const k = Math.min(1.7, (innerHeight - top - 14) / h, (document.documentElement.clientWidth - 32) / w);
+        results.style.zoom = k.toFixed(3);
+      };
+      // ?topic=0~6 (e.g. the office tour's '카드뉴스부터 시작하기' for the topic chosen in the welcome popup) opens that category; otherwise the first one
+      const topic = Number(new URLSearchParams(location.search).get('topic'));
+      const filters = document.querySelectorAll('.cardnews-filter:not([data-category="all"])');
+      (Number.isInteger(topic) && filters[topic] ? filters[topic] : filters[0])?.click();
+      // '퀴즈 풀러 가기' (end of a course, cardnews-learning.js) → the quiz tab of that course's category
+      // (quiz tabs follow CARDNEWS_CATEGORIES order). In the office popup the office opens the quiz (the pen); alone, a link.
+      document.addEventListener('cardnews:quiz-request', e => {
+        const content = CARDNEWS_CONTENTS.find(c => c.id === e.detail?.contentId);
+        const index = CARDNEWS_CATEGORIES.findIndex(c => (content?.categoryIds || []).includes(c.id));
+        const query = index >= 0 ? `?topic=${index}` : '';
+        if (window.parent !== window) window.parent.postMessage({ type: 'genz-office:open', object: 'pen', query }, location.origin);
+        else location.href = '/quiz' + query;
+      });
+      document.querySelectorAll('.cardnews-filter').forEach(b => b.addEventListener('click', () => requestAnimationFrame(fit)));
+      addEventListener('resize', fit);
+      new ResizeObserver(fit).observe(results);
+      document.fonts?.ready.then(fit);
+      fit();
+    })();
+  </script>
 </body>
 </html>

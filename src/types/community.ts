@@ -70,7 +70,7 @@ export interface PostItPost {
   fastener: FastenerType;
   rotation: number;
   highlightedText?: string;
-  isMine?: boolean; // 이 브라우저에서 내가 작성한 포스트잇 ('내가 쓴 글' 모아보기용, 로그인 기능 전까지의 표시)
+  isMine?: boolean; // 이 브라우저에서 내가 쓴 포스트잇 (내 보관함 · 삭제 · '내 글' 배지, 로그인 기능 전까지의 표시)
   // 신고 (src/lib/community/report.ts)
   reportCount?: number;
   reportedByMe?: boolean;
