@@ -23,6 +23,14 @@ function createLearningFlow(content, makeSlides) {
     try { localStorage.setItem(key,JSON.stringify(record)); return true; }
     catch { return false; }
   };
+  // Also send the score to the shared learning tracker (Supabase lt_events, type 'cardnews_self_check').
+  // cardnews.html runs inside the office iframe, so the tracker lives on the parent page.
+  const report = (phase, score) => {
+    try {
+      const tracker = window.genzTracker || (window.parent !== window && window.parent.genzTracker);
+      if (tracker && tracker.record) tracker.record('cardnews_self_check', {contentId:content.id, phase, score, learningVersion:config.version||1});
+    } catch { /* tracking must never block the lesson */ }
+  };
   const notice = h('p', {class:'learning-storage', role:'status'});
   const storageNote = saved => { notice.textContent = saved ? '' : '브라우저에 저장할 수 없어 현재 화면에서만 응답을 보관해요.'; };
   const stage = (name, child, focus=true) => {
@@ -87,9 +95,9 @@ function createLearningFlow(content, makeSlides) {
         record={contentId:content.id,learningVersion:config.version||1,goal:config.goal,
           preQuestion:config.preQuestion,postQuestion:config.postQuestion,
           preResponse:value,postResponse:null,startedAt:now,completedAt:null};
-        storageNote(save());lesson();
+        storageNote(save());report('before',value);lesson();
       } else {
-        record={...record,postResponse:value,completedAt:now};storageNote(save());
+        record={...record,postResponse:value,completedAt:now};storageNote(save());report('after',value);
         stage('complete',h('section',{class:'learning-panel learning-complete'},
           createProgress(),
           content.type==='newsletterTest' ? h('img',{class:'newsletter-complete-art',src:'/web/assets/picture/learning-complete-check.svg',alt:'','aria-hidden':'true',width:'160',height:'136'}) : null,
