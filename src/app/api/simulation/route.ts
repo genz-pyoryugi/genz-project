@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { saveSimulationResult } from "@/lib/simulation/results";
 import { findBlocked, MODERATION_MESSAGE } from "@/lib/moderation";
+import { findSensitive, SUPPORT } from "@/lib/simulation/safety";
 import { CATEGORIES, getScenario, publicScenario, SCENARIOS, type Scenario } from "@/lib/simulation/scenarios";
 import {
   cleanCustomText, CUSTOM_PERSONA_INSTRUCTIONS, customPersonaSchema, faceFor, guessPersona, isPresetKey, isUnsafePersona, personaPrompt, presetList, presetPersona,
@@ -244,6 +245,12 @@ ${openingRule}
 async function chat(key: string, signingKey: string, session: Session, scenario: Scenario, message: unknown) {
   if (session.ended) throw new RequestError("대화가 끝났어요. 결과를 확인해 주세요.");
   if (typeof message !== "string" || !message.trim() || message.length > 1000) throw new RequestError("답변은 1~1,000자로 입력해 주세요.");
+  // 실제 괴롭힘 피해 · 위기 신호: 역할극을 멈추고 도움 받을 곳 안내 (대화 기록 · 평가에 넣지 않고 AI 에도 보내지 않음)
+  const sensitive = findSensitive(message);
+  if (sensitive) {
+    const turns = session.messages.filter(m => m.role === "user").length;
+    return { safety: { kind: sensitive, ...SUPPORT[sensitive] }, shouldEnd: false, turns, maxTurns: MAX_TURNS, session: encode(session, signingKey) };
+  }
   if (findBlocked(message)) throw new RequestError(MODERATION_MESSAGE);   // 욕설 · 비하 · 혐오 · 위협 (src/lib/moderation.ts)
   session.messages.push({ role: "user", content: message.trim() });
   const turns = session.messages.filter(m => m.role === "user").length;

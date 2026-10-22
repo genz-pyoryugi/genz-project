@@ -23,6 +23,8 @@ const Simulation = (() => {
     ["remote-work-agreements"],
     ["shared-spaces-supplies"],
   ];
+  // 괴롭힘 피해 · 위기 신호 낱말 (띄어쓰기 지운 문장 기준) — src/lib/simulation/safety.ts 의 CRISIS + HARASSMENT 와 함께 고칠 것
+  const SENSITIVE = /죽고싶|자살|자해|극단적선택|사라지고싶|살기싫|그만살고싶|목숨을끊|괴롭힘|괴롭혀|괴롭히|따돌림|따돌리|따돌려|왕따|폭언|갑질|성희롱|성추행|추행을|폭행|때렸|때려요|협박|소리를질러|소리질러|소리를질렀|욕을했|욕을해|욕먹|모욕을|인격모독|차별당/;
   const CRITERIA = [["situationUnderstanding", "상황 파악"], ["responseQuality", "대응 방식"], ["followupAction", "후속 행동"]];
 
   // 퀴즈에서 틀린 concept 키 모음 (주제 구분 없이)
@@ -435,7 +437,8 @@ const Simulation = (() => {
         const message = input.value.trim();
         if (action === "chat" && (!message || !session || ended)) return;
         // 욕설 · 비하 · 혐오 · 위협 표현은 보내지 않고 바로 안내 (js/moderation.js — 서버도 한 번 더 검사)
-        if (action === "chat" && typeof GenzModeration !== "undefined" && GenzModeration.findBlocked(message)) {
+        // 단, 괴롭힘 피해 · 위기 신호로 보이면 보내서 서버가 도움 받을 곳을 안내하게 한다 (src/lib/simulation/safety.ts 와 같은 낱말)
+        if (action === "chat" && !SENSITIVE.test(message.replace(/\s+/g, "")) && typeof GenzModeration !== "undefined" && GenzModeration.findBlocked(message)) {
           notice.textContent = GenzModeration.MODERATION_MESSAGE;
           return;
         }
@@ -461,6 +464,13 @@ const Simulation = (() => {
               face = data.persona.face || face;
               leaderTag.replaceChildren(avatar(`assets/picture/leaders/${face}-v2.webp`), leader);
             }
+            if (data.safety) {
+              // 민감 상황: 팀장 대신 안내 카드. 이 답변은 횟수 · 평가에 들어가지 않고, 원하면 연습을 계속할 수 있다
+              log.append(supportCard(data.safety));
+              log.scrollTop = log.scrollHeight;
+              input.value = "";
+              return;
+            }
             say("bot", data.reply);
             if (action === "chat") { input.value = ""; turns = data.turns ?? turns + 1; }
             if (data.shouldEnd) ended = true;
@@ -481,6 +491,14 @@ const Simulation = (() => {
           log.scrollTop = log.scrollHeight;
           if (!input.disabled) input.focus({ preventScroll: true });
         }
+      }
+
+      function supportCard(info) {
+        return h("li", { class: "sim__support", role: "alert" },
+          h("h3", null, info.title),
+          h("p", null, info.text),
+          h("ul", null, info.contacts.map((c) => h("li", null, h("b", null, c.name), ` · ${c.detail}`))),
+          h("p", { class: "sim__support-note" }, "방금 쓴 내용은 연습 대화와 평가에 넣지 않았어요. 괜찮다면 연습을 이어가도 되고, 휴대폰의 SOS 상담에서 더 이야기할 수도 있어요."));
       }
 
       // 결과: 점수 3개(설명 포함, 총 15점) · 잘한 점 · 놓친 부분 · 이렇게 말하면 더 좋아요 · (다시 답변했으면) 이전 시도와 비교
