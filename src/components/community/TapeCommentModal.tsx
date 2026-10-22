@@ -81,7 +81,7 @@ export const TapeCommentModal: React.FC<TapeCommentModalProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-2xs overflow-y-auto animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/45 backdrop-blur-2xs overflow-y-auto animate-in fade-in duration-150">
       <div className="bg-[#FAF8F5] w-full max-w-lg my-auto rounded-2xl shadow-2xl border border-[#D5CFC5] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="px-6 py-4 bg-[#EAE6DF] border-b border-[#D5CFC5] flex items-center justify-between">
