@@ -52,6 +52,8 @@
 
 ## 🚀 배포 주소
 
+<br>
+
 [👉 젠지 표류기 바로가기](https://genz-project-one.vercel.app)
 
 <br>
