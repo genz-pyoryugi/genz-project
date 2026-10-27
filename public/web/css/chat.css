@@ -876,3 +876,12 @@ html.is-chat-open body {
 .sim__support ul { margin: 0 0 8px; padding-left: 18px; font-size: 0.88rem; line-height: 1.7; }
 .sim__support b { color: #1f2937; }
 .sim__support .sim__support-note { margin: 0; font-size: 0.8rem; color: #6b5a55; }
+
+/* 사용자 대응형 상황 안내 (팀장이 먼저 말하지 않는 상황 — scenarios.ts 의 guide) */
+.sim__guide { list-style: none; align-self: stretch; margin: 4px 0; padding: 12px 16px; border: 1.5px dashed #9fb4d8; border-radius: 14px; background: #f4f7fd; color: #1f2a44; }
+.sim__guide b { display: block; margin-bottom: 4px; font-size: 0.82rem; color: #2f5fb3; }
+.sim__guide p { margin: 0; font-size: 0.9rem; line-height: 1.6; word-break: keep-all; }
+.sim__scene { border-style: solid; background: #f7f7f2; }
+.sim__hint { padding: 8px 14px; border-color: #c9d6ec; background: #fafbfe; }
+.sim__hint b { font-size: 0.76rem; }
+.sim__hint p { font-size: 0.85rem; color: #44506a; }

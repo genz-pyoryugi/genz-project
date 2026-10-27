@@ -101,7 +101,7 @@
 | **Frontend** | Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · HTML/JS | 사무실 · 카드뉴스 · 퀴즈 · 체크리스트 · 캘린더 화면 |
 | **Backend** | Next.js Route Handler · FastAPI (Python) | 데이터 API, AI 호출, 라디오 서버 |
 | **Database** | Supabase (PostgreSQL · Auth · Storage) | 콘텐츠 · 학습 기록 · 커뮤니티 저장, RLS 권한 |
-| **AI** | OpenAI (gpt-4.1-mini) · Gemini (대본 · TTS) · 이미지 생성 AI | AI 팀장, SOS 상담, 보이는 라디오, 캐릭터 · 스티커 |
+| **AI** | OpenAI (gpt-4.1 · gpt-4.1-mini) · Gemini (대본 · TTS) · 이미지 생성 AI | AI 팀장, SOS 상담, 보이는 라디오, 캐릭터 · 스티커 |
 | **Test** | node:test · Playwright · PGlite | RLS · 채점 · 저장 · 화면 동작 테스트 |
 
 <br>

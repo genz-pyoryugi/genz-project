@@ -23,8 +23,11 @@ const Simulation = (() => {
     ["remote-work-agreements"],
     ["shared-spaces-supplies"],
   ];
-  // 괴롭힘 피해 · 위기 신호 낱말 (띄어쓰기 지운 문장 기준) — src/lib/simulation/safety.ts 의 CRISIS + HARASSMENT 와 함께 고칠 것
-  const SENSITIVE = /죽고싶|자살|자해|극단적선택|사라지고싶|살기싫|그만살고싶|목숨을끊|괴롭힘|괴롭혀|괴롭히|따돌림|따돌리|따돌려|왕따|폭언|갑질|성희롱|성추행|추행을|폭행|때렸|때려요|협박|소리를질러|소리질러|소리를질렀|욕을했|욕을해|욕먹|모욕을|인격모독|차별당/;
+  // 위기 신호 · 괴롭힘 피해 낱말 — src/lib/simulation/safety.ts 의 CRISIS · HARASSMENT 와 함께 고칠 것
+  // (위기 낱말은 띄어쓰기를 살린 문장, 괴롭힘 낱말은 띄어쓰기를 지운 문장에서 찾는다)
+  const SENSITIVE_CRISIS = /죽고 ?싶|(?<![가-힣])자살|(?<![가-힣])자해|극단적 ?선택|사라지고 ?싶|살기 ?싫|그만 ?살고 ?싶|목숨을 ?끊/;
+  const SENSITIVE_HARASSMENT = /괴롭힘|괴롭혀|괴롭히|따돌림|따돌리|따돌려|왕따|폭언|갑질|성희롱|성추행|추행을|폭행|때렸|때려요|협박|소리를질러|소리질러|소리를질렀|욕을했|욕을해|욕먹|모욕을|인격모독|차별당/;
+  const isSensitive = text => SENSITIVE_CRISIS.test(text.replace(/\s+/g, " ")) || SENSITIVE_HARASSMENT.test(text.replace(/\s+/g, ""));
   const CRITERIA = [["situationUnderstanding", "상황 파악"], ["responseQuality", "대응 방식"], ["followupAction", "후속 행동"]];
 
   // 퀴즈에서 틀린 concept 키 모음 (주제 구분 없이)
@@ -438,7 +441,7 @@ const Simulation = (() => {
         if (action === "chat" && (!message || !session || ended)) return;
         // 욕설 · 비하 · 혐오 · 위협 표현은 보내지 않고 바로 안내 (js/moderation.js — 서버도 한 번 더 검사)
         // 단, 괴롭힘 피해 · 위기 신호로 보이면 보내서 서버가 도움 받을 곳을 안내하게 한다 (src/lib/simulation/safety.ts 와 같은 낱말)
-        if (action === "chat" && !SENSITIVE.test(message.replace(/\s+/g, "")) && typeof GenzModeration !== "undefined" && GenzModeration.findBlocked(message)) {
+        if (action === "chat" && !isSensitive(message) && typeof GenzModeration !== "undefined" && GenzModeration.findBlocked(message)) {
           notice.textContent = GenzModeration.MODERATION_MESSAGE;
           return;
         }
@@ -471,7 +474,17 @@ const Simulation = (() => {
               input.value = "";
               return;
             }
-            say("bot", data.reply);
+            // 사용자가 팀장에게 직접 말하지 않는 행동을 했을 때 AI 가 이어 붙인 장면 (예: 10분이 지나 팀장님이 돌아왔어요)
+            if (data.scene) log.append(h("li", { class: "sim__guide sim__scene", role: "note" }, h("p", null, data.scene)));
+            // 사용자 대응형 상황은 팀장이 먼저 말하지 않는다 (reply 가 빈 문자열)
+            if (data.reply) say("bot", data.reply);
+            // [상황 안내] 첫 답변 전 · [도움말] 매 답변 뒤 — 무엇을 담으면 좋을지 방향만 (답 내용은 알려 주지 않음)
+            const tip = data.guide || (!data.shouldEnd && data.hint);
+            if (tip) {
+              log.append(h("li", { class: `sim__guide${data.guide ? "" : " sim__hint"}`, role: "note" }, h("b", null, data.guide ? "상황 안내" : "도움말"), h("p", null, tip)));
+              log.scrollTop = log.scrollHeight;
+            }
+            if (data.guide && !data.reply) input.placeholder = "팀장님께 보낼 말이나 할 행동을 적어 보세요";
             if (action === "chat") { input.value = ""; turns = data.turns ?? turns + 1; }
             if (data.shouldEnd) ended = true;
           }

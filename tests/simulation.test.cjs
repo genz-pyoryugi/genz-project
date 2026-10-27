@@ -70,7 +70,7 @@ test('server locks scenario, personality and facts; structured chat/evaluate wit
   assert.equal(start.status, 200);
   assert.equal(start.data.persona.label, '바쁜 팀장');
   assert.ok(calls[0].instructions.includes('내일 오후 2시')); // facts go to the AI only
-  assert.ok(calls[0].instructions.includes('기본 첫 대사: 경쟁사 자료 좀 정리해서 내일까지 주세요.'));
+  assert.ok(calls[0].instructions.includes('기본 첫 대사: 경쟁사 자료 좀 정리해 줄 수 있어요? 내일까지 필요해요.'));
 
   // chat: { reply, shouldEnd } json schema, facts + persona each turn; client fields are ignored
   next = JSON.stringify({ reply: '임원 보고용이에요.', shouldEnd: true, usedTwist: false });
@@ -126,7 +126,7 @@ test('server locks scenario, personality and facts; structured chat/evaluate wit
   const ev2 = await post({ action: 'evaluate', session: chat3.data.session });
   assert.equal(ev2.status, 200);
   assert.equal(ev2.data.feedback.fallback, true); // safe fallback with learning points
-  assert.ok(ev2.data.learningPoints.includes('정확한 기한 확인'));
+  assert.ok(ev2.data.learningPoints.includes('범위 · 형태 · 정확한 마감 확인하기'));
   assert.ok(calls[6].instructions.includes('[3,2,2]'));
 
   apiStatus = 429;

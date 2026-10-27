@@ -6,14 +6,14 @@
 
 export type SensitiveKind = "crisis" | "harassment";
 
-// 띄어쓰기를 지운 문장에서 찾는다 ("죽고 싶" = "죽고싶")
-const CRISIS = /죽고싶|자살|자해|극단적선택|사라지고싶|살기싫|그만살고싶|목숨을끊/;
+// 괴롭힘 낱말은 띄어쓰기를 지운 문장에서 찾는다 ("폭언을 해요" = "폭언을해요").
+// 위기 낱말은 띄어쓰기를 지우면 "혼자 해" → "혼자해"(자해), "혼자 살아요"(자살)처럼 잘못 잡히므로, 띄어쓰기를 살린 문장에서 앞에 다른 한글이 붙지 않은 경우만 찾는다.
+const CRISIS = /죽고 ?싶|(?<![가-힣])자살|(?<![가-힣])자해|극단적 ?선택|사라지고 ?싶|살기 ?싫|그만 ?살고 ?싶|목숨을 ?끊/;
 const HARASSMENT = /괴롭힘|괴롭혀|괴롭히|따돌림|따돌리|따돌려|왕따|폭언|갑질|성희롱|성추행|추행을|폭행|때렸|때려요|협박|소리를질러|소리질러|소리를질렀|욕을했|욕을해|욕먹|모욕을|인격모독|차별당/;
 
 export function findSensitive(text: string): SensitiveKind | null {
-  const t = text.replace(/\s+/g, "");
-  if (CRISIS.test(t)) return "crisis";
-  if (HARASSMENT.test(t)) return "harassment";
+  if (CRISIS.test(text.replace(/\s+/g, " "))) return "crisis";
+  if (HARASSMENT.test(text.replace(/\s+/g, ""))) return "harassment";
   return null;
 }
 
