@@ -506,6 +506,23 @@ const Simulation = (() => {
         }
       }
 
+      // 성장 기록(public/outro 의 '오늘의 성장 기록')용: 상황별 가장 최근 평가 (localStorage 'genz_sim_results', 이 브라우저에만)
+      // 잘한 점 · 놓친 부분은 Supabase simulation_attempts 에 저장되는 것과 같은 평가 결과. 이전 점수(previous)는 서버가
+      // 같은 상황 · 같은 팀장 성격으로 '다시 답변해보기'를 했을 때만 보내므로, 전후 비교는 그때만 남긴다
+      function saveResult(data) {
+        if (data.total == null) return;
+        try {
+          const all = JSON.parse(localStorage.getItem("genz_sim_results") || "{}");
+          const f = data.feedback;
+          all[scenario.id] = { category: scenario.category, title: scenario.title, leader, at: new Date().toISOString(),
+            total: data.total, scores: CRITERIA.map(([key]) => f[key]?.score ?? null),
+            strengths: f.fallback ? [] : f.strengths || [], missedPoints: f.fallback ? [] : f.missedPoints || [],
+            learningPoints: data.learningPoints || [],
+            previous: data.previous ? { total: data.previous.total, scores: data.previous.scores, attempt: data.attempt } : null };
+          localStorage.setItem("genz_sim_results", JSON.stringify(all));
+        } catch { /* 저장하지 못해도 결과 화면은 그대로 */ }
+      }
+
       function supportCard(info) {
         return h("li", { class: "sim__support", role: "alert" },
           h("h3", null, info.title),
@@ -517,6 +534,7 @@ const Simulation = (() => {
       // 결과: 점수 3개(설명 포함, 총 15점) · 잘한 점 · 놓친 부분 · 이렇게 말하면 더 좋아요 · (다시 답변했으면) 이전 시도와 비교
       function resultCard(data) {
         const f = data.feedback;
+        saveResult(data);
         const section = (title, ...body) => h("section", { class: "sim__result-sec" }, h("h4", null, title), ...body);
         const card = h("li", { class: "sim__score sim__result" },
           h("h3", null, data.attempt > 1 ? `${data.attempt}번째 시도 결과` : "대화 피드백"),

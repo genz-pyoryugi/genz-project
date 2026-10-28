@@ -31,13 +31,14 @@ const readTopicParam = () => {
   return new URLSearchParams(window.location.search).has('topic') && Number.isInteger(n) && n >= 0 ? n : null;
 };
 // AI 팀장 simulation: missed concepts per topic → '추천' (localStorage 'genz_quiz_weak'), and when each topic was finished
-// (localStorage 'genz_quiz_done' — the simulation stores it to compare 카드뉴스 → 퀴즈 → AI 팀장 with going straight in).
+// (localStorage 'genz_quiz_done' — the simulation stores it to compare 카드뉴스 → 퀴즈 → AI 팀장 with going straight in),
+// and the first and latest score per topic (localStorage 'genz_quiz_scores' — the outro's 성장 기록 shows first → latest).
 // Topic 01 questions map to the simulation's concept keys (src/lib/simulation/scenarios.ts quizConcepts); other topics as a whole.
 const CONCEPT_BY_KEY: Record<string, string> = {
   'quizzes-22': 'org-start', 'quizzes-23': 'org-process', 'quizzes-24': 'org-process', 'quizzes-25': 'org-process',
   'quizzes-26': 'org-start', 'quizzes-27': 'org-people', 'quizzes-28': 'org-manner',
 };
-function saveQuizResult(topicName: string, wrongKeys: string[]) {
+function saveQuizResult(topicName: string, wrongKeys: string[], score: number, total: number) {
   try {
     const key = topicName.replace(/[^가-힣a-zA-Z0-9]/g, '');
     const weak = JSON.parse(localStorage.getItem('genz_quiz_weak') || '{}');
@@ -46,6 +47,10 @@ function saveQuizResult(topicName: string, wrongKeys: string[]) {
     const done = JSON.parse(localStorage.getItem('genz_quiz_done') || '{}');
     done[topicName] = new Date().toISOString();
     localStorage.setItem('genz_quiz_done', JSON.stringify(done));
+    const scores = JSON.parse(localStorage.getItem('genz_quiz_scores') || '{}');
+    const now = { score, total, at: done[topicName] };
+    scores[topicName] = { first: scores[topicName]?.first ?? now, last: now };
+    localStorage.setItem('genz_quiz_scores', JSON.stringify(scores));
   } catch {}
 }
 // Some multi-choice explanations in the DB start with '정답은 option1, option3, option4입니다.' (internal option ids) — dropped,
@@ -228,7 +233,7 @@ export default function QuizPage() {
   };
   useEffect(() => {
     if (!finished || !quiz) return;
-    saveQuizResult(quiz.title, questions.filter(q => run.wrongIds.includes(q.id)).map(q => q.questionKey));
+    saveQuizResult(quiz.title, questions.filter(q => run.wrongIds.includes(q.id)).map(q => q.questionKey), run.score, questions.length);
   }, [finished]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (status !== 'ready' || !quiz) return;

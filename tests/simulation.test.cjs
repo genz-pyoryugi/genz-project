@@ -35,7 +35,7 @@ test('scenarios: 21 scenarios, 3 per category, facts never sent to the browser',
   assert.equal(new Set(data.scenarios.map(s => s.id)).size, 21);
   assert.deepEqual(data.personalities.map(p => p.key), ['calm', 'direct', 'busy', 'meticulous']);
   const text = JSON.stringify(data);
-  assert.ok(!text.includes('facts') && !text.includes('내일 오후 2시') && !text.includes('idealBehaviors'));
+  assert.ok(!text.includes('facts') && !text.includes('B사 공식 홈페이지') && !text.includes('idealBehaviors'));
   for (const s of data.scenarios) {
     assert.ok(data.personalities.some(p => p.key === s.recommendedPersonality), s.id);
     assert.ok(s.quizConcepts.length > 0, s.id);
@@ -69,17 +69,17 @@ test('server locks scenario, personality and facts; structured chat/evaluate wit
   const start = await post({ action: 'start', scenarioId: 'proc-01', personality: 'busy' });
   assert.equal(start.status, 200);
   assert.equal(start.data.persona.label, '바쁜 팀장');
-  assert.ok(calls[0].instructions.includes('내일 오후 2시')); // facts go to the AI only
-  assert.ok(calls[0].instructions.includes('기본 첫 대사: 경쟁사 자료 좀 정리해 줄 수 있어요? 내일까지 필요해요.'));
+  assert.ok(calls[0].instructions.includes('B사 공식 홈페이지')); // facts go to the AI only
+  assert.ok(calls[0].instructions.includes('기본 첫 대사: 내일 회의에 쓸 경쟁사 비교 자료, 공유 폴더에서 확인하셨죠?'));
 
   // chat: { reply, shouldEnd } json schema, facts + persona each turn; client fields are ignored
-  next = JSON.stringify({ reply: '임원 보고용이에요.', shouldEnd: true, usedTwist: false });
+  next = JSON.stringify({ reply: '임원 보고용이에요.', shouldEnd: false, usedTwist: false });
   const chat = await post({ action: 'chat', session: start.data.session, message: '어디에 쓰는 자료인가요?', facts: { 마감: '오늘' }, personality: 'calm' });
   assert.equal(chat.status, 200);
   assert.equal(chat.data.reply, '임원 보고용이에요.');
-  assert.equal(chat.data.shouldEnd, false); // the AI can't end before turn 2
+  assert.equal(chat.data.shouldEnd, false);
   assert.equal(calls[1].text.format.name, 'simulation_reply');
-  assert.ok(calls[1].instructions.includes('바쁜 팀장') && calls[1].instructions.includes('내일 오후 2시'));
+  assert.ok(calls[1].instructions.includes('바쁜 팀장') && calls[1].instructions.includes('B사 공식 홈페이지'));
   assert.ok(!calls[1].instructions.includes('"오늘"'));
   assert.deepEqual(calls[1].input.map(m => m.role), ['assistant', 'user']);
 
@@ -126,8 +126,13 @@ test('server locks scenario, personality and facts; structured chat/evaluate wit
   const ev2 = await post({ action: 'evaluate', session: chat3.data.session });
   assert.equal(ev2.status, 200);
   assert.equal(ev2.data.feedback.fallback, true); // safe fallback with learning points
-  assert.ok(ev2.data.learningPoints.includes('범위 · 형태 · 정확한 마감 확인하기'));
+  assert.ok(ev2.data.learningPoints.includes('빠진 정보를 발견하면 바로 알리고 질문하기'));
   assert.ok(calls[6].instructions.includes('[3,2,2]'));
+
+  // the AI can't end before the scenario's minimum turns (default 2; proc-01 allows ending on the first answer)
+  const early = await post({ action: 'start', scenarioId: 'comm-03', personality: 'calm' });
+  next = JSON.stringify({ reply: '네, 그럼 부탁해요.', shouldEnd: true, usedTwist: false });
+  assert.equal((await post({ action: 'chat', session: early.data.session, message: '네 알겠습니다' })).data.shouldEnd, false);
 
   apiStatus = 429;
   assert.equal((await post({ action: 'chat', session: chat3.data.session, message: '대안을 제안합니다' })).status, 429);

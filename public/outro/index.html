@@ -34,6 +34,24 @@
     <p class="big big--blue reveal">정말 잘했어요!</p>
   </section>
 
+  <!-- ②-1 오늘의 성장 기록 (outro.js renderGrowth — 이 브라우저에 남은 학습 기록만 쓰고, 기록이 없으면 숨김)
+       카드 한 장: 오늘 연습한 것(한 문장) → 카테고리별 점수(AI 팀장은 핵심 피드백 한 줄 + 자세히 보기) → 다음에 연습할 것 하나(바로 가기) -->
+  <section class="scene scene--growth" id="growth" hidden aria-labelledby="growthTitle">
+    <div class="gcard reveal">
+      <h2 class="gcard__title" id="growthTitle">오늘의 성장 기록</h2>
+      <p class="gcard__sub">오늘의 학습을 돌아보고 다음 연습을 준비해요.</p>
+      <h3 class="growth__h">오늘 연습한 것</h3>
+      <p class="gcard__text" id="growthPracticed"></p>
+      <div class="growth" id="growthList"></div>
+      <div class="gcard__next" id="growthNextBlock">
+        <h3 class="growth__h">다음에 연습할 것</h3>
+        <p class="gcard__text" id="growthNext"></p>
+        <button type="button" class="growth__go" id="growthGo"></button>
+      </div>
+    </div>
+    <p class="growth__note reveal">이 기기의 학습 기록이에요. 카드뉴스 이해도는 스스로 매긴 점수(5점)예요. 전후 비교는 같은 퀴즈를 다시 풀었거나 AI 팀장과 같은 상황 · 같은 팀장으로 다시 답변했을 때만 보여요.</p>
+  </section>
+
   <!-- ③ the article: 기사 제목(글자) + 본문(article.jpg, 동아일보 기사 화면에서 본문만 잘라낸 캡처) -->
   <section class="scene scene--article">
     <article class="article reveal" aria-labelledby="articleTitle">
