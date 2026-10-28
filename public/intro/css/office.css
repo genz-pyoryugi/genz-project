@@ -310,11 +310,20 @@
 @media (prefers-reduced-motion:reduce){.office-welcome,.office-welcome__box{transition:none}}
 .office-welcome__item b{grid-row:auto}   /* buttons: number + one recommended phrase */
 .office-welcome__box{width:min(640px,100%)}
+/* 직장 경험 한 가지 고르기 (처음 한 번, 주제 고르기 앞 단계) */
+.office-welcome__exp[hidden],.office-welcome__topic[hidden]{display:none}
+.office-welcome__exp-list{display:grid;gap:8px}
+.office-welcome__opt{display:block;width:100%;margin:0;padding:12px 16px;border:1.5px solid #e1ddd3;border-radius:12px;background:#fff;color:#16233f;
+  font:inherit;font-size:15px;font-weight:600;text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.office-welcome__opt span{font-weight:500;color:#7a8394}
+.office-welcome__opt:hover{border-color:rgb(40,115,255);background:#f2f7ff}
+.office-welcome__opt:focus-visible{outline:3px solid rgb(40,115,255);outline-offset:2px}
+.office-welcome__opt--none{color:#5b6577;font-weight:500}
 /* welcome popup: frosted, see-through box (the office shows through, blurred) */
 .office-welcome{background:rgba(8,12,20,.32)}
 .office-welcome__box{background:rgba(251,249,244,.62);border:1px solid rgba(255,255,255,.6);-webkit-backdrop-filter:blur(18px) saturate(1.2);backdrop-filter:blur(18px) saturate(1.2)}
-.office-welcome__item{background:rgba(255,255,255,.62);border-color:rgba(255,255,255,.7)}
-.office-welcome__item:hover{background:rgba(242,247,255,.9)}
+.office-welcome__item,.office-welcome__opt{background:rgba(255,255,255,.62);border-color:rgba(255,255,255,.7)}
+.office-welcome__item:hover,.office-welcome__opt:hover{background:rgba(242,247,255,.9)}
 /* outro popup (나가기 → /outro): the whole screen, no box — the page draws its own book over a dark office */
 .office-content--outro .office-content__backdrop{background:#fff;transition:none}
 .office-content--outro .office-content__dialog{width:100vw;height:100vh;height:100svh;background:transparent;box-shadow:none;border-radius:0}

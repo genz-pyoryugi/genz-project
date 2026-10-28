@@ -491,13 +491,31 @@
   let welcomeOpen = false;
   const showTags = () => stage.classList.remove('is-tags-hidden');
   if (wantTour()) stage.classList.add('is-tags-hidden');
+  // 직장 경험(참여자 구분): 이 브라우저에서 아직 답하지 않았으면 주제 고르기 전에 한 번만 묻는다.
+  // 답은 localStorage 'genz_participant_experience' 에 두고 학습 기록(lt_events 'participant_profile')으로도 보낸다
+  // (Supabase: supabase/migrations/202610280001_participant_profile.sql)
+  const EXP_KEY = 'genz_participant_experience';
+  const expStep = document.getElementById('officeWelcomeExp'), topicStep = document.getElementById('officeWelcomeTopic');
+  const box = welcome.querySelector('.office-welcome__box');
+  const answered = () => { try { return !!localStorage.getItem(EXP_KEY); } catch { return true; } }; // 저장소를 못 쓰면 묻지 않음
+  function showStep(exp) {
+    expStep.hidden = !exp; topicStep.hidden = exp;
+    box.setAttribute('aria-labelledby', exp ? 'officeWelcomeExpTitle' : 'officeWelcomeTitle');
+    (exp ? expStep.querySelector('.office-welcome__opt') : topicStep.querySelector('.office-welcome__item'))?.focus({ preventScroll: true });
+  }
+  expStep.querySelectorAll('.office-welcome__opt').forEach(opt => opt.addEventListener('click', () => {
+    const experience = opt.dataset.exp;
+    try { localStorage.setItem(EXP_KEY, JSON.stringify({ experience, at: new Date().toISOString() })); } catch { /* 이번 화면에서만 넘어감 */ }
+    try { window.genzTracker?.record('participant_profile', { experience }); } catch { /* 기록이 안 돼도 다음 단계로 */ }
+    showStep(false);
+  }));
   function openWelcome() {
     if (welcomeOpen || !ready || contentOpen || menuOpen) return;
     welcomeOpen = true;
     welcome.hidden = false;
     requestAnimationFrame(() => {
       welcome.classList.add('is-open');
-      welcome.querySelector('.office-welcome__item')?.focus({ preventScroll: true });
+      showStep(!answered());
     });
   }
   // topic: 0~6 (index in TOPICS) or null

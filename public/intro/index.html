@@ -125,8 +125,22 @@
     </div>
     <p class="office-hint" id="officeHint">책상 위 물건을 클릭해보세요.</p>
     <!-- 사무실이 처음 밝아지면 뜨는 안내 팝업: 7개 주제(버튼에는 주제별 걱정 문구, aria-label 에 주제 이름) 중 고민되는 것을 고르면 그 주제의 고민상담소(/community?chapter=)를 엶 (js/office.js) -->
+    <!-- 그 앞 단계(이 브라우저에서 처음 한 번만): 직장 경험 한 가지 — 참여자를 경험별로 나눠 학습 기록을 살펴보는 데만 씀 (lt_events 'participant_profile') -->
     <div class="office-welcome" id="officeWelcome" hidden>
       <div class="office-welcome__box" role="dialog" aria-modal="true" aria-labelledby="officeWelcomeTitle">
+        <div class="office-welcome__exp" id="officeWelcomeExp" hidden>
+          <p class="office-welcome__k">WELCOME</p>
+          <h2 class="office-welcome__t" id="officeWelcomeExpTitle">현재 직장 경험은 어떻게 되나요?</h2>
+          <p class="office-welcome__d">학습 기록을 경험별로 살펴보는 데만 써요. 이름 같은 개인 정보는 받지 않아요.</p>
+          <div class="office-welcome__exp-list">
+            <button type="button" class="office-welcome__opt" data-exp="pre_job">취업 전 <span>(대학생 · 취업준비생)</span></button>
+            <button type="button" class="office-welcome__opt" data-exp="under_1m">입사 1개월 이내</button>
+            <button type="button" class="office-welcome__opt" data-exp="1m_1y">입사 1개월 초과 ~ 1년 이내</button>
+            <button type="button" class="office-welcome__opt" data-exp="over_1y">직장 경력 1년 초과</button>
+            <button type="button" class="office-welcome__opt office-welcome__opt--none" data-exp="no_answer">응답하지 않음</button>
+          </div>
+        </div>
+        <div class="office-welcome__topic" id="officeWelcomeTopic">
         <p class="office-welcome__k">WELCOME</p>
         <h2 class="office-welcome__t" id="officeWelcomeTitle">첫 회사생활, 뭐가 제일 걱정되나요?</h2>
         <p class="office-welcome__d">지금 가장 고민되는 주제부터 골라보세요.</p>
@@ -140,6 +154,7 @@
           <button type="button" class="office-welcome__item" data-chapter="07" aria-label="07 공용 공간 &amp; 비품 관리 · 공용 공간에서 어떻게 행동해야 센스 있을지"><b>07</b>공용 공간에서 어떻게 행동해야 센스 있을지</button>
         </div>
         <button type="button" class="office-welcome__skip" id="officeWelcomeSkip">먼저 사무실 둘러볼게요</button>
+        </div>
       </div>
     </div>
     <!-- 왼쪽 위 사이드바: 책상 위 물건(.hotspot) 목록을 그대로 메뉴로 보여줌 — 항목은 js/office.js 가 hotspot 에서 만들고, 누르면 그 물건을 클릭한 것과 같음 -->
